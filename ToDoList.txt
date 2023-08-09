@@ -1,1 +1,6 @@
 ToDoList
+
+(X) Completare la lettura del capitolo 5 di LQFT - Montvay Munster
+(X) Leggere tutti gli articoli inviati da Papinutto
+(X) Capire come implementare le timeslices sulle funzioni di correlazione a 3 punti
+
