@@ -1,5 +1,6 @@
 # KaonOscillations_TMLQCD
-This repo contains the work of my MSc thesis in theoretical physics. The aim is to evaluate Kaon oscillation matrix elements / three points correlation functions throught the insertion of a complete set of 4-quarks dimension-6 operators. This could be useful to derive some parameters connected to BSM physics effects within the K-Kbar oscillations. Reference about operators and about the work already done:
+This repo contains the work of my MSc thesis in theoretical physics. The aim is to evaluate Kaon oscillation matrix elements (i.e. three points correlation functions) throught the insertion of a complete set of 4-quarks dimension-6 operators. This could be useful to derive some parameters connected to BSM physics effects within the K-Kbar oscillations.
+References about operators, about the work already done and about tecniques:
 
 # Kaon Mixing and dim-6 4 quarks operators
 - https://arxiv.org/abs/1207.1287
