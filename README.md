@@ -20,6 +20,7 @@ This repo contains the work of my MSc thesis in theoretical physics. The aim is 
 - https://arxiv.org/pdf/1702.01035.pdf
 
 # O(a) Improvement of Wilson fermions and Schroedinger functional
+- https://arxiv.org/abs/hep-lat/0611020
+- https://arxiv.org/pdf/1008.4857.pdf
 - https://arxiv.org/pdf/hep-lat/0306014.pdf
 - https://arxiv.org/pdf/hep-lat/0407002.pdf
-- https://arxiv.org/pdf/1008.4857.pdf
