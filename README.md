@@ -10,10 +10,10 @@ This repo contains the work of my MSc thesis in theoretical physics. The aim is 
 - https://arxiv.org/abs/1107.1441
 - https://doi.org/10.1051/epjconf/201817513018
 - https://doi.org/10.22323/1.396.0258
+- https://arxiv.org/pdf/1411.3982.pdf
 
 # Open boundary conditions
 - https://arxiv.org/pdf/1105.4749.pdf
-- https://arxiv.org/pdf/1411.3982.pdf
 - https://arxiv.org/pdf/1206.2809.pdf
 - https://arxiv.org/pdf/1608.08900.pdf
 - https://arxiv.org/pdf/1701.05502.pdf
