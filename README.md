@@ -25,3 +25,5 @@ References about operators, about the work already done and about tecniques:
 - https://arxiv.org/pdf/1008.4857.pdf
 - https://arxiv.org/pdf/hep-lat/0306014.pdf
 - https://arxiv.org/pdf/hep-lat/0407002.pdf
+
+Contact: rosiemanuele99@gmail.com, rosi.1812180@studenti.uniroma1.it
