@@ -27,3 +27,5 @@ References about operators, about the work already done and about tecniques:
 - https://arxiv.org/pdf/hep-lat/0407002.pdf
 
 Contacts: rosiemanuele99@gmail.com, rosi.1812180@studenti.uniroma1.it
+
+![Kaons are beautiful!](kaon.jpg "Kaons oscillatoions")
