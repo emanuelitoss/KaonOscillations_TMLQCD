@@ -7,7 +7,7 @@ References about operators, about the work already done and about tecniques:
 - https://doi.org/10.1140/epjc/s10052-018-6002-y
 
 # Twisted mass
-- https://arxiv.org/pdf/hep-lat/0101001.pdf
+- https://arxiv.org/pdf/hep-lat/0101001.pdf *Lattice QCD with a chirally twisted mass term*
 - https://arxiv.org/abs/1107.1441
 - https://doi.org/10.1051/epjconf/201817513018
 - https://doi.org/10.22323/1.396.0258
