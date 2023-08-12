@@ -3,8 +3,9 @@ This repo contains the work of my MSc thesis in theoretical physics. The aim is 
 References about operators, about the work already done and about tecniques:
 
 # Kaon Mixing and dimension-6 four-quarks operators
-- https://arxiv.org/abs/1207.1287
-- https://doi.org/10.1140/epjc/s10052-018-6002-y
+- https://arxiv.org/abs/1207.1287 *Kaon Mixing Beyond the SM from Nf=2 tmQCD and model independent constraints from the UTA*
+- https://doi.org/10.1140/epjc/s10052-018-6002-y *Non-perturbative renormalisation and running of BSM four-quark operators in Nf=2
+ QCD*
 
 # Twisted mass
 - https://arxiv.org/pdf/hep-lat/0101001.pdf *Lattice QCD with a chirally twisted mass term*
