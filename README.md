@@ -32,7 +32,7 @@ References about operators, about the work already done and about tecniques:
 ---
 
 # Repo organization
-The simulation code is into the folder <tm-obc-QCD>.
+The simulation code is into the folder *tm-obc-QCD*.
 
 ---
 
