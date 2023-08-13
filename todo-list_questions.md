@@ -10,3 +10,7 @@
 - Twisted mass
 - Open boundary conditions
 - O(a) improved Wilson fermions
+
+# Questions and pointviews
+- Unphysical zero modes of Wilson fermions and tmQCD: skill yourself
+- Open boundary conditions: freezing of topological charge and autocorrelation lengths
