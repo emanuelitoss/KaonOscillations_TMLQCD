@@ -30,10 +30,8 @@ fermions employing open boundary conditions*
 - Improving_Sommer https://arxiv.org/abs/hep-lat/0611020 *Non-perturbative QCD: renormalization, O(a)-improvement and matching to Heavy Quark Effective Theory*
 - Improving_Sint https://arxiv.org/pdf/1008.4857.pdf *The chirally rotated Schr¨odinger functional with Wilson
 fermions and automatic O(a) improvement*
-- https://arxiv.org/pdf/hep-lat/0306014.pdf *Chirally improving Wilson fermions
-I. O(a) improvement*
-- https://arxiv.org/pdf/hep-lat/0407002.pdf *Chirally improving Wilson fermions
-2. Four-quark operators*
+- https://arxiv.org/pdf/hep-lat/0306014.pdf *Chirally improving Wilson fermions I. O(a) improvement*
+- https://arxiv.org/pdf/hep-lat/0407002.pdf *Chirally improving Wilson fermions 2. Four-quark operators*
 
 ---
 ---
