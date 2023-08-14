@@ -14,7 +14,6 @@ References about operators, about the work already done and about tecniques:
   
 ### Twisted mass
 - tmLQCD https://arxiv.org/pdf/hep-lat/0101001.pdf *Lattice QCD with a chirally twisted mass term*
-- https://arxiv.org/abs/1107.1441 *Lattice QCD determination of m_b, f_B and f_Bs with twisted mass Wilson fermions*
 - LightMesons https://doi.org/10.22323/1.396.0258 *Light meson physics and scale setting from a mixed action with Wilson twisted mass valence quarks*
 
 ### Open boundary conditions
