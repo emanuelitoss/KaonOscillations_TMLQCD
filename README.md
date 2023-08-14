@@ -3,31 +3,37 @@ This repo contains the work of my MSc thesis in theoretical physics. The aim is 
 References about operators, about the work already done and about tecniques:
 
 ### Kaon Mixing and dimension-6 four-quarks operators
-- https://arxiv.org/abs/1207.1287 *Kaon Mixing Beyond the SM from Nf=2 tmQCD and model independent constraints from the UTA*
-- https://doi.org/10.1140/epjc/s10052-018-6002-y *Non-perturbative renormalisation and running of BSM four-quark operators in Nf=2
+- KMBSM https://arxiv.org/abs/1207.1287 *Kaon Mixing Beyond the SM from Nf=2 tmQCD and model independent constraints from the UTA*
+- RenRun https://doi.org/10.1140/epjc/s10052-018-6002-y *Non-perturbative renormalisation and running of BSM four-quark operators in Nf=2
  QCD*
 
 ### Simulation Settings
-- https://arxiv.org/pdf/1411.3982.pdf *Simulation of QCD with Nf = 2 + 1 flavors of non-perturbatively improved Wilson fermions*
-
+- Bruno https://arxiv.org/pdf/1411.3982.pdf *Simulation of QCD with Nf = 2 + 1 flavors of non-perturbatively improved Wilson fermions*
+- tmMixAct https://doi.org/10.1051/epjconf/201817513018 *A tmQCD mixed-action approach to flavour physics*
+- scale_CLS https://arxiv.org/pdf/1608.08900.pdf *Setting the scale for the CLS 2 + 1 flavor ensembles*
+  
 ### Twisted mass
-- https://arxiv.org/pdf/hep-lat/0101001.pdf *Lattice QCD with a chirally twisted mass term*
-- https://arxiv.org/abs/1107.1441
-- https://doi.org/10.1051/epjconf/201817513018
-- https://doi.org/10.22323/1.396.0258
+- tmLQCD https://arxiv.org/pdf/hep-lat/0101001.pdf *Lattice QCD with a chirally twisted mass term*
+- https://arxiv.org/abs/1107.1441 *Lattice QCD determination of m_b, f_B and f_Bs with twisted mass Wilson fermions*
+- LightMesons https://doi.org/10.22323/1.396.0258 *Light meson physics and scale setting from a mixed action with Wilson twisted mass valence quarks*
 
 ### Open boundary conditions
-- https://arxiv.org/pdf/1105.4749.pdf
-- https://arxiv.org/pdf/1206.2809.pdf
-- https://arxiv.org/pdf/1608.08900.pdf
-- https://arxiv.org/pdf/1701.05502.pdf
-- https://arxiv.org/pdf/1702.01035.pdf
+- OBC_top https://arxiv.org/pdf/1105.4749.pdf *Lattice QCD without topology barriers*
+- OBC_tm https://arxiv.org/pdf/1206.2809.pdf *Lattice QCD with open boundary conditions
+and twisted-mass reweighting*
+- OBC_opt2_charmed https://arxiv.org/pdf/1701.05502.pdf *Charmed pseudoscalar decay constants on
+three-flavour CLS ensembles with open boundaries*
+- OBC_opt3_continuum https://arxiv.org/pdf/1702.01035.pdf *Towards the continuum limit with improved Wilson
+fermions employing open boundary conditions*
 
 ### O(a) Improvement of Wilson fermions and Schroedinger functional
-- https://arxiv.org/abs/hep-lat/0611020
-- https://arxiv.org/pdf/1008.4857.pdf
-- https://arxiv.org/pdf/hep-lat/0306014.pdf
-- https://arxiv.org/pdf/hep-lat/0407002.pdf
+- Improving_Sommer https://arxiv.org/abs/hep-lat/0611020 *Non-perturbative QCD: renormalization, O(a)-improvement and matching to Heavy Quark Effective Theory*
+- Improving_Sint https://arxiv.org/pdf/1008.4857.pdf *The chirally rotated Schr¨odinger functional with Wilson
+fermions and automatic O(a) improvement*
+- https://arxiv.org/pdf/hep-lat/0306014.pdf *Chirally improving Wilson fermions
+I. O(a) improvement*
+- https://arxiv.org/pdf/hep-lat/0407002.pdf *Chirally improving Wilson fermions
+2. Four-quark operators*
 
 ---
 ---
