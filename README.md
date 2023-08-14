@@ -10,7 +10,7 @@ References about operators, about the work already done and about tecniques:
 ### Simulation Settings
 - Bruno https://arxiv.org/pdf/1411.3982.pdf *Simulation of QCD with Nf = 2 + 1 flavors of non-perturbatively improved Wilson fermions*
 - tmMixAct https://doi.org/10.1051/epjconf/201817513018 *A tmQCD mixed-action approach to flavour physics*
-- scale_CLS https://arxiv.org/pdf/1608.08900.pdf *Setting the scale for the CLS 2 + 1 flavor ensembles*
+- scale_CLS_opt1 https://arxiv.org/pdf/1608.08900.pdf *Setting the scale for the CLS 2 + 1 flavor ensembles*
   
 ### Twisted mass
 - tmLQCD https://arxiv.org/pdf/hep-lat/0101001.pdf *Lattice QCD with a chirally twisted mass term*
