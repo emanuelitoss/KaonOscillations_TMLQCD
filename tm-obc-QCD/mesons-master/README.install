@@ -5,7 +5,7 @@
   You will need to know the full path to openQCD-1.2/modules/
   
 
-* edit the Makefie of the mesons package, which should be in ./build/Makefile
+* edit the Makefile of the mesons package, which should be in ./build/Makefile
   The lines that need adjustment are the following:
   
   MDIR = ../../openQCD-1.2/modules
