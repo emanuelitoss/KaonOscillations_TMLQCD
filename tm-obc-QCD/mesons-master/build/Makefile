@@ -16,7 +16,8 @@
 all: rmxeq mkdep mkxeq
 .PHONY: all
 
-# MPI_HOME=/soft/haswell/openmpi/1.10.2
+# modified open-mpi path (Emanuele Rosi)
+MPI_HOME=/usr/local/Cellar/open-mpi/4.1.3
 # GCC=gcc
 
 # main programs and modules to be compiled
