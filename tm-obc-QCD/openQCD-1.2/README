@@ -191,7 +191,7 @@ used in actual simulations are contained in the directory main/examples.
 EXPORTED FIELD FORMAT
 
 The field configurations generated in the course of a simulation are written
-to disk in a machine-independent format (see modules/misc/archive.c).
+to disk in a machine-independent format (see modules/misc/archive.c). (Emanuele Rosi: ora è in modules/archive/archive.c)
 Independently of the machine endianness, the fields are written in little
 endian format. A byte-reordering is therefore not required when machines with
 different endianness are used for the simulation and the physics analysis.
