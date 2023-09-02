@@ -89,11 +89,11 @@ typedef struct
    int isd,nsd;
    double *ta;
    spinor_dble **sd;
-} stack_t;
+} stack_T;
 
 static int nst=0;
 static double mdt=0.0;
-static stack_t *st=NULL;
+static stack_T *st=NULL;
 
 
 static void init_stacks(void)
