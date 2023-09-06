@@ -1,8 +1,6 @@
 # Questions:
 
-- Come estrapolare gli elementi di matrice: non capisco i conti fatti in KMBSM. Altrimenti come ho pensato io andrebbe bene?
-
-- Le directories ./log, ./dir, ./data, etc che sono? Che ci dovrebbe essere dentro? Gli ensemble da dove li tiro fuori? Non posso di certo generarli io.
+- Come estrapolare gli elementi di matrice: non capisco i conti fatti in KMBSM, nel senso che sembrerebbe che i Wall operators evitino di creare quei termini che voglio semplificare... Altrimenti come ho pensato io andrebbe bene?
 
 - Why mixed action and not both O(a) improved fermions or both maximally twisted mass?
 	La risposta dovrebbe essere nell'articolo di Frezzotti-Rossi
@@ -24,6 +22,8 @@
 ***
 
 ## About code:
+
+- Le directories ./log, ./dir, ./data, etc che sono? Che ci dovrebbe essere dentro? Gli ensemble da dove li tiro fuori? Non posso di certo generarli io.
 
 - Dove sono i dati degli ensemble? Come faccio a sapere se li ho o meno? Come li do in pasto al programma?
 
