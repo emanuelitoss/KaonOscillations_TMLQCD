@@ -161,7 +161,7 @@ rat_parms_t rat_parms(int irp)
 void read_rat_parms(int irp)
 {
    int my_rank;
-   int degree;
+   int degree=0;
    double range[2];
    char line[NAME_SIZE];
 
