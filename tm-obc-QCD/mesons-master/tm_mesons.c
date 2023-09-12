@@ -57,6 +57,8 @@
 #include "global.h"
 #include "mesons.h"
 
+#include "OutputColors.h"
+
 #define N0 (NPROC0*L0)
 #define N1 (NPROC1*L1)
 #define N2 (NPROC2*L2)
@@ -103,7 +105,7 @@ static struct
    int **type;   /* type index of each x0 and propagator  */
 } proplist;
 
-static int my_rank,noexp,append,norng,endian;
+static int my_rank,noexp,append,norng,endian,nogauge;
 static int first,last,step;
 static int level,seed,nprop,ncorr,nnoise,noisetype,tvals;
 static int *isps,*props1,*props2,*type1,*type2,*x0s;
@@ -405,9 +407,14 @@ static void read_dirs(void)
          read_line("loc_dir","%s",loc_dir);
          cnfg_dir[0]='\0';
       }
-      else
+      else if(!nogauge)
       {
          read_line("cnfg_dir","%s",cnfg_dir);
+         loc_dir[0]='\0';
+      }
+      else
+      {
+         cnfg_dir[0]='\0';
          loc_dir[0]='\0';
       }
 
@@ -448,7 +455,7 @@ static void setup_files(void)
    if (noexp)
       error_root(name_size("%s/%sn%d_%d",loc_dir,nbase,last,NPROC-1)>=NAME_SIZE,
                  1,"setup_files [mesons.c]","loc_dir name is too long");
-   else
+   else if (!nogauge)
       error_root(name_size("%s/%sn%d",cnfg_dir,nbase,last)>=NAME_SIZE,
                  1,"setup_files [mesons.c]","cnfg_dir name is too long");
 
@@ -793,7 +800,7 @@ static void read_solvers(void)
       read_dfl_parms();
 }
 
-
+/* Read input file <filename.in> */
 static void read_infile(int argc,char *argv[])
 {
    int ifile;
@@ -806,12 +813,13 @@ static void read_infile(int argc,char *argv[])
       endian=endianness();
 
       error_root((ifile==0)||(ifile==(argc-1)),1,"read_infile [mesons.c]",
-                 "Syntax: mesons -i <input file> [-noexp] [-a [-norng]]");
+                 "Syntax: mesons -i <input file> [-noexp] [-nogauge] [-a [-norng]]");
 
       error_root(endian==UNKNOWN_ENDIAN,1,"read_infile [mesons.c]",
                  "Machine has unknown endianness");
 
       noexp=find_opt(argc,argv,"-noexp");
+      nogauge=find_opt(argc,argv,"-nogauge"); /* Option to use link variables = 1 */
       append=find_opt(argc,argv,"-a");
       norng=find_opt(argc,argv,"-norng");
 
@@ -822,6 +830,7 @@ static void read_infile(int argc,char *argv[])
 
    MPI_Bcast(&endian,1,MPI_INT,0,MPI_COMM_WORLD);
    MPI_Bcast(&noexp,1,MPI_INT,0,MPI_COMM_WORLD);
+   MPI_Bcast(&nogauge,1,MPI_INT,0,MPI_COMM_WORLD);
    MPI_Bcast(&append,1,MPI_INT,0,MPI_COMM_WORLD);
    MPI_Bcast(&norng,1,MPI_INT,0,MPI_COMM_WORLD);
 
@@ -1676,18 +1685,21 @@ static void check_endflag(int *iend)
 
 int main(int argc,char *argv[])
 {
-   int nc,iend,status[4];
+   int nc,iend,status[4]; /* nc := number of configurations
+                           iend := end index?
+                           status _:= */
    int nws,nwsd,nwv,nwvd;
    double wt1,wt2,wtavg;
    dfl_parms_t dfl;
+   FILE *my_log_file=fopen("../log/mylog.txt","w");
 
-   MPI_Init(&argc,&argv);
+   MPI_Init(&argc,&argv);  /* initialize an open-mpi */
    MPI_Comm_rank(MPI_COMM_WORLD,&my_rank);
    
-   read_infile(argc,argv);
-   alloc_data();
-   check_files();
-   print_info();
+   read_infile(argc,argv); /* read input file <filename>.in */
+   alloc_data(); /* allocate memory for correlators */
+   check_files(); /* check old log and data files */
+   print_info();  /* print info in .log file */
    dfl=dfl_parms();
 
    geometry();
@@ -1702,6 +1714,8 @@ int main(int argc,char *argv[])
 
    iend=0;
    wtavg=0.0;
+
+   fprintf(my_log_file,"Fin qui ci siamo arrivati sani e salvi\n");
 
    for (nc=first;(iend==0)&&(nc<=last);nc+=step)
    {
@@ -1718,11 +1732,17 @@ int main(int argc,char *argv[])
          read_cnfg(cnfg_file);
          restore_ranlux();
       }
-      else
+      else if(!nogauge)
       {
          sprintf(cnfg_file,"%s/%sn%d",cnfg_dir,nbase,nc);
          import_cnfg(cnfg_file);
+      }else
+      {
+         fprintf(my_log_file, "Okay il flag funziona.\n");
+
+         /* qualcosa che dia come configurazione di Gauge sempre 1 */
       }
+      fclose(my_log_file);
 
       if (dfl.Ns)
       {
