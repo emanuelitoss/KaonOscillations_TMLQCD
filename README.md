@@ -45,8 +45,6 @@ fermions employing open boundary conditions*
 # Repo organization
 The simulation codes are into <span style="color:orange">tm-obc-QCD</span> folder. Inside it you can find other README file(s) and documents about the code.
 
-Inside <span style="color:orange">articles_thesis</span> you can find the mentioned above articles and also some useful articles. The ones in the above lists are *mandatory papers* (from the referee M. Papinutto); the rest are additional.
-
 ---
 
 ### Contacts:
