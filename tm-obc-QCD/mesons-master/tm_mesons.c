@@ -57,7 +57,9 @@
 #include "global.h"
 #include "mesons.h"
 
+/* Emanuele Rosi includes */
 #include "OutputColors.h"
+#include "uflds.h"
 
 #define N0 (NPROC0*L0)
 #define N1 (NPROC1*L1)
@@ -132,7 +134,6 @@ static void alloc_data(void)
    error((data.corr==NULL)||(data.corr_tmp==NULL),1,"alloc_data [mesons.c]",
          "Unable to allocate data arrays");
 }
-
 
 static void write_file_head(void)
 {
@@ -449,7 +450,6 @@ static void read_dirs(void)
    MPI_Bcast(&seed,1,MPI_INT,0,MPI_COMM_WORLD);
 }
 
-
 static void setup_files(void)
 {
    if (noexp)
@@ -477,7 +477,6 @@ static void setup_files(void)
    sprintf(dat_save,"%s~",dat_file);
    sprintf(rng_save,"%s~",rng_file);
 }
-
 
 static void read_lat_parms(void)
 {
@@ -704,7 +703,6 @@ static void read_lat_parms(void)
       write_lat_parms(fdat);
 }
 
-
 static void read_sap_parms(void)
 {
    int bs[4];
@@ -718,7 +716,6 @@ static void read_sap_parms(void)
    MPI_Bcast(bs,4,MPI_INT,0,MPI_COMM_WORLD);
    set_sap_parms(bs,1,4,5);
 }
-
 
 static void read_dfl_parms(void)
 {
@@ -767,7 +764,6 @@ static void read_dfl_parms(void)
    MPI_Bcast(&res,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
    set_dfl_pro_parms(nkv,nmx,res);
 }
-
 
 static void read_solvers(void)
 {
@@ -860,7 +856,6 @@ static void read_infile(int argc,char *argv[])
    }
 }
 
-
 static void check_old_log(int *fst,int *lst,int *stp)
 {
    int ie,ic,isv;
@@ -933,7 +928,6 @@ static void check_old_log(int *fst,int *lst,int *stp)
    (*stp)=dc;
 }
 
-
 static void check_old_dat(int fst,int lst,int stp)
 {
    int ie,ic;
@@ -976,7 +970,6 @@ static void check_old_dat(int fst,int lst,int stp)
               "Configuration range is not as reported in the log file");
 }
 
-
 static void check_files(void)
 {
    int fst,lst,stp;
@@ -1014,7 +1007,6 @@ static void check_files(void)
       }
    }
 }
-
 
 static void print_info(void)
 {
@@ -1149,7 +1141,6 @@ static void print_info(void)
    }
 }
 
-
 static void dfl_wsize(int *nws,int *nwv,int *nwvd)
 {
    dfl_parms_t dp;
@@ -1162,7 +1153,6 @@ static void dfl_wsize(int *nws,int *nwv,int *nwvd)
    MAX(*nwv,2*dpp.nkv+2);
    MAX(*nwvd,4);
 }
-
 
 static void make_proplist(void)
 {
@@ -1278,8 +1268,6 @@ static void wsize(int *nws,int *nwsd,int *nwv,int *nwvd)
                  "Unknown or unsupported solver");
 }
 
-
-
 static void random_source(spinor_dble *eta, int x0)
 {
    int y0,iy,ix;
@@ -1316,9 +1304,7 @@ static void random_source(spinor_dble *eta, int x0)
    }
 }
 
-
-static void solve_dirac(int prop, spinor_dble *eta, spinor_dble *psi,
-                        int *status)
+static void solve_dirac(int prop, spinor_dble *eta, spinor_dble *psi, int *status)
 {
    solver_parms_t sp;
    sap_parms_t sap;
@@ -1367,8 +1353,6 @@ static void solve_dirac(int prop, spinor_dble *eta, spinor_dble *psi,
                  "Unknown or unsupported solver");
 }
 
-
-/* xi = \gamma_5 Gamma^\dagger eta */
 void make_source(spinor_dble *eta, int type, spinor_dble *xi)
 {
    switch (type)
@@ -1516,7 +1500,6 @@ void make_xi(spinor_dble *eta,int type,spinor_dble *xi)
    }
 }
 
-
 static void correlators(void)
 {
    int ix0,inoise,iprop,icorr,ip1,ip2,l,stat[4],y0,iy;
@@ -1633,7 +1616,6 @@ static void init_rng(void)
       start_ranlux(level,seed);
 }
 
-
 static void save_ranlux(void)
 {
    int nlxs,nlxd;
@@ -1654,13 +1636,11 @@ static void save_ranlux(void)
    rlxd_get(rlxd_state);
 }
 
-
 static void restore_ranlux(void)
 {
    rlxs_reset(rlxs_state);
    rlxd_reset(rlxd_state);
 }
-
 
 static void check_endflag(int *iend)
 {
@@ -1685,7 +1665,7 @@ static void check_endflag(int *iend)
 
 int main(int argc,char *argv[])
 {
-   int nc,iend,status[4]; /* nc := number of configurations
+   int nc,iend,status[4]; /* nc := number of configurations, or configuration index
                            iend := end index?
                            status _:= */
    int nws,nwsd,nwv,nwvd;
@@ -1715,8 +1695,6 @@ int main(int argc,char *argv[])
    iend=0;
    wtavg=0.0;
 
-   fprintf(my_log_file,"Fin qui ci siamo arrivati sani e salvi\n");
-
    for (nc=first;(iend==0)&&(nc<=last);nc+=step)
    {
       MPI_Barrier(MPI_COMM_WORLD);
@@ -1736,17 +1714,28 @@ int main(int argc,char *argv[])
       {
          sprintf(cnfg_file,"%s/%sn%d",cnfg_dir,nbase,nc);
          import_cnfg(cnfg_file);
-      }else
-      {
-         fprintf(my_log_file, "Okay il flag funziona.\n");
-
-         /* qualcosa che dia come configurazione di Gauge sempre 1 */
       }
-      fclose(my_log_file);
+      else
+      {
+         sprintf(cnfg_file,"# Gauge configurations are randomly generated\n");
+         fprintf(my_log_file, "# Option '-nogauge' works.\n");
+
+         /* my new function */
+         random_ud();
+         fprintf(my_log_file, "# Configurations generation complete!\n");
+
+         set_flags(UPDATED_UD);
+      }
+
 
       if (dfl.Ns)
       {
-         dfl_modes(status);
+         dfl_modeSS(status,my_log_file);
+         /*dfl_modeS(status);*/
+
+         /*fprintf(my_log_file, "# Deflation subspace block checked\n");
+         fclose(my_log_file);*/
+
          error_root(status[0]<0,1,"main [mesons.c]",
                     "Deflation subspace generation failed (status = %d)",
                     status[0]);

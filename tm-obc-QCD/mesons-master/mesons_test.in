@@ -14,7 +14,7 @@ dat_dir      ../dat
                                   # (last-first)%step must be == 0 and step >= 1
 first        1 
 last         1
-step         2
+step         1
 
 [Random number generator]         # as in openQCD
 level        0      
@@ -80,10 +80,10 @@ nmx          128
 res          1.0e-12
 
 [SAP]
-bs           6 4 4 8    # bs : block size 
+bs           4 4 4 4    # bs : block-size 
 
 [Deflation subspace]
-bs           6 4 4 8    # bs : block size 
+bs           4 4 4 4    # bs : block-size 
 Ns           20
 
 [Deflation subspace generation]

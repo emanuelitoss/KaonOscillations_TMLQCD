@@ -157,10 +157,10 @@ void random_u(void)
    for (;u<um;u++)
       random_su3(u);
 
-   if (sf_flg()==0)
-      openbc();
+   if (sf_flg()==0)  /* sf_flg == 1 if SF boundary conditions, == 0 otherwise */
+      openbc();   /* open boundary conidtions */
    else
-      sfbc();
+      sfbc();     /* SF boundary conditions */
 }
 
 
@@ -174,10 +174,10 @@ void random_ud(void)
    for (;u<um;u++)
       random_su3_dble(u);
 
-   if (sf_flg()==0)
-      openbcd();
+   if (sf_flg()==0)  /* sf_flg == 1 if SF boundary conditions, == 0 otherwise */
+      openbcd();  /* open boundary conidtions */
    else
-      sfbcd();   
+      sfbcd();    /* SF boundary conditions */
 }
 
 
