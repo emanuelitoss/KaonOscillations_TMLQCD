@@ -27,7 +27,11 @@ MPI_HOME=/usr/local/Cellar/open-mpi/4.1.3
 
 # scheduling and optimization options
 
-CFLAGS = -std=c89 -pedantic -fstrict-aliasing -Wall -Wno-long-long -Wstrict-prototypes -Werror -O -mno-avx -Dx64 -DPM
+# the previous CFLAGS options were:
+# CFLAGS = -std=c89 -pedantic -fstrict-aliasing -Wall -Wno-long-long -Wstrict-prototypes -Werror -O -mno-avx -Dx64 -DPM -DCGNE_DBG -DFGCR_DBG -FGCR4VD_DBG -DMSCG_DBG -DDFL_MODES_DBG -DMDINT_DBG -DRWRAT_DBG
+
+# Emanuele Rosi's MacBook Pro >> no SSE and/or AVX acceleration (assembly code)
+CFLAGS = -std=c89 -pedantic -fstrict-aliasing -Wall -Wno-long-long -Wstrict-prototypes -Werror -O -mno-avx -DCGNE_DBG -DFGCR_DBG -FGCR4VD_DBG -DMSCG_DBG -DDFL_MODES_DBG -DMDINT_DBG -DRWRAT_DBG
 
 # -Dx64
 # debugging flags (add to CFLAGS if needed)
