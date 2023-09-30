@@ -15,12 +15,12 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
-#define NPROC0 1  /* Number of processes implemented ("sub-lattices") */
+#define NPROC0 2  /* Number of processes implemented ("sub-lattices") */
 #define NPROC1 1 
 #define NPROC2 1
 #define NPROC3 1
 
-#define L0 8 /* L variables specify the lattice size of each sub-lattice. Must be choosen to fit the entire lattice */
+#define L0 4 /* L variables specify the lattice size of each sub-lattice. Must be choosen to fit the entire lattice */
 #define L1 8
 #define L2 8
 #define L3 8
