@@ -89,6 +89,8 @@
 #define N3 (NPROC3*L3)
 
 static int ns,nd,*state=NULL;
+   /* state: state of the rng
+      ns, nd: number of bit required to save the rng state */
 static su3_dble *ubuf=NULL,*vbuf,*udb;
 
 
