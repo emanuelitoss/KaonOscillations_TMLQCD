@@ -1671,7 +1671,6 @@ int main(int argc,char *argv[])
    int nws,nwsd,nwv,nwvd;
    double wt1,wt2,wtavg;
    dfl_parms_t dfl;
-   FILE *my_log_file=fopen("../log/mylog.txt","w");
 
    MPI_Init(&argc,&argv);  /* initialize an open-mpi */
    MPI_Comm_rank(MPI_COMM_WORLD,&my_rank);
@@ -1718,11 +1717,9 @@ int main(int argc,char *argv[])
       else
       {
          sprintf(cnfg_file,"# Gauge configurations are randomly generated\n");
-         fprintf(my_log_file, "# Option '-nogauge' works.\n");
 
          /* my new function */
          random_ud();
-         fprintf(my_log_file, "# Configurations generation complete!\n");
 
          set_flags(UPDATED_UD);
       }
@@ -1730,11 +1727,7 @@ int main(int argc,char *argv[])
 
       if (dfl.Ns)
       {
-         dfl_modeSS(status,my_log_file);
-         /*dfl_modeS(status);*/
-
-         /*fprintf(my_log_file, "# Deflation subspace block checked\n");
-         fclose(my_log_file);*/
+         dfl_modes(status);
 
          error_root(status[0]<0,1,"main [mesons.c]",
                     "Deflation subspace generation failed (status = %d)",
