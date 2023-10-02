@@ -1,0 +1,116 @@
+
+[Run name]
+name        Snoopy123
+
+[Directories]
+log_dir      ./log
+dat_dir      ./dat
+loc_dir      ./cnfg
+cnfg_dir     ./cnfg
+
+[Lattice parameters]
+beta         5.3574
+c0           1.0
+kappa_u      0.13564
+kappa_s      0.0
+kappa_c      0.0
+csw          1.857567492910027
+cG           0.9055701788807138
+cF           0.9799006977265091
+dF           0.5
+zF           1.0
+
+[Random number generator]
+level        0
+seed         932
+
+[Boundary values]
+phi          -1.0471975511966  0.0
+phi'         -3.14159265358979 1.0471975511966
+theta         0.628318530717959 0.628318530717959 0.628318530717959
+
+[HMC parameters]
+actions      0 1 2 3 
+npf          5
+mu           0.0 0.1 1.0
+nlv          2
+tau          2.0
+
+[MD trajectories]
+nth          1000
+ntr          31000
+dtr_log      4
+dtr_ms       4
+dtr_cnfg     4
+
+[Level 0]
+integrator   OMF4
+nstep        1
+forces       0
+
+[Level 1]
+integrator   OMF4
+nstep        5
+forces       1 2 3 
+
+[Action 0]
+action       ACG
+
+[Action 1]
+action       ACF_TM1_EO_SDET
+ipf          0
+im0          0
+imu          2
+isp          0
+
+[Action 2]
+action       ACF_TM2_EO
+ipf          1
+im0          0
+imu          1 2
+isp          0 0
+
+[Action 3]
+action       ACF_TM2_EO
+ipf          2
+im0          0
+imu          0 1
+isp          0 0 
+
+[Force 0]
+force        FRG
+
+[Force 1]
+force        FRF_TM1_EO_SDET
+isp          1
+ncr          3
+
+[Force 2]
+force        FRF_TM2_EO
+isp          1
+ncr          2
+
+[Force 3]
+force        FRF_TM2_EO
+isp          1
+ncr          2
+
+[Solver 0]
+solver       CGNE
+nmx          4096
+res          1.0e-11
+
+[Solver 1]
+solver       CGNE
+nmx          4096
+res          1.0e-10
+
+[SAP]
+bs 4 4 4 4
+
+[Wilson flow]
+integrator   RK3
+eps          2.0e-2
+nstep        600
+dnms         10
+

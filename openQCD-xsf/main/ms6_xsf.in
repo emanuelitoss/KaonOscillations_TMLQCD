@@ -1,0 +1,32 @@
+
+[Run name]
+name         Snoopy123
+
+[Directories]
+log_dir      ./log
+dat_dir      ./dat
+loc_dir      ./cnfg 
+cnfg_dir     ./cnfg  
+
+[Dirac operator]
+kappa        0.1250
+csw          1.1234
+dF           0.5678
+zF           1.2000
+
+[Configurations]
+first        1 
+last         4 
+step         1 
+bnd          0
+
+[Boundary values]
+phi          -1.0471975511966  0.0
+phi'         -3.14159265358979 1.0471975511966
+theta         0.628318530717959 0.628318530717959 0.628318530717959
+
+[Solver 0]
+solver       CGNE
+nmx          4096
+res          1.0e-11
+

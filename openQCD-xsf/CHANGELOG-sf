@@ -1,0 +1,36 @@
+================================================================================
+21. June 2013
+
+Added IO for SF gauge configs in lexicographic order
+and fixed some features of the data layout for T=L
+
+modules/archive/archive.c
+   Renamed import/export_cnfg to import/export_cnfg_cern.
+   Added import/export_cnfg_lex.
+   Now import/export_cnfg select between the above depending on sf_flg() 
+   IO with lexicograpic order can be disabled by undefining the
+   CPP macros USE_EXPORT_LEX and/or USE_IMPORT_LEX
+
+modules/uflds/udcom.c
+   Added init_bnd_ud needed by import_cnfg_lex.
+
+include/uflds.h
+   Added protogype for init_bnd_ud.
+
+modules/lattice/geometry.c
+   Changed function index to correctly support cache-blocks 
+   with an odd number of sites.
+
+modules/lattice/uidx.c
+   Added a warning if negative indices iu0 or iuk occur.
+
+modules/uflds/plaq_sum.c
+   Suppressed computation of time-like plaquettes in
+   local_plaq_sum_dble if ( (N0&1) && t == N0-1 ) to
+   avoid potential access to unallocated memory.
+
+================================================================================
+25. Jan 2013
+
+Start of branch "sf": Inofficial version 1.1 with support for T=L (openQCD-1.1.tgz)
+
