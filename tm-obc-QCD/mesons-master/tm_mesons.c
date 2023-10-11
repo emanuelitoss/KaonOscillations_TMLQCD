@@ -1523,22 +1523,31 @@ static void correlators(void)
 
    if (my_rank==0)
       printf("Inversions:\n");
+   
+   /* ER: loop over the number of fixed x0 values nux0 */
    for (ix0=0;ix0<proplist.nux0;ix0++)
    {
       if (my_rank==0)
          printf("   x0=%i\n",proplist.ux0[ix0]);
+
+      /* ER: loop over the number of stochastic vectors generated */
       for (inoise=0;inoise<nnoise;inoise++)
       {
          if (my_rank==0)
             printf("      noise vector %i\n",inoise);
+         
+         /* ER: creation of the random source ETA */
          random_source(eta,proplist.ux0[ix0]);
+
+         /* loop over the number of needed propagators at fixed value of x0 */
          for (iprop=0;iprop<proplist.nprop[ix0];iprop++)
          {
             if (my_rank==0)
-               printf("         type=%i, prop=%i, status:",
-                   proplist.type[ix0][iprop], proplist.prop[ix0][iprop]);
+               printf("         type=%i, prop=%i, status:",proplist.type[ix0][iprop], proplist.prop[ix0][iprop]);
+
+            /* ER: it creates the stochastic quantity XI */
             make_source(eta,proplist.type[ix0][iprop],xi);
-            solve_dirac(proplist.prop[ix0][iprop],xi,zeta[iprop],stat);
+            solve_dirac(proplist.prop[ix0][iprop],xi,zeta[iprop],stat); /* ??? I don't know */
          }
          /* combine propagators to correlators */
          for (icorr=0;icorr<ncorr;icorr++)
