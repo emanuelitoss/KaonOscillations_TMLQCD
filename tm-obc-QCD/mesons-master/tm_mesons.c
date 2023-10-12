@@ -1353,6 +1353,7 @@ static void solve_dirac(int prop, spinor_dble *eta, spinor_dble *psi, int *statu
                  "Unknown or unsupported solver");
 }
 
+/* Assigns to XI the value gamma_5*Gamma_type^dagger*ETA needed to evaluate the final XI */
 void make_source(spinor_dble *eta, int type, spinor_dble *xi)
 {
    switch (type)
@@ -1426,9 +1427,9 @@ void make_source(spinor_dble *eta, int type, spinor_dble *xi)
    }
 }
 
+/* xi = -\bar Gamma^\dagger \gamma_5 eta */
 void make_xi(spinor_dble *eta,int type,spinor_dble *xi)
 {
-   /* xi = -\bar Gamma^\dagger \gamma_5 eta */
    switch (type)
    {
       case GAMMA0_TYPE:
@@ -1506,16 +1507,16 @@ static void correlators(void)
    spinor_dble *eta,*xi,**zeta,**wsd;
    complex_dble tmp;
 
-   wsd=reserve_wsd(proplist.nmax+2);
-   eta=wsd[0];
-   xi=wsd[1];
-   zeta=malloc(proplist.nmax*sizeof(spinor_dble*));
+   wsd=reserve_wsd(proplist.nmax+2);   /* ER: reserves memory for nmax+2 fields and returns their addresses */
+   eta=wsd[0]; /* first address for ETA */
+   xi=wsd[1];  /* second address for XI */
+   zeta=malloc(proplist.nmax*sizeof(spinor_dble*));   /* other addresses for ZETA */
    error(zeta==NULL,1,"correlators [mesons.c]","Out of memory");
 
-   for (l=0;l<proplist.nmax;l++)
+   for (l=0;l<proplist.nmax;l++) /* other addresses for ZETA */
       zeta[l]=wsd[l+2];
 
-   for (l=0;l<nnoise*ncorr*tvals;l++)
+   for (l=0;l<nnoise*ncorr*tvals;l++)  /* initialization of the correlators to values = 0 */
    {
       data.corr_tmp[l].re=0.0;
       data.corr_tmp[l].im=0.0;
@@ -1545,9 +1546,10 @@ static void correlators(void)
             if (my_rank==0)
                printf("         type=%i, prop=%i, status:",proplist.type[ix0][iprop], proplist.prop[ix0][iprop]);
 
-            /* ER: it creates the stochastic quantity XI */
+            /* ER: calculate gamma_5*Gamma_A^\dagger*ETA, needed to evaluate XI */
             make_source(eta,proplist.type[ix0][iprop],xi);
-            solve_dirac(proplist.prop[ix0][iprop],xi,zeta[iprop],stat); /* ??? I don't know */
+            /* ER: solves the propagator for XI and reassigns it to XI. Then ZETA is evaluated */
+            solve_dirac(proplist.prop[ix0][iprop],xi,zeta[iprop],stat);
          }
          /* combine propagators to correlators */
          for (icorr=0;icorr<ncorr;icorr++)
@@ -1566,12 +1568,15 @@ static void correlators(void)
                       (props1[icorr]==proplist.prop[ix0][iprop]))
                      ip2=iprop;
                }
+               /* ER: Evaluates \bar{GAMMA_B}^\dagger * \gamma 5 * XI needed in the correlator */
                make_xi(zeta[ip1],type2[icorr],xi);
                for (y0=0;y0<L0;y0++)
                {
+                  /* sum over \vec{y} in the propagator */
                   for (l=0;l<L1*L2*L3;l++)
                   {
                      iy = ipt[l+y0*L1*L2*L3];
+                     /* product between spinors in the noise average (correaltor formula) */
                      tmp = spinor_prod_dble(1,0,xi+iy,zeta[ip2]+iy);
                      data.corr_tmp[inoise+nnoise*(cpr[0]*L0+y0
                         +file_head.tvals*icorr)].re += tmp.re;
