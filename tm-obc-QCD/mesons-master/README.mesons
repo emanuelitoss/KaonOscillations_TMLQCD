@@ -50,14 +50,6 @@ through an input file. The options are
                  physical meaning. This option helps you to check the behaviour
                  of the programs.
 
--opt_3pts        It can be applied only for 'correlators'. It changes the
-                 functionality of the program. Without it, the program is identical
-                 to 'tm_mesons'. By activating the option, it evaluates the three
-                 points mesons correlators with insertion of Q_i(x) operators in 
-                 the framework of OS-maximal twist with Wilson parameters r_i 
-                 choosen as in the Frezzotti - Rossi strategy.
-
-
 INPUT PARAMETERS
 
 The lattice size and the process grid must be defined in the file global.h
