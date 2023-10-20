@@ -105,6 +105,9 @@
 #define N2 (NPROC2*L2)
 #define N3 (NPROC3*L3)
 
+#define NPARMS 8  /* number of lattice parameters */
+                  /* if dF, zF included, it is 10, otherwise 8 */
+
 static lat_parms_t lat={0.0,1.0,0.0,0.0,0.0,0.0,1.0,1.0,1.0,
                         DBL_MAX,DBL_MAX,DBL_MAX};
 static sw_parms_t sw={DBL_MAX,1.0,1.0};
@@ -115,7 +118,7 @@ lat_parms_t set_lat_parms(double beta,double c0,
                           double kappa_u,double kappa_s,double kappa_c,
                           double csw,double cG,double cF)
 {
-   double dprms[8];
+   double dprms[NPARMS];
 
    if (NPROC>1)
    {
@@ -128,7 +131,7 @@ lat_parms_t set_lat_parms(double beta,double c0,
       dprms[6]=cG;
       dprms[7]=cF;
 
-      MPI_Bcast(dprms,8,MPI_DOUBLE,0,MPI_COMM_WORLD);
+      MPI_Bcast(dprms,NPARMS,MPI_DOUBLE,0,MPI_COMM_WORLD);
 
       error((dprms[0]!=beta)||(dprms[1]!=c0)||
             (dprms[2]!=kappa_u)||(dprms[3]!=kappa_s)||(dprms[4]!=kappa_c)||
@@ -219,7 +222,7 @@ void write_lat_parms(FILE *fdat)
    int my_rank,endian;
    int iw;
    stdint_t istd[4];
-   double dstd[9];
+   double dstd[NPARMS+1];
 
    MPI_Comm_rank(MPI_COMM_WORLD,&my_rank);
    endian=endianness();
@@ -244,12 +247,12 @@ void write_lat_parms(FILE *fdat)
       if (endian==BIG_ENDIAN)
       {
          bswap_int(4,istd);
-         bswap_double(9,dstd);
+         bswap_double(NPARMS+1,dstd);
       }
 
       iw=fwrite(istd,sizeof(stdint_t),4,fdat);      
       iw+=fwrite(dstd,sizeof(double),9,fdat);
-      error_root(iw!=13,1,"write_lat_parms [lat_parms.c]",
+      error_root(iw!=(NPARMS+5),1,"write_lat_parms [lat_parms.c]",
                  "Incorrect write count");
    }
 }
@@ -260,7 +263,7 @@ void check_lat_parms(FILE *fdat)
    int my_rank,endian;
    int ir,ie;
    stdint_t istd[4];
-   double dstd[9];
+   double dstd[NPARMS+1];
 
    MPI_Comm_rank(MPI_COMM_WORLD,&my_rank);
    endian=endianness();
@@ -269,13 +272,13 @@ void check_lat_parms(FILE *fdat)
    {
       ir=fread(istd,sizeof(stdint_t),4,fdat);
       ir+=fread(dstd,sizeof(double),9,fdat);
-      error_root(ir!=13,1,"check_lat_parms [lat_parms.c]",
+      error_root(ir!=(NPARMS+5),1,"check_lat_parms [lat_parms.c]",
                  "Incorrect read count");         
 
       if (endian==BIG_ENDIAN)
       {
          bswap_int(4,istd);
-         bswap_double(9,dstd);
+         bswap_double(NPARMS+1,dstd);
       }
       
       ie=0;
