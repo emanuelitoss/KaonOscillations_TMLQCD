@@ -1309,21 +1309,26 @@ static void solve_dirac(int prop, spinor_dble *eta, spinor_dble *psi, int *statu
    solver_parms_t sp;
    sap_parms_t sap;
 
-   sp=solver_parms(isps[prop]);
-   set_sw_parms(0.5/kappas[prop]-4.0);
+   sp=solver_parms(isps[prop]); /* sets the solver */
+   set_sw_parms(0.5/kappas[prop]-4.0); /* set c_{SW} parm, it need the bare quark mass */
 
+   /* CGNE case
+   * eta = Dw^-1 G5 eta 
+   * psi = G5 Dw Dw^-1 G5 eta 
+   * */
    if (sp.solver==CGNE)
    {
-      mulg5_dble(VOLUME,eta);
+      mulg5_dble(VOLUME,eta); /* evaluates G5*eta and assigns it to eta */
 
-      tmcg(sp.nmx,sp.res,mus[prop],eta,eta,status);
+      tmcg(sp.nmx,sp.res,mus[prop],eta,eta,status); /* ... leggi funzione ... */
+      
       if (my_rank==0)
          printf("%i\n",status[0]);
       error_root(status[0]<0,1,"solve_dirac [mesons.c]",
                  "CGNE solver failed (status = %d)",status[0]);
 
-      Dw_dble(-mus[prop],eta,psi);
-      mulg5_dble(VOLUME,psi);
+      Dw_dble(-mus[prop],eta,psi);  /* It assigns psi=Dw*eta */
+      mulg5_dble(VOLUME,psi); /* psi = G5*psi*/
    }
    else if (sp.solver==SAP_GCR)
    {
@@ -1356,7 +1361,7 @@ static void solve_dirac(int prop, spinor_dble *eta, spinor_dble *psi, int *statu
 /* Assigns to XI the value gamma_5*Gamma_type^dagger*ETA needed to evaluate the final XI */
 void make_source(spinor_dble *eta, int type, spinor_dble *xi)
 {
-   switch (type)
+   switch (type) 
    {
       case GAMMA0_TYPE:
          assign_msd2sd(VOLUME,eta,xi);
@@ -1546,9 +1551,11 @@ static void correlators(void)
             if (my_rank==0)
                printf("         type=%i, prop=%i, status:",proplist.type[ix0][iprop], proplist.prop[ix0][iprop]);
 
-            /* ER: calculate gamma_5*Gamma_A^\dagger*ETA, needed to evaluate XI */
+            /* ER: assigns xi = G5 gamma_type^dagger eta */
             make_source(eta,proplist.type[ix0][iprop],xi);
-            /* ER: solves the propagator for XI and reassigns it to XI. Then ZETA is evaluated */
+            /* ER:
+            *  It assigns  zeta = (Dw-i*mu)^-1 * xi
+            *  and to xi reassigns  xi = (DwdagDw + mu^2)^-1 * G5 * xi */
             solve_dirac(proplist.prop[ix0][iprop],xi,zeta[iprop],stat);
          }
          /* combine propagators to correlators */
@@ -1568,8 +1575,9 @@ static void correlators(void)
                       (props1[icorr]==proplist.prop[ix0][iprop]))
                      ip2=iprop;
                }
-               /* ER: Evaluates \bar{GAMMA_B}^\dagger * \gamma 5 * XI needed in the correlator */
+               /* ER: Evaluates xi = - \bar{GAMMA_B}^\dag * G5 * zeta*/
                make_xi(zeta[ip1],type2[icorr],xi);
+               /* evaluates correaltors for each y0 at x0 fixed */
                for (y0=0;y0<L0;y0++)
                {
                   /* sum over \vec{y} in the propagator */
