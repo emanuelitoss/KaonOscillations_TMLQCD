@@ -28,6 +28,8 @@ noise_type   Z2                   # noise type: U1 or Z2 or GAUSS
 csw          1.4951               # Dirac operator options >> Coefficient of the Sheikholeslami-Wohlert term
 cF           1.0                  # common to all quark lines >> coefficient of the Fermions Fermion O(a) boundary counterterm
 eoflg        0                    # Aggiunta da Emanuele: if = 1, Twisted Mass term is not used.
+x0           4
+z0           1
 
 ################################### For every quark line a Propagator 
                                   # section, nprop in total
@@ -58,6 +60,13 @@ isp          0
 iprop        0 0                 # quark lines
 type         G5 G5               # Dirac structures src snk
 x0           1                   # source time slice
+
+[Correlator 0]
+iprop        0 0 0 0             # quark lines
+type_sources G5 G5               # Dirac structures src snk A,C
+x0           4                   # source time slice
+z0           0
+operator     PS                  # intermediate Dirac matrices B,D
 
 ################################# For every solver id used, one Solver
                                 # section, as in openQCD 
