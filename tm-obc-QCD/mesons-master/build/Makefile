@@ -13,7 +13,7 @@
 #
 ################################################################################
 
-all: clean_dat rmxeq mkdep mkxeq
+all: rmxeq mkdep mkxeq
 .PHONY: all
 
 # specific open-mpi path (Emanuele Rosi)
@@ -191,7 +191,7 @@ clean:
 .PHONY: clean
 
 clean_dat:
-	@ -rm -rf ../dat/* ../log/* $(MAIN)
+	@ -rm -rf ../dat/* ../log/*
 .PHONY: clean_dat
 
 ################################################################################
