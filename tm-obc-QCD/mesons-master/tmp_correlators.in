@@ -57,15 +57,8 @@ isp          0
 ################################## For every correlator a Correlator
                                  # section, ncorr in total
 [Correlator 0]
-iprop        0 0                 # quark lines
-type         G5 G5               # Dirac structures src snk
-x0           1                   # source time slice
-
-[Correlator 0]
 iprop        0 0 0 0             # quark lines
 type_sources G5 G5               # Dirac structures src snk A,C
-x0           4                   # source time slice
-z0           0
 operator     PS                  # intermediate Dirac matrices B,D
 
 ################################# For every solver id used, one Solver
