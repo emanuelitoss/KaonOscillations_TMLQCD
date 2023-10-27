@@ -30,6 +30,7 @@ extern double plaq_action_slices(double *asl);
 extern int shift_ud(int *s);
 
 /* UFLDS_C */
+extern void alloc_ud_to_identity(void);
 extern su3 *ufld(void);
 extern su3_dble *udfld(void);
 extern void random_u(void);

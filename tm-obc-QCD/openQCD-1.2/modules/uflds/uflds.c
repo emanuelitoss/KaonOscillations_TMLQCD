@@ -137,6 +137,32 @@ static void alloc_ud(void)
    openbcd();
 }
 
+extern void alloc_ud_to_identity(void)
+{
+   size_t n;
+   su3_dble unity,*u,*um;
+
+   error_root(sizeof(su3_dble)!=(18*sizeof(double)),1,"alloc_ud [uflds.c]",
+              "The su3_dble structures are not properly packed");
+
+   n=4*VOLUME+7*(BNDRY/4);
+   udb=amalloc(n*sizeof(*udb),ALIGN);
+   error(udb==NULL,1,"alloc_ud [uflds.c]",
+         "Could not allocate memory space for the gauge field");
+
+   unity=ud0;
+   unity.c11.re=1.0;
+   unity.c22.re=1.0;
+   unity.c33.re=1.0;
+   u=udb;
+   um=udb+n;
+
+   for (;u<um;u++)
+      (*u)=unity;
+
+   openbcd();
+}
+
 
 su3_dble *udfld(void)
 {
