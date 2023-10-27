@@ -35,6 +35,7 @@
 #define MAX_TYPE 17
 
 #define mesons_RELEASE "mesons v1.2rc"
+#define correlators_RELEASE "correlators v1.0, based on mesons v1.2rc"
 
 
 /* LINALG_SALG_DBLE_C */
