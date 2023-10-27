@@ -9,8 +9,6 @@ SYNTAX
 
 mesons -i <filename> [-noexp] [-a [-norng]]
 tm_mesons -i <filename> [-noexp] [-a [-norng]] [-nogauge]
-correlators -i <filename> [-noexp] [-a [-norng]] [-nogauge] [-opt_3pts]
-
 
 DESCRIPTION
 
@@ -43,12 +41,6 @@ through an input file. The options are
                  to be used (see section RANDOM NUMBER GENERATOR below).
                  NOTE: starting from the saved state is not possible if
                  the process grid sizes NPROC0,..,NPROC3 are changed.
-
--nogauge         It can be applied only for 'tm_mesons' and 'correlators'.
-                 The option generates random gauge fields instead of reading
-                 them from a file. The fields are purely random with no
-                 physical meaning. This option helps you to check the behaviour
-                 of the programs.
 
 INPUT PARAMETERS
 
