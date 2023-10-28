@@ -190,8 +190,8 @@ clean:
 	@ -rm -rf *.d *.o *.alog *.clog *.slog $(MAIN)
 .PHONY: clean
 
-clean-dat:
+clean-dat-log:
 	@ -rm -rf ../dat/* ../log/*
-.PHONY: clean-dat
+.PHONY: clean-dat-log
 
 ################################################################################
