@@ -18,13 +18,13 @@ step         1
 
 [Random number generator]         # as in openQCD
 level        0      
-seed         73099  
+seed         56754  
 
 [Measurements]
 nprop        4                    # number of different quark lines
-ncorr        1                    # number of different correlators
+ncorr        3                    # number of different correlators
 nnoise       10                   # number of noise vectors / conf >> the xi,zeta spinors!
-noise_type   Z2                   # noise type: U1 or Z2 or GAUSS
+noise_type   U1                   # noise type: U1 or Z2 or GAUSS
 csw          1.4951               # Dirac operator options >> Coefficient of the Sheikholeslami-Wohlert term
 cF           1.0                  # common to all quark lines >> coefficient of the Fermions Fermion O(a) boundary counterterm
 eoflg        0                    # Aggiunta da Emanuele: if = 1, Twisted Mass term is not used.
@@ -60,6 +60,16 @@ isp          0
 iprop        0 0 0 0             # quark lines
 type_sources G5 G5               # Dirac structures src snk A,C
 operator     PS                  # intermediate Dirac matrices B,D
+
+[Correlator 1]
+iprop        0 3 1 1             # quark lines
+type_sources G5 G5               # Dirac structures src snk A,C
+operator     VV                  # intermediate Dirac matrices B,D
+
+[Correlator 2]
+iprop        1 2 2 1             # quark lines
+type_sources G5 G5               # Dirac structures src snk A,C
+operator     TTt                 # intermediate Dirac matrices B,D
 
 ################################# For every solver id used, one Solver
                                 # section, as in openQCD 
