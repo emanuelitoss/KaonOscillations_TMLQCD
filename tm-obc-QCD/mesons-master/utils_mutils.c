@@ -40,8 +40,69 @@
 #include "mpi.h"
 #include "utils.h"
 #include "global.h"
+#include "mesons.h"
 
 static char line[NAME_SIZE+1];
+static char dirac_name[4];
+
+extern char *dirac_type_to_string(int type)
+{
+   switch (type)
+   {
+   case GAMMA0_TYPE:
+      sprintf(dirac_name,"G0");
+      break;
+   case GAMMA1_TYPE:
+      sprintf(dirac_name,"G1");
+      break;
+   case GAMMA2_TYPE:
+      sprintf(dirac_name,"G2");
+      break;
+   case GAMMA3_TYPE:
+      sprintf(dirac_name,"G3");
+      break;
+   case GAMMA5_TYPE:
+      sprintf(dirac_name,"G5");
+      break;
+   case ONE_TYPE:
+      sprintf(dirac_name,"1");
+      break;
+   case GAMMA0GAMMA1_TYPE:
+      sprintf(dirac_name,"G0G1");
+      break;
+   case GAMMA0GAMMA2_TYPE:
+      sprintf(dirac_name,"G0G2");
+      break;
+   case GAMMA0GAMMA3_TYPE:
+      sprintf(dirac_name,"G0G3");
+      break;
+   case GAMMA0GAMMA5_TYPE:
+      sprintf(dirac_name,"G0G5");
+      break;
+   case GAMMA1GAMMA2_TYPE:
+      sprintf(dirac_name,"G1G2");
+      break;
+   case GAMMA1GAMMA3_TYPE:
+      sprintf(dirac_name,"G1G3");
+      break;
+   case GAMMA1GAMMA5_TYPE:
+      sprintf(dirac_name,"G1G5");
+      break;
+   case GAMMA2GAMMA3_TYPE:
+      sprintf(dirac_name,"G2G3");
+      break;
+   case GAMMA2GAMMA5_TYPE:
+      sprintf(dirac_name,"G2G5");
+      break;
+   case GAMMA3GAMMA5_TYPE:
+      sprintf(dirac_name,"G3G5");
+      break;
+   default:
+      error(1,1,"dirac_type_to_string [utils_mutils.c]","Unknown Dirac matrix type");
+      break;
+   }
+   return dirac_name;
+}
 
 /* this is an exact copy of /modules/utils/mutils.c's version */
 static char *get_line(void)

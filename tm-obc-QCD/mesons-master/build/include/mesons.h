@@ -61,5 +61,6 @@ extern void assign_msd2sd(int vol,spinor_dble *sd,spinor_dble *rd);
 
 /* UTILS_MUTILS_C */
 extern long read_line_opt(char *tag,char *defaultline,char *format, ...);
+extern char *dirac_type_to_string(int type);
 
 #endif
