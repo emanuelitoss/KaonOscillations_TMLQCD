@@ -18,17 +18,17 @@ step         1
 
 [Random number generator]         # as in openQCD
 level        0      
-seed         56754  
+seed         73099  
 
 [Measurements]
-nprop        4                    # number of different quark lines
+nprop        2                    # number of different quark lines
 ncorr        3                    # number of different correlators
 nnoise       10                   # number of noise vectors / conf >> the xi,zeta spinors!
 noise_type   U1                   # noise type: U1 or Z2 or GAUSS
 csw          1.4951               # Dirac operator options >> Coefficient of the Sheikholeslami-Wohlert term
 cF           1.0                  # common to all quark lines >> coefficient of the Fermions Fermion O(a) boundary counterterm
 eoflg        0                    # Aggiunta da Emanuele: if = 1, Twisted Mass term is not used.
-x0           4
+x0           6
 z0           1
 
 ################################### For every quark line a Propagator 
@@ -43,17 +43,6 @@ mus          0.1666667
 kappa        0.12
 isp          0
 
-[Propagator 2]
-mus          0.1666667
-kappa        0.12
-isp          0
-
-[Propagator 3]
-mus          0.1666667
-kappa        0.12
-isp          0
-
-
 ################################## For every correlator a Correlator
                                  # section, ncorr in total
 [Correlator 0]
@@ -62,12 +51,12 @@ type_sources G5 G5               # Dirac structures src snk A,C
 operator     PS                  # intermediate Dirac matrices B,D
 
 [Correlator 1]
-iprop        0 3 1 1             # quark lines
+iprop        0 0 0 0             # quark lines
 type_sources G5 G5               # Dirac structures src snk A,C
-operator     VV                  # intermediate Dirac matrices B,D
+operator     AA                  # intermediate Dirac matrices B,D
 
 [Correlator 2]
-iprop        1 2 2 1             # quark lines
+iprop        0 0 0 0             # quark lines
 type_sources G5 G5               # Dirac structures src snk A,C
 operator     TTt                 # intermediate Dirac matrices B,D
 
@@ -84,24 +73,6 @@ nmx          128
 res          1.0e-12
 
 [Solver 1]
-solver       DFL_SAP_GCR
-nkv          8
-isolv        1
-nmr          4
-ncy          6
-nmx          128
-res          1.0e-12
-
-[Solver 2]
-solver       DFL_SAP_GCR
-nkv          8
-isolv        1
-nmr          4
-ncy          5
-nmx          128
-res          1.0e-12
-
-[Solver 3]
 solver       DFL_SAP_GCR
 nkv          8
 isolv        1

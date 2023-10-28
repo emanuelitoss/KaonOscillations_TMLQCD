@@ -43,7 +43,7 @@ CFLAGS = -std=c89 -pedantic -fstrict-aliasing -Wall -Wno-long-long -Wstrict-prot
 
 
 
-MAIN = tm_mesons tmp_correlators #correlators #sflds_tests
+MAIN = tm_mesons correlators #correlators #sflds_tests
 
 ARCHIVE = archive sarchive
 

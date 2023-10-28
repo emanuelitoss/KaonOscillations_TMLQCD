@@ -1,7 +1,9 @@
 /*******************************************************************************
 *
 * File correlators.c
+* Copyright (C) 2023 Emanuele Rosi
 *
+* Based on tm mesons
 * Copyright (C) 2016 David Preti
 *
 * Based on mesons 
@@ -26,11 +28,18 @@
 *
 *******************************************************************************
 *
-* Computation of quark propagators
+* Computation of three points correlators for mesons oscillations
 *
 * Syntax: mesons -i <input file> [-noexp] [-a] -rndmgauge -nogauge
 *
-* For usage instructions see the file README.mesons
+* For usage instructions see the file README.correlators
+*
+*******************************************************************************
+*
+* NOTES:
+* Some comments as 'modified','unchanged','new function',... refer to file
+* tm_correlators.c, the originary one. Some comments explain some functions.
+* Other comments are just my notes.
 *
 *******************************************************************************/
 
@@ -57,7 +66,7 @@
 #include "global.h"
 #include "mesons.h"
 
-/* Emanuele Rosi includes */
+/* new includes */
 #include "OutputColors.h"
 #include "uflds.h"
 #include <time.h>
@@ -90,7 +99,7 @@
 static struct
 {
    complex_dble *corr;        /* correlators */
-   complex_dble *corr_tmp;    /* tmp correlators */
+   complex_dble *corr_tmp;    /* temp. correlators */
    int nc;                    /* configuration number */
 } data;
 
@@ -146,26 +155,27 @@ static struct
    int len4;
    int *idx_4;
 
-} proplist2;
+} proplist;
 
 /************************ STATICS ************************/
 
-static char line[NAME_SIZE+1];
+static char line[NAME_SIZE+1];   /* useful string */
+static char str_type[4];         /* useful string */
 
-static int my_rank;
-static int noexp,append,norng,endian,nogauge,rndmgauge;
-static int first,last,step;
-static int level,seed;
-static int ipgrd[2],*rlxs_state=NULL,*rlxd_state=NULL;
+static int my_rank;                                      /* run rank */
+static int noexp,append,norng,endian,nogauge,rndmgauge;  /* running options */
+static int first,last,step;                              /* configurations indices */
+static int level,seed;                                   /* random number generator */
+static int ipgrd[2],*rlxs_state=NULL,*rlxd_state=NULL;   /* random number generator */
 
-static int nprop,ncorr,nnoise,noisetype;
-static int fixed_x0,fixed_z0;
-static int tvals;
-static int *isps,*props1,*props2,*props3,*props4,*typeA,*typeC;
-static double *kappas,*mus;
-static int *operator_type;
-static char str_type[4];
+static int nprop,ncorr,nnoise,noisetype;                 /* file_head */         
+static int fixed_x0,fixed_z0;                            /* file_head */
+static int tvals;                                        /* number of timeslices */
+static int *typeA,*typeC,*operator_type;                 /* Dirac matrices types*/   
+static int *isps,*props1,*props2,*props3,*props4;        /* propagators types */    
+static double *kappas,*mus;                              /* propagators parameters */
 
+/* directories, files, file names and similars */
 static char log_dir[NAME_SIZE],loc_dir[NAME_SIZE], cnfg_dir[NAME_SIZE],dat_dir[NAME_SIZE];
 static char log_file[NAME_SIZE],log_save[NAME_SIZE],end_file[NAME_SIZE];
 static char dat_file[NAME_SIZE],dat_save[NAME_SIZE];
@@ -190,8 +200,7 @@ static void alloc_data(void)  /*modified*/
    data.corr=malloc(number_of_data*sizeof(complex_dble));
    data.corr_tmp=malloc(number_of_data*sizeof(complex_dble));
 
-   error((data.corr==NULL)||(data.corr_tmp==NULL),1,"alloc_data [correlators.c]",
-         "Unable to allocate data arrays");
+   error((data.corr==NULL)||(data.corr_tmp==NULL),1,"alloc_data [correlators.c]", "Unable to allocate data arrays");
 }
 
 static char* op_to_str(int type) /*new function*/
@@ -272,8 +281,7 @@ static void write_file_head(void)   /*modified*/
       bswap_int(1,istd);
    iw+=fwrite(istd,sizeof(stdint_t),1,fdat);
 
-   error_root(iw!=6,1,"write_file_head [correlators.c]",
-              "Incorrect write count");
+   error_root(iw!=6,1,"write_file_head [correlators.c]", "Incorrect write count");
 
    for (i=0;i<file_head.ncorr;i++)
    {
@@ -377,10 +385,8 @@ static void check_file_head(void)   /*modified*/
       bswap_int(1,istd);
    ie+=(istd[0]!=(stdint_t)(file_head.z0));
 
-   error_root(ir!=6,1,"check_file_head [correlators.c]",
-              "Incorrect read count");
-   error_root(ie!=0,1,"check_file_head [correlators.c]",
-              "Unexpected value of ncorr, nnoise, tvals or noisetype");
+   error_root(ir!=6,1,"check_file_head [correlators.c]","Incorrect read count");
+   error_root(ie!=0,1,"check_file_head [correlators.c]", "Unexpected value of ncorr, nnoise, tvals or noisetype");
    
    for (i=0;i<file_head.ncorr;i++)
    {
@@ -444,10 +450,8 @@ static void check_file_head(void)   /*modified*/
          bswap_int(1,istd);
       ie+=(istd[0]!=(stdint_t)(file_head.isreal[i]));
 
-      error_root(ir!=12,1,"check_file_head [correlators.c]",
-              "Incorrect read count");
-      error_root(ie!=0,1,"check_file_head [correlators.c]",
-              "Unexpected value of kappa, mu, typeA, typeC, OperatorType");
+      error_root(ir!=12,1,"check_file_head [correlators.c]","Incorrect read count");
+      error_root(ie!=0,1,"check_file_head [correlators.c]","Unexpected value of kappa, mu, typeA, typeC, OperatorType");
    }
 }
 
@@ -461,8 +465,7 @@ static void write_data(void)  /*modified*/
    if (my_rank==0)
    {
       fdat=fopen(dat_file,"ab");
-      error_root(fdat==NULL,1,"write_data [mesons.c]",
-                 "Unable to open dat file");
+      error_root(fdat==NULL,1,"write_data [correlators.c]","Unable to open dat file");
 
       nw = 1;
       if(endian==BIG_ENDIAN)
@@ -493,8 +496,7 @@ static void write_data(void)  /*modified*/
                       data.corr);
          bswap_int(1,&(data.nc));
       }
-      error_root(iw!=nw,1,"write_data [mesons.c]",
-                 "Incorrect write count");
+      error_root(iw!=nw,1,"write_data [correlators.c]","Incorrect write count");
       fclose(fdat);
    }
 }
@@ -535,8 +537,7 @@ static int read_data(void) /*modified*/
    if (ir==0)
       return 0;
 
-   error_root(ir!=nr,1,"read_data [correlators.c]",
-                 "Read error or incomplete data record");
+   error_root(ir!=nr,1,"read_data [correlators.c]","Read error or incomplete data record");
    if(endian==BIG_ENDIAN)
    {
       bswap_double(nr,data.corr);
@@ -1337,111 +1338,111 @@ static void make_proplist(void) /* new function */
 {
    int icorr,j;
 
-   proplist2.idx_2=malloc(ncorr*sizeof(int));
-   proplist2.idx_4=malloc(ncorr*sizeof(int));
-   proplist2.idx_1A=malloc(ncorr*sizeof(int));
-   proplist2.idx_3C=malloc(ncorr*sizeof(int));
+   proplist.idx_2=malloc(ncorr*sizeof(int));
+   proplist.idx_4=malloc(ncorr*sizeof(int));
+   proplist.idx_1A=malloc(ncorr*sizeof(int));
+   proplist.idx_3C=malloc(ncorr*sizeof(int));
 
-   proplist2.prop_type1=malloc(ncorr*sizeof(int));
-   proplist2.prop_type2=malloc(ncorr*sizeof(int));
-   proplist2.prop_type3=malloc(ncorr*sizeof(int));
-   proplist2.prop_type4=malloc(ncorr*sizeof(int));
+   proplist.prop_type1=malloc(ncorr*sizeof(int));
+   proplist.prop_type2=malloc(ncorr*sizeof(int));
+   proplist.prop_type3=malloc(ncorr*sizeof(int));
+   proplist.prop_type4=malloc(ncorr*sizeof(int));
 
-   proplist2.matrix_typeA=malloc(ncorr*sizeof(int));
-   proplist2.matrix_typeC=malloc(ncorr*sizeof(int));
+   proplist.matrix_typeA=malloc(ncorr*sizeof(int));
+   proplist.matrix_typeC=malloc(ncorr*sizeof(int));
 
-   error((proplist2.idx_1A==NULL)||(proplist2.idx_3C==NULL)||(proplist2.idx_2==NULL)||(proplist2.idx_4==NULL)
-      ||(proplist2.prop_type1==NULL)||(proplist2.prop_type2==NULL)||(proplist2.prop_type3==NULL)||(proplist2.prop_type4==NULL)
-      ||(proplist2.matrix_typeA==NULL)||(proplist2.matrix_typeC==NULL),1,"make_proplist [correlators.c]","Out of memory");
+   error((proplist.idx_1A==NULL)||(proplist.idx_3C==NULL)||(proplist.idx_2==NULL)||(proplist.idx_4==NULL)
+      ||(proplist.prop_type1==NULL)||(proplist.prop_type2==NULL)||(proplist.prop_type3==NULL)||(proplist.prop_type4==NULL)
+      ||(proplist.matrix_typeA==NULL)||(proplist.matrix_typeC==NULL),1,"make_proplist [correlators.c]","Out of memory");
 
    /* set to zero all the indices and lengths */
-   proplist2.len_1A=0;
-   proplist2.len_3C=0;
-   proplist2.len2=0;
-   proplist2.len4=0;
+   proplist.len_1A=0;
+   proplist.len_3C=0;
+   proplist.len2=0;
+   proplist.len4=0;
 
    /* NOTA: questo potrebbe essere inutile, ci devo pensare un attimo*/
    for(icorr=0;icorr<ncorr;icorr++)
    {
-      proplist2.idx_2[icorr]=0;
-      proplist2.idx_4[icorr]=0;
-      proplist2.idx_1A[icorr]=0;
-      proplist2.idx_3C[icorr]=0;
-      proplist2.prop_type1[icorr]=0;
-      proplist2.prop_type2[icorr]=0;
-      proplist2.prop_type3[icorr]=0;
-      proplist2.prop_type4[icorr]=0;
-      proplist2.matrix_typeA[icorr]=0;
-      proplist2.matrix_typeC[icorr]=0;
+      proplist.idx_2[icorr]=0;
+      proplist.idx_4[icorr]=0;
+      proplist.idx_1A[icorr]=0;
+      proplist.idx_3C[icorr]=0;
+      proplist.prop_type1[icorr]=0;
+      proplist.prop_type2[icorr]=0;
+      proplist.prop_type3[icorr]=0;
+      proplist.prop_type4[icorr]=0;
+      proplist.matrix_typeA[icorr]=0;
+      proplist.matrix_typeC[icorr]=0;
    }
 
    /* main routine */
    for(icorr=0;icorr<ncorr;icorr++)
    {
       /* propagator of type 2 */
-      for (j=0;j<proplist2.len2;j++)
+      for (j=0;j<proplist.len2;j++)
       {
-         if(proplist2.prop_type2[j]==props2[icorr])
+         if(proplist.prop_type2[j]==props2[icorr])
          {
-            proplist2.idx_2[icorr]=j;
+            proplist.idx_2[icorr]=j;
             break;
          }
       }
-      if(j==proplist2.len2)
+      if(j==proplist.len2)
       {
-         proplist2.prop_type2[j]=props2[icorr];
-         proplist2.idx_2[icorr]=j;
-         proplist2.len2++;
+         proplist.prop_type2[j]=props2[icorr];
+         proplist.idx_2[icorr]=j;
+         proplist.len2++;
       }
 
       /* propagator of type 4 */
-      for (j=0;j<proplist2.len4;j++)
+      for (j=0;j<proplist.len4;j++)
       {
-         if(proplist2.prop_type4[j]==props4[icorr])
+         if(proplist.prop_type4[j]==props4[icorr])
          {
-            proplist2.idx_4[icorr]=j;
+            proplist.idx_4[icorr]=j;
             break;
          }
       }
-      if(j==proplist2.len4)
+      if(j==proplist.len4)
       {
-         proplist2.prop_type4[j]=props4[icorr];
-         proplist2.idx_4[icorr]=j;
-         proplist2.len4++;
+         proplist.prop_type4[j]=props4[icorr];
+         proplist.idx_4[icorr]=j;
+         proplist.len4++;
       }
 
       /* propagator of type 1 + matrix A */
-      for (j=0;j<proplist2.len_1A;j++)
+      for (j=0;j<proplist.len_1A;j++)
       {
-         if((proplist2.prop_type1[j]==props1[icorr])&&(proplist2.matrix_typeA[j]==typeA[icorr]))
+         if((proplist.prop_type1[j]==props1[icorr])&&(proplist.matrix_typeA[j]==typeA[icorr]))
          {
-            proplist2.idx_1A[icorr]=j;
+            proplist.idx_1A[icorr]=j;
             break;
          }
       }
-      if(j==proplist2.len_1A)
+      if(j==proplist.len_1A)
       {
-         proplist2.prop_type1[j]=props1[icorr];
-         proplist2.matrix_typeA[j]=typeA[icorr];
-         proplist2.idx_2[icorr]=j;
-         proplist2.len_1A++;
+         proplist.prop_type1[j]=props1[icorr];
+         proplist.matrix_typeA[j]=typeA[icorr];
+         proplist.idx_2[icorr]=j;
+         proplist.len_1A++;
       }
 
       /* propagator of type 3 + matrix C */
-      for (j=0;j<proplist2.len_3C;j++)
+      for (j=0;j<proplist.len_3C;j++)
       {
-         if((proplist2.prop_type3[j]==props3[icorr])&&(proplist2.matrix_typeC[j]==typeC[icorr]))
+         if((proplist.prop_type3[j]==props3[icorr])&&(proplist.matrix_typeC[j]==typeC[icorr]))
          {
-            proplist2.idx_3C[icorr]=j;
+            proplist.idx_3C[icorr]=j;
             break;
          }
       }
-      if(j==proplist2.len_3C)
+      if(j==proplist.len_3C)
       {
-         proplist2.prop_type3[j]=props3[icorr];
-         proplist2.matrix_typeC[j]=typeC[icorr];
-         proplist2.idx_3C[icorr]=j;
-         proplist2.len_3C++;
+         proplist.prop_type3[j]=props3[icorr];
+         proplist.matrix_typeC[j]=typeC[icorr];
+         proplist.idx_3C[icorr]=j;
+         proplist.len_3C++;
       }
    }   
 
@@ -1450,16 +1451,16 @@ static void make_proplist(void) /* new function */
 
 static void free_proplist(void)  /* new function */
 {
-   free(proplist2.idx_1A);
-   free(proplist2.idx_3C);
-   free(proplist2.idx_2);
-   free(proplist2.idx_4);
-   free(proplist2.prop_type1);
-   free(proplist2.prop_type2);
-   free(proplist2.prop_type3);
-   free(proplist2.prop_type4);
-   free(proplist2.matrix_typeA);
-   free(proplist2.matrix_typeC);
+   free(proplist.idx_1A);
+   free(proplist.idx_3C);
+   free(proplist.idx_2);
+   free(proplist.idx_4);
+   free(proplist.prop_type1);
+   free(proplist.prop_type2);
+   free(proplist.prop_type3);
+   free(proplist.prop_type4);
+   free(proplist.matrix_typeA);
+   free(proplist.matrix_typeC);
 }
 
 static void wsize(int *nws,int *nwsd,int *nwv,int *nwvd) /*modified*/
@@ -1476,10 +1477,10 @@ static void wsize(int *nws,int *nwsd,int *nwv,int *nwvd) /*modified*/
    sp=solver_parms(0);
 
    proplist_nmax=0;  /* modified part */
-   MAX(proplist_nmax,proplist2.len_1A);
-   MAX(proplist_nmax,proplist2.len_3C);
-   MAX(proplist_nmax,proplist2.len2);
-   MAX(proplist_nmax,proplist2.len4);
+   MAX(proplist_nmax,proplist.len_1A);
+   MAX(proplist_nmax,proplist.len_3C);
+   MAX(proplist_nmax,proplist.len2);
+   MAX(proplist_nmax,proplist.len4);
    nsd=2*(2*proplist_nmax+2); /* not completely sure */
 
    if (sp.solver==CGNE)
@@ -2051,25 +2052,25 @@ static void correlators_contractions(void)  /*new function*/
    spinor_dble *eta1,*eta2,*tmp_spinor,*tmp_spinor2;
    spinor_dble **xi1,**xi2,**zeta1,**zeta2,**wsd;
 
-   wsd=reserve_wsd(4+proplist2.len_1A+proplist2.len_3C+proplist2.len4+proplist2.len2);
+   wsd=reserve_wsd(4+proplist.len_1A+proplist.len_3C+proplist.len4+proplist.len2);
    eta1=wsd[0];
    eta2=wsd[1];
    tmp_spinor=wsd[2];
    tmp_spinor2=wsd[3];
-   xi1=malloc(proplist2.len_1A*sizeof(spinor_dble*));
-   xi2=malloc(proplist2.len_3C*sizeof(spinor_dble*));
-   zeta1=malloc(proplist2.len4*sizeof(spinor_dble*));
-   zeta2=malloc(proplist2.len2*sizeof(spinor_dble*));
+   xi1=malloc(proplist.len_1A*sizeof(spinor_dble*));
+   xi2=malloc(proplist.len_3C*sizeof(spinor_dble*));
+   zeta1=malloc(proplist.len4*sizeof(spinor_dble*));
+   zeta2=malloc(proplist.len2*sizeof(spinor_dble*));
    error((xi1==NULL)||(xi2==NULL)||(zeta1==NULL)||(zeta2==NULL),1,"correlators [correlators.c]","Out of memory");
 
-   for(l=0;l<proplist2.len_1A;l++)
+   for(l=0;l<proplist.len_1A;l++)
       xi1[l]=wsd[4+l];
-   for(l=0;l<proplist2.len_3C;l++)
-      xi2[l]=wsd[4+l+proplist2.len_1A];
-   for(l=0;l<proplist2.len4;l++)
-      zeta1[l]=wsd[4+l+proplist2.len_1A+proplist2.len_3C];
-   for(l=0;l<proplist2.len2;l++)
-      zeta2[l]=wsd[4+l+proplist2.len_1A+proplist2.len_3C+proplist2.len4];
+   for(l=0;l<proplist.len_3C;l++)
+      xi2[l]=wsd[4+l+proplist.len_1A];
+   for(l=0;l<proplist.len4;l++)
+      zeta1[l]=wsd[4+l+proplist.len_1A+proplist.len_3C];
+   for(l=0;l<proplist.len2;l++)
+      zeta2[l]=wsd[4+l+proplist.len_1A+proplist.len_3C+proplist.len4];
 
    for (l=0;l<nnoise*nnoise*ncorr*tvals;l++)
    {
@@ -2085,24 +2086,24 @@ static void correlators_contractions(void)  /*new function*/
       if(my_rank==0) printf("\tNoise vector eta1 number %i\n",noise_idx1);
 
       /* evaluate the needed \xi_1 */
-      for(idx=0;idx<proplist2.len_1A;idx++)
+      for(idx=0;idx<proplist.len_1A;idx++)
       {
          if (my_rank==0)
-            printf("\t\tXi_{1A}^{1,-} evaluation:\n\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist2.matrix_typeA[idx]), proplist2.prop_type1[idx]);
+            printf("\t\tXi_{1A}^{1,-} evaluation:\n\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeA[idx]), proplist.prop_type1[idx]);
 
-         make_source(eta1,proplist2.matrix_typeA[idx],tmp_spinor);
-         solve_dirac(proplist2.prop_type1[idx],tmp_spinor,xi1[idx],stat);
+         make_source(eta1,proplist.matrix_typeA[idx],tmp_spinor);
+         solve_dirac(proplist.prop_type1[idx],tmp_spinor,xi1[idx],stat);
          mulg5_dble(VOLUME,xi1[idx]);
       }
 
       /* evaluate the needed ZETA_1 s */
-      for(idx=0;idx<proplist2.len4;idx++)
+      for(idx=0;idx<proplist.len4;idx++)
       {
          if (my_rank==0)
-            printf("\t\tZeta_1^{4,+} evaluation:\n\t\tprop=%i, status:\n",proplist2.prop_type4[idx]);
+            printf("\t\tZeta_1^{4,+} evaluation:\n\t\tprop=%i, status:\n",proplist.prop_type4[idx]);
 
          assign_sd2sd(VOLUME,eta1,tmp_spinor);
-         solve_dirac(proplist2.prop_type4[idx],tmp_spinor,zeta1[idx],stat);
+         solve_dirac(proplist.prop_type4[idx],tmp_spinor,zeta1[idx],stat);
       }
    }
    /* ETA_2 noise vectors */
@@ -2113,24 +2114,24 @@ static void correlators_contractions(void)  /*new function*/
       if(my_rank==0) printf("\tNoise vector eta2 number %i\n",noise_idx2);
 
       /* evaluate the needed XI_2 s */
-      for(idx=0;idx<proplist2.len_3C;idx++)
+      for(idx=0;idx<proplist.len_3C;idx++)
       {
          if (my_rank==0)
-            printf("\t\tXi_{3C}^{3,-} evaluation:\n\t\ttype=%s, prop=%i, status:",dirac_type_to_string(proplist2.matrix_typeC[idx]),proplist2.prop_type3[idx]);
+            printf("\t\tXi_{3C}^{3,-} evaluation:\n\t\ttype=%s, prop=%i, status:",dirac_type_to_string(proplist.matrix_typeC[idx]),proplist.prop_type3[idx]);
 
-         make_source(eta2,proplist2.matrix_typeC[idx],tmp_spinor);
-         solve_dirac(proplist2.prop_type3[idx],tmp_spinor,xi2[idx],stat);
+         make_source(eta2,proplist.matrix_typeC[idx],tmp_spinor);
+         solve_dirac(proplist.prop_type3[idx],tmp_spinor,xi2[idx],stat);
          mulg5_dble(VOLUME,xi2[idx]);
       }
 
       /* evaluate the needed ZETA_2 s */
-      for(idx=0;idx<proplist2.len2;idx++)
+      for(idx=0;idx<proplist.len2;idx++)
       {
          if (my_rank==0)
-            printf("\t\tZeta_2^{2,+} evaluation:\n\t\tprop=%i, status:",proplist2.prop_type2[idx]);
+            printf("\t\tZeta_2^{2,+} evaluation:\n\t\tprop=%i, status:",proplist.prop_type2[idx]);
 
          assign_sd2sd(VOLUME,eta2,tmp_spinor);
-         solve_dirac(proplist2.prop_type2[idx],tmp_spinor,zeta2[idx],stat);
+         solve_dirac(proplist.prop_type2[idx],tmp_spinor,zeta2[idx],stat);
       }
    }
 
@@ -2140,18 +2141,14 @@ static void correlators_contractions(void)  /*new function*/
    {
       for(noise_idx2=0;noise_idx2<nnoise;noise_idx2++)
       {
-         if (my_rank==0)
-         {
-            if(noise_idx2==0) printf("\tStohcastic vector eta1 = %i\teta2 = %i",noise_idx1,noise_idx2);
-            else  printf("\t\t\t\t\t\t\t\t\t eta2 = %i",noise_idx2);
-         }
+         if (my_rank==0)   printf("\tStohcastic vectors eta1 = %i\teta2 = %i\n",noise_idx1,noise_idx2);
    
          /* contractions */
          for(idx=0;idx<ncorr;idx++)
          {
-            if (my_rank==0)   printf("\noperator XY = %s\n",op_to_str(file_head.operator_type[idx]));
-            contraction_single_trace(xi1[proplist2.idx_1A[idx]],xi2[proplist2.idx_3C[idx]],zeta1[proplist2.idx_4[idx]],zeta2[proplist2.idx_2[idx]],tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
-            contraction_double_trace(xi1[proplist2.idx_1A[idx]],xi2[proplist2.idx_3C[idx]],zeta1[proplist2.idx_4[idx]],zeta2[proplist2.idx_2[idx]],tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
+            if (my_rank==0)   printf("\t\tOperator XY = %s\n",op_to_str(file_head.operator_type[idx]));
+            contraction_single_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
+            contraction_double_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
          }
       }
    }
@@ -2173,8 +2170,7 @@ static void set_data(int nc)  /*untouched*/
    {
       printf("G(t) =  %.4e%+.4ei",data.corr[0].re,data.corr[0].im);
       printf(",%.4e%+.4ei,...",data.corr[1].re,data.corr[1].im);
-      printf(",%.4e%+.4ei",data.corr[file_head.tvals-1].re,
-                           data.corr[file_head.tvals-1].im);
+      printf(",%.4e%+.4ei",data.corr[file_head.tvals-1].re,data.corr[file_head.tvals-1].im);
       printf("\n");
       fflush(flog);
    }
