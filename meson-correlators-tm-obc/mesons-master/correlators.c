@@ -190,7 +190,7 @@ static FILE *fin=NULL,*flog=NULL,*fend=NULL,*fdat=NULL;
 /*
 static void lonfo(void)
 {
-   error(1,1,"[tmp_correlators.c]","Il lonfo non vaterca, né brigatta.");
+   error(1,1,"[correlators.c]","Il lonfo non vaterca, né brigatta.");
 }*/
 
 static void alloc_data(void)  /*modified*/
@@ -203,7 +203,7 @@ static void alloc_data(void)  /*modified*/
    error((data.corr==NULL)||(data.corr_tmp==NULL),1,"alloc_data [correlators.c]", "Unable to allocate data arrays");
 }
 
-static char* op_to_str(int type) /*new function*/
+static char* operator_to_string(int type) /*new function*/
 {
    switch (type)
    {
@@ -238,7 +238,7 @@ static char* op_to_str(int type) /*new function*/
       sprintf(str_type,"TTt");
       break;
    default:
-      error(1,1,"op_to_str [correlators.c]","Unknown operator type");
+      error(1,1,"operator_to_string [correlators.c]","Unknown operator type");
       break;
    }
    return str_type;
@@ -2146,7 +2146,7 @@ static void correlators_contractions(void)  /*new function*/
          /* contractions */
          for(idx=0;idx<ncorr;idx++)
          {
-            if (my_rank==0)   printf("\t\tOperator XY = %s\n",op_to_str(file_head.operator_type[idx]));
+            if (my_rank==0)   printf("\t\tOperator XY = %s\n",operator_to_string(file_head.operator_type[idx]));
             contraction_single_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
             contraction_double_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
          }
