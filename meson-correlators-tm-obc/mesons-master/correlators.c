@@ -38,8 +38,14 @@
 *
 * NOTES:
 * Some comments as 'modified','unchanged','new function',... refer to file
-* tm_correlators.c, the originary one. Some comments explain some functions.
+* correlators.c, the originary one. Some comments explain some functions.
 * Other comments are just my notes.
+*
+*******************************************************************************
+*
+* DATA:  static struct data.
+*  for each correlator I store each single contribution from 
+*  stochastic vectors eta1 and eta2 with each intermediate time t.
 *
 *******************************************************************************/
 
@@ -190,7 +196,7 @@ static FILE *fin=NULL,*flog=NULL,*fend=NULL,*fdat=NULL;
 /*
 static void lonfo(void)
 {
-   error(1,1,"[correlators.c]","Il lonfo non vaterca, né brigatta.");
+   error(1,1,"[correlators.c]","%sIl lonfo non vaterca, né brigatta%s.",OBOLDWITHE,ORESET);
 }*/
 
 static void alloc_data(void)  /*modified*/
