@@ -2106,7 +2106,7 @@ static void correlators_contractions(void)  /*new function*/
       for(idx=0;idx<proplist.len4;idx++)
       {
          if (my_rank==0)
-            printf("\t\tZeta_1^{4,+} evaluation:\n\t\tprop=%i, status:\n",proplist.prop_type4[idx]);
+            printf("\t\tZeta_1^{4,+} evaluation:\n\t\tprop=%i, status:",proplist.prop_type4[idx]);
 
          assign_sd2sd(VOLUME,eta1,tmp_spinor);
          solve_dirac(proplist.prop_type4[idx],tmp_spinor,zeta1[idx],stat);
