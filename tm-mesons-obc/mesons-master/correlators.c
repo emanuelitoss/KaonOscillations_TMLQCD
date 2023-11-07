@@ -44,8 +44,8 @@
 *******************************************************************************
 *
 * DATA:  static struct data.
-*  for each correlator I store each single contribution from 
-*  stochastic vectors eta1 and eta2 with each intermediate time t.
+* for each correlator I store each single contribution from 
+* stochastic vectors eta1 and eta2 with each intermediate time t.
 *
 *******************************************************************************/
 
@@ -880,6 +880,8 @@ static void read_lat_parms(void) /*modified*/
          file_head.isreal[icorr]=1;
       else
          file_head.isreal[icorr]=0;*/
+      /* substituted with: */
+      file_head.isreal[icorr]=0;
    }
    if (append)
       check_lat_parms(fdat);
@@ -2054,7 +2056,7 @@ static void contraction_double_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_db
 
 static void correlators_contractions(void)  /*new function*/
 {
-   int idx,noise_idx1,noise_idx2,stat[4],l;
+   int idx,noise_idx1,noise_idx2,stat[4],l,itime;
    spinor_dble *eta1,*eta2,*tmp_spinor,*tmp_spinor2;
    spinor_dble **xi1,**xi2,**zeta1,**zeta2,**wsd;
 
@@ -2155,6 +2157,25 @@ static void correlators_contractions(void)  /*new function*/
             if (my_rank==0)   printf("\t\tOperator XY = %s\n",operator_to_string(file_head.operator_type[idx]));
             contraction_single_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
             contraction_double_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
+         }
+      }
+   }
+
+   if(my_rank==0)
+   {
+      printf("Time\tcorr.Re\tcorr.Im\teta1\teta2\n");
+      for(idx=0;idx<ncorr;idx++)
+      {
+         for(itime=0;itime<tvals;itime++)
+         {
+            for(noise_idx1=0;noise_idx1<nnoise;noise_idx1++)
+            {
+               for(noise_idx2=0;noise_idx2<nnoise;noise_idx2++)
+               {
+                  l = noise_idx2+nnoise*(noise_idx1+nnoise*(cpr[0]*L0+itime+file_head.tvals*idx));
+                  printf("\n%i\t%f\t%f\t%i\t%i\n",itime,data.corr[l].re,data.corr[l].im,noise_idx1,noise_idx2);
+               }
+            }
          }
       }
    }
@@ -2354,7 +2375,6 @@ int main(int argc,char *argv[])
          copy_file(rng_file,rng_save);
       }
    }
-
 
    if (my_rank==0)
    {
