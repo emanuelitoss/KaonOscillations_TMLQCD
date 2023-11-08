@@ -26,9 +26,10 @@ The 'new tool' consists in the implementation of <span style="color:orange">Open
 ---
 
 # Repo organization
-The simulation codes are into <span style="color:orange">meson-correlators</span> folder. Inside it you can find other README file(s) and documents about the code. The path to the main program is:
+The simulation codes are into <span style="color:orange">tm-mesons-obc</span> folder. Inside it you can find other README file(s) and documents about the code. The path to the main program is:
 `meson-correlators > mesons-master > correlators.c`.
 The entire code is based on <span style="color:orange">openQCD-1.2</span> by S. Luescher: https://luscher.web.cern.ch/luscher/openQCD/index.html
+Data analysis codes are written in Python language and lies in <span style="color:orange">data-analysis-kkbar</span>.
 
 ---
 
