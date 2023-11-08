@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 home_dir = '/Users/emanuelerosi/Thesis_MSc/kaons-oscillations/tm-mesons-obc/mesons-master/dat/'
 file_name = 'crrltrs_run_name.correlators.dat'
@@ -6,10 +7,15 @@ path_to_file = home_dir+file_name
 
 ######################## FUNCTIONS, TOOLS ########################
 
+def printRed(skk):
+    print("\033[91m{}\033[00m".format(skk))
+def prCyan(skk):
+    print("\033[96m{}\033[00m".format(skk))
+
 def error_check(condition,error_message,optional_message=''):
-    print(optional_message)
     if(condition):
-        print(error_message)
+        printRed('ERROR:'+optional_message)
+        printRed(error_message)
         quit()
 
 ########################## DATA READING ##########################
@@ -77,4 +83,27 @@ for i2 in np.arange(0,nnoise,1):
                 idx=i2 + nnoise*i1 + nnoise*nnoise*(time+ntimes*corr)
                 data[corr][time][0] += raw_data[2*idx]      # real part
                 data[corr][time][1] += raw_data[2*idx+1]    # immaginary part
+                
+data = np.array(data)
+                
+########################## CORRELATOR PLOT ##########################             
 
+# The first correlator is PS, the second SP. Then:
+corr_PSpSP = data[0] + data[1]
+corr_PSmSP = data[0] - data[1]
+
+tmp = np.array([0]*len(corr_PSpSP))
+for idx,val in enumerate(corr_PSpSP):
+    tmp[idx]=val[0]    
+
+fig = plt.figure(figsize=(13,5),dpi=300)
+plt.xlabel("Timeslice $y_4$")
+plt.ylabel("Real value of the correlator")
+plt.xlim(0,ntimes)
+if(min(tmp)!=max(tmp)):
+    plt.ylim(min(tmp)*0.9,max(tmp)*1.12)
+plt.grid()
+plt.plot(tmp,'1',c='darkred', alpha=0.7,lw=0.9)
+corr_name = '$\mathbb{Re}(C_{PS+SP}(x_4,y_4,z_4))$'
+plt.title('Correlator: '+corr_name)
+fig.savefig('plots/sampleplot_3pts.png',dpi=fig.dpi)
