@@ -197,6 +197,42 @@ static FILE *fin=NULL,*flog=NULL,*fend=NULL,*fdat=NULL;
 static void lonfo(void)
 {
    error(1,1,"[correlators.c]","%sIl lonfo non vaterca, né brigatta%s.",OBOLDWITHE,ORESET);
+}
+
+static int check_null_spinor(spinor_dble *psi,char *str)
+{
+   double variable;
+   int i_pos,i_time,idx,counter=0;
+
+   printf("%s\n",str);
+   printf("Prima locazione: %p\n",(void *)&(psi[0]));
+   for(i_time=0;i_time<L0;i_time++)
+   {
+      for (i_pos=0;i_pos<L1*L2*L3;i_pos++)
+      {
+         idx=ipt[i_pos+i_time*L1*L2*L3];
+
+         variable = psi[idx].c1.c1.re;
+         if(variable!=0)
+         {
+            printf("Non null value c1.c1.re: %f\n",variable);
+            counter++;  
+         }
+         variable = psi[idx].c2.c2.re;
+         if(variable!=0)
+         {
+            printf("Non null value c2.c1.re: %f\n",variable);
+            counter++;
+         }
+         if(i_time==(L0-1)&&i_pos==(L1*L2*L3-1))
+         printf("Ultima locazione: %p\n",(void *)&(psi[idx]));
+      }
+   }
+   
+   if(counter==0)
+      return 0;
+   else
+      return 1;
 }*/
 
 static void alloc_data(void)  /*modified*/
@@ -2056,7 +2092,7 @@ static void contraction_double_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_db
 
 static void correlators_contractions(void)  /*new function*/
 {
-   int idx,noise_idx1,noise_idx2,stat[4],l,itime;
+   int idx,noise_idx1,noise_idx2,stat[4],l;
    spinor_dble *eta1,*eta2,*tmp_spinor,*tmp_spinor2;
    spinor_dble **xi1,**xi2,**zeta1,**zeta2,**wsd;
 
@@ -2097,7 +2133,7 @@ static void correlators_contractions(void)  /*new function*/
       for(idx=0;idx<proplist.len_1A;idx++)
       {
          if (my_rank==0)
-            printf("\t\tXi_{1A}^{1,-} evaluation:\n\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeA[idx]), proplist.prop_type1[idx]);
+            printf("\t\tXi_{1A}^{1,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:",dirac_type_to_string(proplist.matrix_typeA[idx]), proplist.prop_type1[idx]);
 
          make_source(eta1,proplist.matrix_typeA[idx],tmp_spinor);
          solve_dirac(proplist.prop_type1[idx],tmp_spinor,xi1[idx],stat);
@@ -2108,7 +2144,7 @@ static void correlators_contractions(void)  /*new function*/
       for(idx=0;idx<proplist.len4;idx++)
       {
          if (my_rank==0)
-            printf("\t\tZeta_1^{4,+} evaluation:\n\t\tprop=%i, status:",proplist.prop_type4[idx]);
+            printf("\t\tZeta_1^{4,+} evaluation:\n\t\t\tprop=%i, status:",proplist.prop_type4[idx]);
 
          assign_sd2sd(VOLUME,eta1,tmp_spinor);
          solve_dirac(proplist.prop_type4[idx],tmp_spinor,zeta1[idx],stat);
@@ -2125,7 +2161,7 @@ static void correlators_contractions(void)  /*new function*/
       for(idx=0;idx<proplist.len_3C;idx++)
       {
          if (my_rank==0)
-            printf("\t\tXi_{3C}^{3,-} evaluation:\n\t\ttype=%s, prop=%i, status:",dirac_type_to_string(proplist.matrix_typeC[idx]),proplist.prop_type3[idx]);
+            printf("\t\tXi_{3C}^{3,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:",dirac_type_to_string(proplist.matrix_typeC[idx]),proplist.prop_type3[idx]);
 
          make_source(eta2,proplist.matrix_typeC[idx],tmp_spinor);
          solve_dirac(proplist.prop_type3[idx],tmp_spinor,xi2[idx],stat);
@@ -2136,7 +2172,7 @@ static void correlators_contractions(void)  /*new function*/
       for(idx=0;idx<proplist.len2;idx++)
       {
          if (my_rank==0)
-            printf("\t\tZeta_2^{2,+} evaluation:\n\t\tprop=%i, status:",proplist.prop_type2[idx]);
+            printf("\t\tZeta_2^{2,+} evaluation:\n\t\t\tprop=%i, status:",proplist.prop_type2[idx]);
 
          assign_sd2sd(VOLUME,eta2,tmp_spinor);
          solve_dirac(proplist.prop_type2[idx],tmp_spinor,zeta2[idx],stat);
@@ -2154,28 +2190,10 @@ static void correlators_contractions(void)  /*new function*/
          /* contractions */
          for(idx=0;idx<ncorr;idx++)
          {
-            if (my_rank==0)   printf("\t\tOperator XY = %s\n",operator_to_string(file_head.operator_type[idx]));
+            if (my_rank==0)   printf("\t\tOperator XY = %s",operator_to_string(file_head.operator_type[idx]));
             contraction_single_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
             contraction_double_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
-         }
-      }
-   }
-
-   if(my_rank==0)
-   {
-      printf("Time\tcorr.Re\tcorr.Im\teta1\teta2\n");
-      for(idx=0;idx<ncorr;idx++)
-      {
-         for(itime=0;itime<tvals;itime++)
-         {
-            for(noise_idx1=0;noise_idx1<nnoise;noise_idx1++)
-            {
-               for(noise_idx2=0;noise_idx2<nnoise;noise_idx2++)
-               {
-                  l = noise_idx2+nnoise*(noise_idx1+nnoise*(cpr[0]*L0+itime+file_head.tvals*idx));
-                  printf("\n%i\t%f\t%f\t%i\t%i\n",itime,data.corr[l].re,data.corr[l].im,noise_idx1,noise_idx2);
-               }
-            }
+            if (my_rank==0)   printf("\t---> Work done.\n");
          }
       }
    }
