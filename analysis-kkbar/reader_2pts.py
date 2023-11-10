@@ -125,7 +125,7 @@ for icorr in np.arange(0,ncorr,1):
 # read configuration number
 offset_byte=4*4 + ncorr*(4*8+4*4)
 configuration_number=np.fromfile(path_to_file,dtype='<i4',offset=offset_byte,count=1)
-printCyan('Configuration number:'+str(configuration_number[0])+' --> loaded\n')
+printCyan('Configuration number:'+str(configuration_number[0])+' --> loaded')
 offset_byte+=4
 
 # read raw data
@@ -137,7 +137,7 @@ error_check(data_count!=len(raw_data),'len(data)!=expected lenght')
 
 # create an ordered data structure
 offset_idx=0
-data = np.array([[[0]*ntimes]*ncorr]*2)
+data = np.array([[[0]*ntimes]*ncorr]*2,dtype=np.float64)
     
 for icorr in np.arange(0,ncorr,1):
     if(isreal[icorr]==True):

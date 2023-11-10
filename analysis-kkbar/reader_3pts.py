@@ -116,7 +116,7 @@ ntimes=int_reads[2]
 noisetype=int_reads[3]
 x0=int_reads[4]
 z0=int_reads[5]
-printCyan('\nGeneral settings:')
+printCyan('\nGeneral settings')
 print(  '\tNumber of correlators Ncorr =',ncorr,
         '\n\tNumber of noise spinors Nnoise =',nnoise,
         '\n\tNumber of timeslices N_T =',ntimes,
@@ -132,7 +132,7 @@ operator_type=[0]*ncorr
 isreal=[0]*ncorr
 
 for icorr in np.arange(0,ncorr,1):
-    printCyan("Correlator #"+str(icorr))
+    printCyan("Correlator # "+str(icorr))
     offset_byte = 6*4 + icorr*(8*8+4*4)
     tmp=np.fromfile(path_to_file,dtype='<f8',offset=offset_byte,count=8)
     kappas[icorr]=[tmp[0],tmp[1],tmp[2],tmp[3]]
@@ -155,7 +155,7 @@ for icorr in np.arange(0,ncorr,1):
 # read configuration number
 offset_byte=6*4+ncorr*(8*8+4*4)
 configuration_number=np.fromfile(path_to_file,dtype='<i4',offset=offset_byte,count=1)
-printCyan('Configuration number:'+str(configuration_number[0])+' --> loaded')
+printCyan('Configuration number: '+str(configuration_number[0])+' ---> loaded')
 offset_byte+=4
    
 # read data
@@ -166,21 +166,8 @@ error_check(data_count!=len(raw_data),'len(data)!=expected lenght')
 ########################## DATA REORDERING ##########################
 
 # create an ordered data structure
+data= np.array([[[0]*2]*ntimes]*ncorr,dtype=np.float64)
 offset_idx=0
-data= np.array([[[0]*2]*ntimes]*ncorr)
-
-#for corr in np.arange(0,ncorr,1):
-#    for time in np.arange(0,ntimes,1):
-#        for i1 in np.arange(0,nnoise,1):
-#            for i2 in np.arange(0,nnoise,1):
-#                if(isreal[corr]==True):
-#                    idx=offset_idx + i2 + i1*nnoise + time*nnoise*nnoise
-#                    data[corr][time][0] += raw_data[idx]
-#                else:
-#                    idx=offset_idx + 2*(i2 + i1*nnoise + time*nnoise*nnoise)
-#                    data[corr][time][0] += raw_data[idx]
-#                    data[corr][time][1] += raw_data[idx+1]
-#    offset_idx+=nnoise*nnoise*ntimes*(2-isreal[corr])
     
 for corr in np.arange(0,ncorr,1):
     if(isreal[corr]==True):
@@ -198,25 +185,21 @@ for corr in np.arange(0,ncorr,1):
                     data[corr][time][1] += raw_data[idx+1]  # immaginary part
     offset_idx+=nnoise*nnoise*ntimes*(2-isreal[corr])
 
-# I divide by the norm - simulation doesn't do it
-for idx,value in enumerate(data):
-    data[idx]=value/volume3D
-    
-for value in raw_data:
-    if(value!=0):
-        printRed(value)
+data/=volume3D
                 
 ########################## CORRELATOR PLOT ##########################             
 
-# The first correlator is PS, the second SP. Then:
+# The first correlator is PS, the second SP.
+# Then I create [PS-SP] and [PS+SP]
 correlators = [data[0]-data[1],data[0]+data[1]]
+tmp = np.array([0]*ntimes,dtype=np.float64)
 
-for i,corr in enumerate(correlators):
-    tmp_re = np.array([0]*len(corr))
-    tmp_im = np.array([0]*len(corr))
-    for idx,val in enumerate(corr):
-        tmp_re[idx]=val[0]
-        tmp_im[idx]=val[1]
+#for i,corr in enumerate(correlators):
+#    tmp_re = np.array([0]*len(corr))
+#    tmp_im = np.array([0]*len(corr))
+#    for idx,val in enumerate(corr):
+#        tmp_re[idx]=val[0]
+#        tmp_im[idx]=val[1]
         
 # Real part of correlators
 real_plot=plt.figure(1,figsize=(13,5),dpi=300)
@@ -226,10 +209,11 @@ plt.ylabel("Real value of the correlator")
 plt.xlim(0,ntimes)
 plt.grid()
 for idx,corr in enumerate(correlators):
-    tmp = np.array([0]*len(corr))
     for i,val in enumerate(corr):
         tmp[i]=val[0]
-    plt.plot(tmp,str(idx+1),label='correlator #'+str(idx),alpha=1,lw=0.75)
+    if(idx==0): plot_name=r'$O_{PS-SP}$'
+    elif(idx==1): plot_name=r'$O_{PS+SP}$'
+    plt.plot(tmp,str(idx+1),label=plot_name,alpha=1,lw=0.75)
 plt.legend(loc='upper right')
 
 # Immaginary part of correlators
@@ -240,10 +224,11 @@ plt.ylabel("Immaginary value of the correlator")
 plt.xlim(0,ntimes)
 plt.grid()
 for idx,corr in enumerate(correlators):
-    tmp = np.array([0]*len(corr))
     for i,val in enumerate(corr):
         tmp[i]=val[1]
-    plt.plot(tmp,str(idx+1),label='correlator #'+str(idx),alpha=1,lw=0.75)
+    if(idx==0): plot_name=r'$O_{PS-SP}$'
+    elif(idx==1): plot_name=r'$O_{PS+SP}$'
+    plt.plot(tmp,str(idx+1),label=plot_name,alpha=1,lw=0.75)
 plt.legend(loc='upper right')    
 
 # Save plots in a single file
