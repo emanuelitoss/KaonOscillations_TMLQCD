@@ -123,7 +123,51 @@ static char par_file[NAME_SIZE],par_save[NAME_SIZE];
 static char rng_file[NAME_SIZE],rng_save[NAME_SIZE];
 static char cnfg_file[NAME_SIZE],nbase[NAME_SIZE],outbase[NAME_SIZE];
 static FILE *fin=NULL,*flog=NULL,*fend=NULL,*fdat=NULL;
+/*
+static int check_null_spinor(spinor_dble *psi,char *str)
+{
+   double variable;
+   int i_pos,i_time,idx,counter=0;
 
+   printf("%s\n",str);
+   for(i_time=0;i_time<L0;i_time++)
+   {
+      for (i_pos=0;i_pos<L1*L2*L3;i_pos++)
+      {
+         idx=ipt[i_pos+i_time*L1*L2*L3];
+
+         variable = psi[idx].c1.c1.re;
+         if(variable!=0)
+         {
+            printf("Non null value c1.c1.re: %f\n",variable);
+            counter++;  
+         }
+         variable = psi[idx].c1.c1.im;
+         if(variable!=0)
+         {
+            printf("Non null value c1.c1.im: %f\n",variable);
+            counter++;
+         }
+         variable = psi[idx].c2.c2.re;
+         if(variable!=0)
+         {
+            printf("Non null value c2.c1.re: %f\n",variable);
+            counter++;
+         }
+         variable = psi[idx].c2.c3.im;
+         if(variable!=0)
+         {
+            printf("Non null value c2.c1.im: %f\n",variable);
+            counter++;
+         }
+      }
+   }
+   
+   if(counter==0)
+      return 0;
+   else
+      return 1;
+}*/
 
 static void alloc_data(void)
 {
@@ -1321,7 +1365,7 @@ static void solve_dirac(int prop, spinor_dble *eta, spinor_dble *psi, int *statu
       mulg5_dble(VOLUME,eta); /* evaluates G5*eta and assigns it to eta */
 
       tmcg(sp.nmx,sp.res,mus[prop],eta,eta,status); /* ... leggi funzione ... */
-      
+
       if (my_rank==0)
          printf("%i\n",status[0]);
       error_root(status[0]<0,1,"solve_dirac [mesons.c]",
@@ -1741,7 +1785,8 @@ int main(int argc,char *argv[])
          sprintf(cnfg_file,"# Gauge configurations are randomly generated\n");
 
          /* my new function */
-         random_ud();
+         /*random_ud();*/
+         alloc_ud_to_identity();
 
          set_flags(UPDATED_UD);
       }
