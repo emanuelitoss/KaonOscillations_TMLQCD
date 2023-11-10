@@ -28,7 +28,7 @@ noise_type   Z2                   # noise type: U1 or Z2 or GAUSS
 csw          1.4951               # Dirac operator options >> Coefficient of the Sheikholeslami-Wohlert term
 cF           1.0                  # common to all quark lines >> coefficient of the Fermions Fermion O(a) boundary counterterm
 eoflg        0                    # Aggiunta da Emanuele: if = 1, Twisted Mass term is not used.
-x0           4
+x0           3
 z0           1
 
 ################################### For every quark line a Propagator 
@@ -51,7 +51,7 @@ type_sources G5 1                # Dirac structures src snk A,C
 operator     PS                  # intermediate Dirac matrices B,D
 
 [Correlator 1]
-iprop        0 0 0 0             # quark lines
+iprop        1 1 1 1             # quark lines
 type_sources G5 1                # Dirac structures src snk A,C
 operator     SP                  # intermediate Dirac matrices B,D
 
@@ -59,22 +59,22 @@ operator     SP                  # intermediate Dirac matrices B,D
                                 # section, as in openQCD 
 
 [Solver 0]
-solver       DFL_SAP_GCR
+solver       CGNE
 nkv          8                  # Maximal number of Krylov vectors generated before the GCR algorithm is restarted.
 isolv        0                  # = 0. If = 1 the even-odd precondition is used.
 nmr          4                  # Number of block minimal residual iterations to be used when the SAP smoother is applied.
 ncy          10                 # Number of SAP cycles per inverse iteration.
 nmx          128                # Maximal total number of Krylov vectors that may be generated.
-res          10.0e-1            # Desired maximal relative residue |eta-D*psi|/|eta| of the calculated solution.
+res          10.0e-12           # Desired maximal relative residue |eta-D*psi|/|eta| of the calculated solution.
 
 [Solver 1]
 solver       DFL_SAP_GCR
 nkv          8
 isolv        1
 nmr          4
-ncy          6
+ncy          10
 nmx          128
-res          10
+res          10.0e-12
 
 [SAP]
 bs           4 4 4 4    # bs : block-size 
