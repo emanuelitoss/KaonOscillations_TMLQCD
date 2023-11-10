@@ -59,7 +59,7 @@ operator     SP                  # intermediate Dirac matrices B,D
                                 # section, as in openQCD 
 
 [Solver 0]
-solver       CGNE
+solver       DFL_SAP_GCR
 nkv          8                  # Maximal number of Krylov vectors generated before the GCR algorithm is restarted.
 isolv        0                  # = 0. If = 1 the even-odd precondition is used.
 nmr          4                  # Number of block minimal residual iterations to be used when the SAP smoother is applied.
