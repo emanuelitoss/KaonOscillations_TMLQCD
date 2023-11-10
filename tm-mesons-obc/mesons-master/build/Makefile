@@ -194,4 +194,12 @@ clean-dat-log:
 	@ -rm -rf ../dat/* ../log/*
 .PHONY: clean-dat-log
 
+clean-3pts:
+	@ -rm -rf ../dat/crrltrs* ../log/crrltrs*
+.PHONY: clean-3pts
+
+clean-2pts:
+	@ -rm -rf ../dat/meson* ../log/meson*
+.PHONY: clean-2pts
+
 ################################################################################
