@@ -14,10 +14,10 @@ volume3D=N1*N2*N3   # number of lattice points for each timeslice
 
 ######################## FUNCTIONS, TOOLS ########################
 
-def printRed(skk):
-    print("\033[91m{}\033[00m".format(skk))
-def printCyan(skk):
-    print("\033[96m{}\033[00m".format(skk))
+def printRed(message):
+    print("\033[91m{}\033[00m".format(message))
+def printCyan(message):
+    print("\033[96m{}\033[00m".format(message))
 
 def error_check(condition,error_message,optional_message=''):
     if(condition):
@@ -201,6 +201,10 @@ for corr in np.arange(0,ncorr,1):
 # I divide by the norm - simulation doesn't do it
 for idx,value in enumerate(data):
     data[idx]=value/volume3D
+    
+for value in raw_data:
+    if(value!=0):
+        printRed(value)
                 
 ########################## CORRELATOR PLOT ##########################             
 
