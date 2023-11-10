@@ -190,15 +190,15 @@ clean:
 	@ -rm -rf *.d *.o *.alog *.clog *.slog $(MAIN)
 .PHONY: clean
 
-clean-dat-log:
+clean-dat:
 	@ -rm -rf ../dat/* ../log/*
 .PHONY: clean-dat-log
 
-clean-3pts:
+clean-3:
 	@ -rm -rf ../dat/crrltrs* ../log/crrltrs*
 .PHONY: clean-3pts
 
-clean-2pts:
+clean-2:
 	@ -rm -rf ../dat/meson* ../log/meson*
 .PHONY: clean-2pts
 
