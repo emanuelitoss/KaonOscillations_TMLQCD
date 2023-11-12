@@ -39,20 +39,20 @@ kappa        0.121951219512195    # hopping parameter
 isp          0                    # solver id > set solver (?)
 
 [Propagator 1]
-mus          0.1666667
-kappa        0.12
+mus          -0.1
+kappa        0.121951219512195
 isp          0
 
 ################################## For every correlator a Correlator
                                  # section, ncorr in total
 [Correlator 0]
-iprop        0 0 0 0             # quark lines
+iprop        0 0 0 1             # quark lines
 type_sources G5 1                # Dirac structures src snk A,C
 operator     PS                  # intermediate Dirac matrices B,D
 
 [Correlator 1]
-iprop        1 1 1 1             # quark lines
-type_sources G5 G5               # Dirac structures src snk A,C
+iprop        0 0 0 1             # quark lines
+type_sources G5 1                # Dirac structures src snk A,C
 operator     SP                  # intermediate Dirac matrices B,D
 
 ################################# For every solver id used, one Solver
