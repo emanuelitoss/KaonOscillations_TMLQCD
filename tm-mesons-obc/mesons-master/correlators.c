@@ -1793,12 +1793,12 @@ static void contraction_single_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_db
             mul_type_sd(psi2,GAMMA5_TYPE);
             break;
          case PS:
-            mul_type_sd(psi1,GAMMA5_TYPE);
-            mul_type_sd(psi2,ONE_TYPE);
-            break;
-         case SP:
             mul_type_sd(psi1,ONE_TYPE);
             mul_type_sd(psi2,GAMMA5_TYPE);
+            break;
+         case SP:
+            mul_type_sd(psi1,GAMMA5_TYPE);
+            mul_type_sd(psi2,ONE_TYPE);
             break;
          default:
             break;
@@ -1844,12 +1844,12 @@ static void contraction_single_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_db
                mul_type_sd(psi2,GAMMA5_TYPE);
                break;
             case VA:
-               mul_type_sd(psi1,ONE_TYPE);
-               mul_type_sd(psi2,GAMMA5_TYPE);
-               break;
-            case AV:
                mul_type_sd(psi1,GAMMA5_TYPE);
                mul_type_sd(psi2,ONE_TYPE);
+               break;
+            case AV:
+               mul_type_sd(psi1,ONE_TYPE);
+               mul_type_sd(psi2,GAMMA5_TYPE);
                break;
             default:
                break;
@@ -1902,8 +1902,8 @@ static void contraction_single_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_db
                   mul_type_sd(psi2,ONE_TYPE);
                   break;
                case TTt:
-                  mul_type_sd(psi1,ONE_TYPE);
-                  mul_type_sd(psi2,GAMMA5_TYPE);
+                  mul_type_sd(psi1,GAMMA5_TYPE);
+                  mul_type_sd(psi2,ONE_TYPE);
                   break;
                default:
                   error(1,1,"contraction_single_trace [correlators.c]","Invalid operator type");
