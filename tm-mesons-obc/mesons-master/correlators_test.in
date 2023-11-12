@@ -1,6 +1,6 @@
 [Run name]
-name         openQCD_run_name
-output       crrltrs_run_name      # optional
+name         crrltrs_test
+output       crrltrs_test      # optional
 
 
 [Directories]                     # as in openQCD            

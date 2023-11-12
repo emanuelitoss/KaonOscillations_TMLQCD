@@ -199,7 +199,7 @@ clean-3:
 .PHONY: clean-3pts
 
 clean-2:
-	@ -rm -rf ../dat/meson* ../log/meson*
+	@ -rm -rf ../dat/mesons* ../log/mesons*
 .PHONY: clean-2pts
 
 ################################################################################

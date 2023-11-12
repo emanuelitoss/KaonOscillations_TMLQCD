@@ -1,6 +1,6 @@
 [Run name]
-name         openQCD_run_name
-output       mesons_run_name      # optional
+name         mesons_test
+output       mesons_test      # optional
 
 
 [Directories]                     # as in openQCD            
