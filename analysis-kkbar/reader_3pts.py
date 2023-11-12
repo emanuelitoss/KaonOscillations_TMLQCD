@@ -185,7 +185,7 @@ for corr in np.arange(0,ncorr,1):
                     data[corr][time][1] += raw_data[idx+1]  # immaginary part
     offset_idx+=nnoise*nnoise*ntimes*(2-isreal[corr])
 
-data/=volume3D
+data/=(volume3D*nnoise*nnoise)
                 
 ########################## CORRELATOR PLOT ##########################             
 

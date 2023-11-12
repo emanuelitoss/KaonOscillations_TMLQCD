@@ -155,7 +155,7 @@ for icorr in np.arange(0,ncorr,1):
 
 # divide by the norm - simulation doesn't do it
 for idx,value in enumerate(data):
-    data[idx]=value/volume3D
+    data[idx]=value/(volume3D*nnoise)
     
 ########################## CORRELATORS PLOT ##########################             
 
