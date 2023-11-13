@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
 home_dir = '/Users/emanuelerosi/Thesis_MSc/kaons-oscillations/tm-mesons-obc/mesons-master/dat/'
-file_name = 'crrltrs_run_name.correlators.dat'
+file_name = 'operatorsOi.correlators.dat'
 path_to_file = home_dir+file_name
 
 # this must be set by the user 
@@ -189,10 +189,11 @@ data/=(volume3D*nnoise*nnoise)
                 
 ########################## CORRELATOR PLOT ##########################             
 
-# The first correlator is PS, the second SP.
-# Then I create [PS-SP] and [PS+SP]
-correlators = [data[0]-data[1],data[0]+data[1]]
+# The first correlator is Psi1, the second Psi2.
+# Then I create [VV+AA] and [VV-AA]
+correlators = [data[0]+data[1],data[0]-data[1],data[2]-data[3],data[2]+data[3],data[4]]
 tmp = np.array([0]*ntimes,dtype=np.float64)
+plot_names = [r'$O_{VV+AA}$',r'$O_{VV-AA}$',r'$O_{SS-PP}$',r'$O_{SS+PP}$',r'$O_{TT}$']
 
 #for i,corr in enumerate(correlators):
 #    tmp_re = np.array([0]*len(corr))
@@ -211,9 +212,10 @@ plt.grid()
 for idx,corr in enumerate(correlators):
     for i,val in enumerate(corr):
         tmp[i]=val[0]
-    if(idx==0): plot_name=r'$O_{PS-SP}$'
-    elif(idx==1): plot_name=r'$O_{PS+SP}$'
-    plt.plot(tmp,str(idx+1),label=plot_name,alpha=1,lw=0.75)
+    if(idx<2):
+        plt.plot(tmp,str(idx+1),label=plot_names[idx],alpha=1,lw=0.75)
+    else:
+        plt.plot(tmp,'*',label=plot_names[idx],alpha=1,lw=0.75)
 plt.legend(loc='upper right')
 
 # Immaginary part of correlators
@@ -226,9 +228,10 @@ plt.grid()
 for idx,corr in enumerate(correlators):
     for i,val in enumerate(corr):
         tmp[i]=val[1]
-    if(idx==0): plot_name=r'$O_{PS-SP}$'
-    elif(idx==1): plot_name=r'$O_{PS+SP}$'
-    plt.plot(tmp,str(idx+1),label=plot_name,alpha=1,lw=0.75)
+    if(idx<2):
+        plt.plot(tmp,str(idx+1),label=plot_names[idx],alpha=1,lw=0.75)
+    else:
+        plt.plot(tmp,'*',label=plot_names[idx],alpha=1,lw=0.75)
 plt.legend(loc='upper right')    
 
 # Save plots in a single file
