@@ -191,8 +191,8 @@ data/=(volume3D*nnoise*nnoise)
 
 # The first correlator is Psi1, the second Psi2.
 # Then I create [VV+AA] and [VV-AA]
-correlators = [data[0]+data[1],data[0]-data[1],data[2]-data[3],data[2]+data[3],data[4]]
-tmp = np.array([0]*ntimes,dtype=np.float64)
+correlators = [-2*(data[0]+data[1]),-2*(data[0]-data[1]),2*(data[2]-data[3]),2*(data[2]+data[3]),2*data[4]]
+tmp = np.array([0]*ntimes,dtype=np.float128)
 plot_names = [r'$O_{VV+AA}$',r'$O_{VV-AA}$',r'$O_{SS-PP}$',r'$O_{SS+PP}$',r'$O_{TT}$']
 
 #for i,corr in enumerate(correlators):
@@ -211,7 +211,7 @@ plt.xlim(0,ntimes)
 plt.grid()
 for idx,corr in enumerate(correlators):
     for i,val in enumerate(corr):
-        tmp[i]=val[0]
+        tmp[i]=-val[1]  # there is an 'i' in front of the correlator definition!
     if(idx<2):
         plt.plot(tmp,str(idx+1),label=plot_names[idx],alpha=1,lw=0.75)
     else:
@@ -227,7 +227,7 @@ plt.xlim(0,ntimes)
 plt.grid()
 for idx,corr in enumerate(correlators):
     for i,val in enumerate(corr):
-        tmp[i]=val[1]
+        tmp[i]=val[0]   # there is an 'i' in front of the correlator definition!
     if(idx<2):
         plt.plot(tmp,str(idx+1),label=plot_names[idx],alpha=1,lw=0.75)
     else:
