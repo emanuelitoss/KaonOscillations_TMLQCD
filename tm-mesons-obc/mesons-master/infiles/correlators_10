@@ -1,33 +1,31 @@
 [Run name]
-name         operatorsOi
-output       operatorsOi            # optional
+name         operators10
+output       operators10            # optional
 
-
-[Directories]                       # as in openQCD            
+[Directories]    
 log_dir      ../log
 dat_dir      ../dat
 loc_dir      ../loc
 cnfg_dir     ../cnfg
 
-[Configurations]                    # as in openQCD ms1.
-                                    # (last-first)%step must be == 0 and step >= 1
+[Configurations]
 first        1 
 last         1
 step         1
 
-[Random number generator]           # as in openQCD
+[Random number generator]
 level        0      
 seed         73099  
 
 [Measurements]
-nprop        3                      # number of different quark lines
-ncorr        5                      # number of different correlators
+nprop        3                      # number of quark lines
+ncorr        5                      # number of correlators
 nnoise       100                    # number of noise vectors
 noise_type   Z2                     # noise type: U1 or Z2 or GAUSS
 csw          1.4951                 # coefficient of the Sheikholeslami-Wohlert term
 cF           1.0                    # coefficient of the fermion O(a) boundary counterterm
 eoflg        0                      # if = 1, twisted mass is not used.
-x0           28                     # end timeslice
+x0           10                     # end timeslice
 z0           1                      # source timeslice
 
 ################################### For every quark line a Propagator 
@@ -49,25 +47,25 @@ isp          0
 
 ################################## For every correlator a Correlator
 
-[Correlator 0]                      # PS --> Psi_3
+[Correlator 0]                      # VA --> Psi_1
 iprop        1 2 1 0                # quark lines
 type_sources G5 1                   # Dirac structures src and snk : A,C
-operator     PS                     # intermediate Dirac matrices : D,B
+operator     VA                     # intermediate Dirac matrices : D,B
 
-[Correlator 1]                      # SP --> Psi_4
-iprop        1 2 1 0
-type_sources G5 1
-operator     SP
-
-[Correlator 2]                      # VA --> Psi_1
-iprop        1 2 1 0
-type_sources G5 1
-operator     VA
-
-[Correlator 3]                      # AV --> Psi_2
+[Correlator 1]                      # AV --> Psi_2
 iprop        1 2 1 0
 type_sources G5 1
 operator     AV
+
+[Correlator 2]                      # PS --> Psi_3
+iprop        1 2 1 0
+type_sources G5 1
+operator     PS
+
+[Correlator 3]                      # SP --> Psi_4
+iprop        1 2 1 0
+type_sources G5 1
+operator     SP
 
 [Correlator 4]                      # TTt --> Psi_5
 iprop        1 2 1 0
@@ -79,7 +77,7 @@ operator     TTt
 [Solver 0]
 solver       DFL_SAP_GCR
 nkv          8                  # Maximal number of Krylov vectors generated before the GCR algorithm is restarted.
-isolv        0                  # = 0. If = 1 the even-odd precondition is used.
+isolv        0                  # If = 1 the even-odd precondition is used. Else = 0. 
 nmr          4                  # Number of block minimal residual iterations to be used when the SAP smoother is applied.
 ncy          10                 # Number of SAP cycles per inverse iteration.
 nmx          128                # Maximal total number of Krylov vectors that may be generated.
@@ -95,10 +93,10 @@ nmx          128
 res          10.0e-12
 
 [SAP]
-bs           4 4 4 4    # bs : block-size 
+bs           4 4 4 4
 
 [Deflation subspace]
-bs           4 4 4 4    # bs : block-size 
+bs           4 4 4 4
 Ns           26
 
 [Deflation subspace generation]
