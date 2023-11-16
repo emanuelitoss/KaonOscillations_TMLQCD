@@ -43,7 +43,7 @@ CFLAGS = -std=c89 -pedantic -fstrict-aliasing -Wall -Wno-long-long -Wstrict-prot
 
 
 
-MAIN = tm_mesons correlators #correlators #sflds_tests
+MAIN = tm_mesons correlators check1_correlators  #sflds_tests
 
 ARCHIVE = archive sarchive
 
@@ -201,5 +201,9 @@ clean-3:
 clean-2:
 	@ -rm -rf ../dat/mesons* ../log/mesons*
 .PHONY: clean-2pts
+
+clean-check:
+	@ -rm -rf ../dat/check* ../log/check*
+.PHONY: clean-check
 
 ################################################################################
