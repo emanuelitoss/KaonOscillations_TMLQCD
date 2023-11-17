@@ -2133,7 +2133,7 @@ static void correlators_contractions(void)  /*new function*/
       for(idx=0;idx<proplist.len_1A;idx++)
       {
          if (my_rank==0)
-            printf("\t\tXi_{1A}^{1,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:",dirac_type_to_string(proplist.matrix_typeA[idx]), proplist.prop_type1[idx]);
+            printf("\t\tXi_{1A}^{1,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeA[idx]), proplist.prop_type1[idx]);
 
          make_source(eta1,proplist.matrix_typeA[idx],tmp_spinor);
          solve_dirac(proplist.prop_type1[idx],tmp_spinor,xi1[idx],stat);
@@ -2144,7 +2144,7 @@ static void correlators_contractions(void)  /*new function*/
       for(idx=0;idx<proplist.len4;idx++)
       {
          if (my_rank==0)
-            printf("\t\tZeta_1^{4,+} evaluation:\n\t\t\tprop=%i, status:",proplist.prop_type4[idx]);
+            printf("\t\tZeta_1^{4,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type4[idx]);
 
          assign_sd2sd(VOLUME,eta1,tmp_spinor);
          solve_dirac(proplist.prop_type4[idx],tmp_spinor,zeta1[idx],stat);
@@ -2161,7 +2161,7 @@ static void correlators_contractions(void)  /*new function*/
       for(idx=0;idx<proplist.len_3C;idx++)
       {
          if (my_rank==0)
-            printf("\t\tXi_{3C}^{3,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:",dirac_type_to_string(proplist.matrix_typeC[idx]),proplist.prop_type3[idx]);
+            printf("\t\tXi_{3C}^{3,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeC[idx]),proplist.prop_type3[idx]);
 
          make_source(eta2,proplist.matrix_typeC[idx],tmp_spinor);
          solve_dirac(proplist.prop_type3[idx],tmp_spinor,xi2[idx],stat);
@@ -2172,7 +2172,7 @@ static void correlators_contractions(void)  /*new function*/
       for(idx=0;idx<proplist.len2;idx++)
       {
          if (my_rank==0)
-            printf("\t\tZeta_2^{2,+} evaluation:\n\t\t\tprop=%i, status:",proplist.prop_type2[idx]);
+            printf("\t\tZeta_2^{2,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type2[idx]);
 
          assign_sd2sd(VOLUME,eta2,tmp_spinor);
          solve_dirac(proplist.prop_type2[idx],tmp_spinor,zeta2[idx],stat);
