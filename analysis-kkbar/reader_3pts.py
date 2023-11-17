@@ -195,12 +195,7 @@ correlators = [-2*(data[0]+data[1]),-2*(data[0]-data[1]),2*(data[2]-data[3]),2*(
 tmp = np.array([0]*ntimes,dtype=np.float128)
 plot_names = [r'$O_{VV+AA}$',r'$O_{VV-AA}$',r'$O_{SS-PP}$',r'$O_{SS+PP}$',r'$O_{TT}$']
 
-#for i,corr in enumerate(correlators):
-#    tmp_re = np.array([0]*len(corr))
-#    tmp_im = np.array([0]*len(corr))
-#    for idx,val in enumerate(corr):
-#        tmp_re[idx]=val[0]
-#        tmp_im[idx]=val[1]
+pp = PdfPages("plots/Plots_3pts.pdf")
         
 # Real part of correlators
 real_plot=plt.figure(1,figsize=(13,5),dpi=300)
@@ -217,6 +212,8 @@ for idx,corr in enumerate(correlators):
     else:
         plt.plot(tmp,'*',label=plot_names[idx],alpha=1,lw=0.75)
 plt.legend(loc='upper right')
+pp.savefig(real_plot, dpi=real_plot.dpi, transparent = True)
+plt.close()
 
 # Immaginary part of correlators
 immaginary_plot=plt.figure(2,figsize=(13,5),dpi=300)
@@ -233,9 +230,7 @@ for idx,corr in enumerate(correlators):
     else:
         plt.plot(tmp,'*',label=plot_names[idx],alpha=1,lw=0.75)
 plt.legend(loc='upper right')    
-
-# Save plots in a single file
-pp = PdfPages("plots/Plots_3pts.pdf")
-pp.savefig(real_plot, dpi=real_plot.dpi, transparent = True)
 pp.savefig(immaginary_plot, dpi=immaginary_plot.dpi, transparent = True)
+plt.close()
+
 pp.close()
