@@ -1,7 +1,7 @@
 
 /*******************************************************************************
 *
-* File gauge_tranforms.c
+* File gauge_transforms.c
 *
 * Copyright (C) 2023 Emanuele Rosi
 *
@@ -42,6 +42,7 @@
 #include "uflds.h"
 #include "forces.h"
 #include "global.h"
+#include "gauge_transforms.h"
 
 #define N0 (NPROC0*L0)
 #define N1 (NPROC1*L1)
@@ -152,7 +153,7 @@ extern void generate_g_trnsfrms(void)
 {
    g=amalloc(NSPIN*sizeof(*g),4);
    if (BNDRY!=0)
-       gbuf=amalloc((BNDRY/2)*sizeof(*gbuf),4);
+      gbuf=amalloc((BNDRY/2)*sizeof(*gbuf),4);
     
    error((g==NULL)||((BNDRY!=0)&&(gbuf==NULL)),1,"generate_g_trnsfrms [uflds_trnsfrm.c]","Unable to allocate auxiliary arrays");
 
@@ -203,7 +204,7 @@ extern void g_transform_ud(void)
    }
 
    if(allocate_check)
-      free_g_trnsfrms(void);
+      free_g_trnsfrms();
 
    set_flags(UPDATED_UD);
 }

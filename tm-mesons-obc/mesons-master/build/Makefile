@@ -49,7 +49,7 @@ ARCHIVE = archive sarchive
 
 BLOCK = block blk_grid map_u2blk map_sw2blk map_s2blk
 
-CHECKS = 
+CHECKS = gauge_transforms
 
 # ER: from the other folder
 # CFCTS = cfcts2q cfcts4q ptsplit sfcfcts xsfcfcts

@@ -18,9 +18,6 @@
 #endif
 
 /*  GAUGE_TRANSFORMS.C  */
-static void pack_gbuf(void);
-static void send_gbuf(void);
-static void random_g(void);
 extern void generate_g_trnsfrms(void);
 extern void free_g_trnsfrms(void);
 extern void g_transform_ud(void);
