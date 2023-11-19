@@ -49,6 +49,8 @@ ARCHIVE = archive sarchive
 
 BLOCK = block blk_grid map_u2blk map_sw2blk map_s2blk
 
+CHECKS = 
+
 # ER: from the other folder
 # CFCTS = cfcts2q cfcts4q ptsplit sfcfcts xsfcfcts
 
@@ -101,7 +103,7 @@ WFLOW = wflow
 
 
 # Aggiungere $(CFCTS)
-MODULES = $(ARCHIVE) $(BLOCK) $(DFL) $(DIRAC) $(FLAGS) $(FORCES) \
+MODULES = $(ARCHIVE) $(BLOCK) $(CHECKS) $(DFL) $(DIRAC) $(FLAGS) $(FORCES) \
           $(LATTICE) $(LINALG) $(LINSOLV) $(LITTLE) $(MDFLDS) $(RANDOM) \
           $(RATFCTS) $(SAP) $(SFLDS) $(SU3FCTS) $(SW_TERM) $(TCHARGE) \
           $(UFLDS) $(UPDATE) $(UTILS) $(VFLDS) $(WFLOW)
@@ -124,7 +126,7 @@ VPATH = .:$(MDIR)/flags:$(MDIR)/lattice:$(MDIR)/archive:$(MDIR)/linalg:\
           $(MDIR)/sw_term:$(MDIR)/tcharge:$(MDIR)/block:$(MDIR)/sap:\
           $(MDIR)/linsolv:$(MDIR)/dfl:$(MDIR)/vflds:$(MDIR)/little:\
           $(MDIR)/update:$(MDIR)/wflow:$(MDIR)/ratfcts:\
-          $(MAINDIR)
+          $(MAINDIR):$(MAINDIR)/modules
 
 
 INCPATH=$(MPI_HOME)/include ./include
