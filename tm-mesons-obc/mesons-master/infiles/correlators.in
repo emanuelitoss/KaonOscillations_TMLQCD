@@ -22,7 +22,7 @@ seed         73099
 [Measurements]
 nprop        3                      # number of different quark lines
 ncorr        5                      # number of different correlators
-nnoise       20                    # number of noise vectors
+nnoise       50                    # number of noise vectors
 noise_type   Z2                     # noise type: U1 or Z2 or GAUSS
 csw          1.4951                 # coefficient of the Sheikholeslami-Wohlert term
 cF           1.0                    # coefficient of the fermion O(a) boundary counterterm
