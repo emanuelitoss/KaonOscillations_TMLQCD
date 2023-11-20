@@ -192,20 +192,20 @@ clean:
 	@ -rm -rf *.d *.o *.alog *.clog *.slog $(MAIN)
 .PHONY: clean
 
-clean-dat:
+clean-dat-log:
 	@ -rm -rf ../dat/* ../log/*
 .PHONY: clean-dat-log
 
 clean-3:
-	@ -rm -rf ../dat/crrltrs* ../log/crrltrs*
-.PHONY: clean-3pts
+	@ -rm -rf ../dat/c* ../log/c*
+.PHONY: clean-3
 
 clean-2:
 	@ -rm -rf ../dat/mesons* ../log/mesons*
-.PHONY: clean-2pts
+.PHONY: clean-2
 
-clean-check:
+clean-checks:
 	@ -rm -rf ../dat/check* ../log/check*
-.PHONY: clean-check
+.PHONY: clean-checks
 
 ################################################################################
