@@ -20,7 +20,7 @@
 #define NPROC2 1
 #define NPROC3 1
 
-#define L0 8 /* L variables specify the lattice size of each sub-lattice. Must be choosen to fit the entire lattice */
+#define L0 16 /* L variables specify the lattice size of each sub-lattice. Must be choosen to fit the entire lattice */
 #define L1 8
 #define L2 8
 #define L3 8
