@@ -29,7 +29,7 @@ csw          1.4951               # Dirac operator options >> Coefficient of the
 cF           1.0                  # common to all quark lines >> coefficient of the Fermions Fermion O(a) boundary counterterm
 eoflg        0                    # Aggiunta da Emanuele: if = 1, Twisted Mass term is not used.
 x0           7
-z0           4
+z0           1
 
 ################################### For every quark line a Propagator 
                                   # section, nprop in total
@@ -54,7 +54,7 @@ operator     PS                  # intermediate Dirac matrices B,D
                                 # section, as in openQCD 
 
 [Solver 0]
-solver       DFL_SAP_GCR
+solver       CGNE
 nkv          8                  # Maximal number of Krylov vectors generated before the GCR algorithm is restarted.
 isolv        0                  # = 0. If = 1 the even-odd precondition is used.
 nmr          4                  # Number of block minimal residual iterations to be used when the SAP smoother is applied.

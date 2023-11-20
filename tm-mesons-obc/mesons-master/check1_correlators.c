@@ -76,6 +76,7 @@
 #include "OutputColors.h"
 #include "uflds.h"
 #include <time.h>
+#include "gauge_transforms.h"
 
 /* lattice sizes */
 #define N0 (NPROC0*L0)
@@ -110,6 +111,7 @@ static struct
    complex_dble *corr;        /* correlators */
    complex_dble *corr_tmp;    /* temp. correlators */
    int nc;                    /* configuration number */
+   int offset;                /* to switch to gauge transformed data */
 } data;
 
 static struct
@@ -193,20 +195,20 @@ static char rng_file[NAME_SIZE],rng_save[NAME_SIZE];
 static char cnfg_file[NAME_SIZE],run_name[NAME_SIZE],output_name[NAME_SIZE];
 static FILE *fin=NULL,*flog=NULL,*fend=NULL,*fdat=NULL;
 
-/************************ CHECKING FUNCTIONS ************************/
+/************************ FUNCTIONS ************************/
 
-extern void lonfo(void)
+static void lonfo(void)
 {
    error(1,1,"[correlators.c]","Il lonfo non vaterca, né brigatta.");
 }
 
-extern int check_null_spinor(spinor_dble *psi,char *str)
+static int check_null_spinor(spinor_dble *psi,char *str)
 {
    double variable;
    int i_pos,i_time,idx,counter=0;
 
    printf("%s\n",str);
-   printf("First address: %p\n",(void *)&(psi[0]));
+   printf("Prima locazione: %p\n",(void *)&(psi[0]));
    for(i_time=0;i_time<L0;i_time++)
    {
       for (i_pos=0;i_pos<L1*L2*L3;i_pos++)
@@ -226,10 +228,10 @@ extern int check_null_spinor(spinor_dble *psi,char *str)
             counter++;
          }
          if(i_time==(L0-1)&&i_pos==(L1*L2*L3-1))
-         printf("Last address: %p\n",(void *)&(psi[idx]));
+         printf("Ultima locazione: %p\n",(void *)&(psi[idx]));
       }
    }
-
+   
    if(counter==0)
       return 0;
    else
@@ -249,8 +251,6 @@ extern int colour_index(int idx)
    if(colour<0||colour>2)
       error(1,1,"colour_index [correlators.c]","We are working in SU(3).");
 
-   printf("Colour index: %i\n",colour);
-
    return colour;
 }
 
@@ -269,10 +269,7 @@ extern int dirac_index(int idx)
    if(result<0 || result>3)
       error(1,1,"dirac_index [correlators.c]","Dirac spinor has 4 components.");
 
-   printf("Dirac index: %i\n",result);
-
    return result;
-   
 }
 
 /************************ CORRELATORS FUNCTIONS ************************/
@@ -281,7 +278,11 @@ static void alloc_data(void)  /*modified*/
 {
    int number_of_data = file_head.ncorr*file_head.nnoise*file_head.nnoise*file_head.tvals;
 
-   data.corr=malloc(number_of_data*sizeof(complex_dble));
+   data.offset=0;
+   data.corr=malloc(2*number_of_data*sizeof(complex_dble));
+      /* additive x2 because I havo two sets of data:
+         - first set as usual
+         - second set for gauge transformed data */
    data.corr_tmp=malloc(number_of_data*sizeof(complex_dble));
 
    error((data.corr==NULL)||(data.corr_tmp==NULL),1,"alloc_data [correlators.c]", "Unable to allocate data arrays");
@@ -545,6 +546,7 @@ static void write_data(void)  /*modified*/
    int nw;
    int chunk;
    int icorr,i;
+   int offset=0;
 
    if (my_rank==0)
    {
@@ -554,8 +556,8 @@ static void write_data(void)  /*modified*/
       nw = 1;
       if(endian==BIG_ENDIAN)
       {
-         bswap_double(file_head.nnoise*file_head.nnoise*file_head.tvals*file_head.ncorr*2,
-                      data.corr);
+         bswap_double(2*file_head.nnoise*file_head.nnoise*file_head.tvals*file_head.ncorr*2,
+                      data.corr);   /* additive x2*/
          bswap_int(1,&(data.nc));
       }
       iw=fwrite(&(data.nc),sizeof(int),1,fdat);
@@ -574,9 +576,27 @@ static void write_data(void)  /*modified*/
                        sizeof(double),chunk,fdat);
          }
       }
+      /* BEGIN: write Gauge tranformed data */
+      offset=file_head.nnoise*file_head.nnoise*file_head.tvals*file_head.ncorr;
+      for (icorr=0;icorr<file_head.ncorr;icorr++)
+      {
+         chunk=file_head.nnoise*file_head.nnoise*file_head.tvals*(2-file_head.isreal[icorr]);
+         nw+=chunk;
+         if (file_head.isreal[icorr])
+         {
+            for (i=0;i<chunk;i++)
+               iw+=fwrite(&(data.corr[offset+icorr*file_head.tvals*file_head.nnoise*file_head.nnoise+i]),
+                       sizeof(double),1,fdat);
+         }else
+         {
+            iw+=fwrite(&(data.corr[offset+icorr*file_head.tvals*file_head.nnoise*file_head.nnoise]),
+                       sizeof(double),chunk,fdat);
+         }
+      }
+      /* END: write Gauge tranformed data */
       if(endian==BIG_ENDIAN)
       {
-         bswap_double(file_head.nnoise*file_head.nnoise*file_head.tvals*file_head.ncorr*2,
+         bswap_double(2*file_head.nnoise*file_head.nnoise*file_head.tvals*file_head.ncorr*2,
                       data.corr);
          bswap_int(1,&(data.nc));
       }
@@ -724,7 +744,8 @@ static void read_lat_parms(void) /*modified*/
       find_section("Measurements");
       read_line("nprop","%d",&nprop);
       read_line("ncorr","%d",&ncorr);
-      read_line("nnoise","%d",&nnoise);
+      /*read_line("nnoise","%d",&nnoise);*/
+      nnoise=N_DIRAC*N_COLOURS;
       error_root(((nprop<1)||(ncorr<1)||(nnoise<1)),1,"read_lat_parms [correlators.c]",
                  "Specified nprop/ncorr/nnoise must be larger than zero");
       
@@ -1706,7 +1727,6 @@ static void pointlike_source(spinor_dble *eta, int x0, int dc_index)
       lonfo();
 }
 
-/* I should remove kappas and use mus*/
 static void solve_dirac(int prop, spinor_dble *eta, spinor_dble *psi, int *status)  /* untouched */
 {
    solver_parms_t sp;
@@ -2215,7 +2235,7 @@ static void contraction_double_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_db
 
 static void correlators_contractions(void)  /*new function*/
 {
-   int idx,noise_idx1,noise_idx2,stat[4],l;
+   int idx,noise_idx1,noise_idx2,stat[4],l,transform_idx;
    spinor_dble *eta1,*eta2,*tmp_spinor,*tmp_spinor2;
    spinor_dble **xi1,**xi2,**zeta1,**zeta2,**wsd;
 
@@ -2239,88 +2259,103 @@ static void correlators_contractions(void)  /*new function*/
    for(l=0;l<proplist.len2;l++)
       zeta2[l]=wsd[4+l+proplist.len_1A+proplist.len_3C+proplist.len4];
 
-   for (l=0;l<nnoise*nnoise*ncorr*tvals;l++)
-   {
-      data.corr_tmp[l].re=0.0;
-      data.corr_tmp[l].im=0.0;
-   }
-
-   /* ETA_1 noise vector. Run over Dirac indices and colours */
-   for(noise_idx1=0;noise_idx1<nnoise;noise_idx1++)
-   {
-      pointlike_source(eta1,fixed_x0,noise_idx1);
-      check_null_spinor(eta1,"Checking ETA1");
-
-      if(my_rank==0) printf("\tNoise vector eta1 number %i\n",noise_idx1);
-
-      /* evaluate the needed \xi_1 */
-      for(idx=0;idx<proplist.len_1A;idx++)
+   for(transform_idx=0;transform_idx<1;transform_idx++)
+   {   
+      for (l=0;l<nnoise*nnoise*ncorr*tvals;l++)
       {
-         if (my_rank==0)
-            printf("\t\tXi_{1A}^{1,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:",dirac_type_to_string(proplist.matrix_typeA[idx]), proplist.prop_type1[idx]);
-
-         make_source(eta1,proplist.matrix_typeA[idx],tmp_spinor);
-         solve_dirac(proplist.prop_type1[idx],tmp_spinor,xi1[idx],stat);
-         mulg5_dble(VOLUME,xi1[idx]);
+         data.corr_tmp[l].re=0.0;
+         data.corr_tmp[l].im=0.0;
       }
 
-      /* evaluate the needed ZETA_1 s */
-      for(idx=0;idx<proplist.len4;idx++)
+      /* ETA_1 noise vectors */
+      for(noise_idx1=0;noise_idx1<nnoise;noise_idx1++)
       {
-         if (my_rank==0)
-            printf("\t\tZeta_1^{4,+} evaluation:\n\t\t\tprop=%i, status:",proplist.prop_type4[idx]);
+         pointlike_source(eta1,fixed_x0,noise_idx1);
+         check_null_spinor(eta1,"Checking ETA1");
 
-         assign_sd2sd(VOLUME,eta1,tmp_spinor);
-         solve_dirac(proplist.prop_type4[idx],tmp_spinor,zeta1[idx],stat);
-      }
-   }
-   /* ETA_2 noise vectors */
-   for(noise_idx2=0;noise_idx2<nnoise;noise_idx2++)
-   {
-      pointlike_source(eta2,fixed_z0,noise_idx2);
+         if(my_rank==0) printf("\tNoise vector eta1 number %i\n",noise_idx1);
 
-      if(my_rank==0) printf("\tNoise vector eta2 number %i\n",noise_idx2);
-
-      /* evaluate the needed XI_2 s */
-      for(idx=0;idx<proplist.len_3C;idx++)
-      {
-         if (my_rank==0)
-            printf("\t\tXi_{3C}^{3,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:",dirac_type_to_string(proplist.matrix_typeC[idx]),proplist.prop_type3[idx]);
-
-         make_source(eta2,proplist.matrix_typeC[idx],tmp_spinor);
-         solve_dirac(proplist.prop_type3[idx],tmp_spinor,xi2[idx],stat);
-         mulg5_dble(VOLUME,xi2[idx]);
-      }
-
-      /* evaluate the needed ZETA_2 s */
-      for(idx=0;idx<proplist.len2;idx++)
-      {
-         if (my_rank==0)
-            printf("\t\tZeta_2^{2,+} evaluation:\n\t\t\tprop=%i, status:",proplist.prop_type2[idx]);
-
-         assign_sd2sd(VOLUME,eta2,tmp_spinor);
-         solve_dirac(proplist.prop_type2[idx],tmp_spinor,zeta2[idx],stat);
-      }
-   }
-
-   if(my_rank==0) printf("Evaluation of Wick contractions:\n");
-
-   for(noise_idx1=0;noise_idx1<nnoise;noise_idx1++)
-   {
-      for(noise_idx2=0;noise_idx2<nnoise;noise_idx2++)
-      {
-         if (my_rank==0)   printf("\tStohcastic vectors eta1 = %i\teta2 = %i\n",noise_idx1,noise_idx2);
-   
-         /* contractions */
-         for(idx=0;idx<ncorr;idx++)
+         /* evaluate the needed \xi_1 */
+         for(idx=0;idx<proplist.len_1A;idx++)
          {
-            if (my_rank==0)   printf("\t\tOperator XY = %s",operator_to_string(file_head.operator_type[idx]));
-            contraction_single_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
-            contraction_double_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
-            if (my_rank==0)   printf("\t---> Work done.\n");
+            if (my_rank==0)
+               printf("\t\tXi_{1A}^{1,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeA[idx]), proplist.prop_type1[idx]);
+
+            make_source(eta1,proplist.matrix_typeA[idx],tmp_spinor);
+            solve_dirac(proplist.prop_type1[idx],tmp_spinor,xi1[idx],stat);
+            mulg5_dble(VOLUME,xi1[idx]);
+         }
+
+         /* evaluate the needed ZETA_1 s */
+         for(idx=0;idx<proplist.len4;idx++)
+         {
+            if (my_rank==0)
+               printf("\t\tZeta_1^{4,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type4[idx]);
+
+            assign_sd2sd(VOLUME,eta1,tmp_spinor);
+            solve_dirac(proplist.prop_type4[idx],tmp_spinor,zeta1[idx],stat);
          }
       }
+      /* ETA_2 noise vectors */
+      for(noise_idx2=0;noise_idx2<nnoise;noise_idx2++)
+      {
+         pointlike_source(eta2,fixed_z0,noise_idx2);
+
+         if(my_rank==0) printf("\tNoise vector eta2 number %i\n",noise_idx2);
+
+         /* evaluate the needed XI_2 s */
+         for(idx=0;idx<proplist.len_3C;idx++)
+         {
+            if (my_rank==0)
+               printf("\t\tXi_{3C}^{3,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeC[idx]),proplist.prop_type3[idx]);
+
+            make_source(eta2,proplist.matrix_typeC[idx],tmp_spinor);
+            solve_dirac(proplist.prop_type3[idx],tmp_spinor,xi2[idx],stat);
+            mulg5_dble(VOLUME,xi2[idx]);
+         }
+
+         /* evaluate the needed ZETA_2 s */
+         for(idx=0;idx<proplist.len2;idx++)
+         {
+            if (my_rank==0)
+               printf("\t\tZeta_2^{2,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type2[idx]);
+
+            assign_sd2sd(VOLUME,eta2,tmp_spinor);
+            solve_dirac(proplist.prop_type2[idx],tmp_spinor,zeta2[idx],stat);
+         }
+      }
+
+      if(my_rank==0) printf("Evaluation of Wick contractions:\n");
+
+      for(noise_idx1=0;noise_idx1<nnoise;noise_idx1++)
+      {
+         for(noise_idx2=0;noise_idx2<nnoise;noise_idx2++)
+         {
+            if (my_rank==0)   printf("\tStohcastic vectors eta1 = %i\teta2 = %i\n",noise_idx1,noise_idx2);
+
+            /* contractions */
+            for(idx=0;idx<ncorr;idx++)
+            {
+               if (my_rank==0)   printf("\t\tOperator XY = %s",operator_to_string(file_head.operator_type[idx]));
+               contraction_single_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
+               contraction_double_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
+               if (my_rank==0)   printf("\t---> Work done.\n");
+            }
+         }
+      }
+
+      printf("DATA OFFSET: %i\n",data.offset);
+      MPI_Allreduce(data.corr_tmp,data.corr+data.offset,nnoise*nnoise*ncorr*file_head.tvals*2,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+
+      if(data.offset==0)
+      {
+         generate_g_trnsfrms();
+         g_transform_ud();
+      }
+      data.offset=file_head.ncorr*file_head.nnoise*file_head.nnoise*file_head.tvals;
    }
+
+   free_g_trnsfrms();
    
    MPI_Allreduce(data.corr_tmp,data.corr,nnoise*nnoise*ncorr*file_head.tvals*2,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
    free(xi1);
