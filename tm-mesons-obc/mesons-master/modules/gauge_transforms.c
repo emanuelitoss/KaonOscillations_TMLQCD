@@ -151,7 +151,7 @@ static void random_g(void)
 
 extern void generate_g_trnsfrms(void)
 {
-   g=amalloc(NSPIN*sizeof(*g),4);
+   g=malloc(NSPIN*sizeof(su3_dble));
    if (BNDRY!=0)
       gbuf=amalloc((BNDRY/2)*sizeof(*gbuf),4);
     
