@@ -1,6 +1,8 @@
+# Main infile for correlators
+
 [Run name]
-name         operatorsOi
-output       operatorsOi            # optional
+name         correlators
+output       correlators            # optional
 
 
 [Directories]                       # as in openQCD            

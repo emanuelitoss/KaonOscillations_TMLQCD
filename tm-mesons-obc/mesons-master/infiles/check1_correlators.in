@@ -28,7 +28,7 @@ noise_type   U1                   # noise type: U1 or Z2 or GAUSS
 csw          1.4951               # Dirac operator options >> Coefficient of the Sheikholeslami-Wohlert term
 cF           1.0                  # common to all quark lines >> coefficient of the Fermions Fermion O(a) boundary counterterm
 eoflg        0                    # Aggiunta da Emanuele: if = 1, Twisted Mass term is not used.
-x0           7
+x0           15
 z0           1
 
 ################################### For every quark line a Propagator 

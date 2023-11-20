@@ -1,5 +1,5 @@
 [Run name]
-name         openQCD_run_name
+name         mesons_run_name
 output       mesons_run_name      # optional
 
 
