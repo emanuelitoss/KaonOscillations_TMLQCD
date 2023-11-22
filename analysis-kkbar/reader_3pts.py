@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
 home_dir = '/Users/emanuelerosi/Thesis_MSc/kaons-oscillations/tm-mesons-obc/mesons-master/dat/'
-file_name = 'operatorsOi.correlators.dat'
+file_name = 'correlators.correlators.dat'
 path_to_file = home_dir+file_name
 
 # this must be set by the user 
@@ -195,7 +195,7 @@ correlators = [-2*(data[0]+data[1]),-2*(data[0]-data[1]),2*(data[2]-data[3]),2*(
 tmp = np.array([0]*ntimes,dtype=np.float128)
 plot_names = [r'$O_{VV+AA}$',r'$O_{VV-AA}$',r'$O_{SS-PP}$',r'$O_{SS+PP}$',r'$O_{TT}$']
 
-pp = PdfPages("plots/Plots_3pts.pdf")
+pp = PdfPages("plots/3pts-plot.pdf")
         
 # Real part of correlators
 real_plot=plt.figure(1,figsize=(13,5),dpi=300)
