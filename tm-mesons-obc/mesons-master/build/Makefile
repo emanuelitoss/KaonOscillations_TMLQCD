@@ -197,7 +197,7 @@ clean-dat-log:
 .PHONY: clean-dat-log
 
 clean-3:
-	@ -rm -rf ../dat/c* ../log/c*
+	@ -rm -rf ../dat/correlators* ../log/correlators*
 .PHONY: clean-3
 
 clean-2:

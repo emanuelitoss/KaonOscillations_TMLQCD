@@ -1,6 +1,6 @@
 [Run name]
-name         operators10
-output       operators10            # optional
+name         correlators10
+output       correlators10            # optional
 
 [Directories]    
 log_dir      ../log

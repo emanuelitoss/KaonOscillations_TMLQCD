@@ -1,6 +1,6 @@
 [Run name]
-name         crrltrs_test
-output       crrltrs_test      # optional
+name         correlators_test
+output       correlators_test      # optional
 
 
 [Directories]                     # as in openQCD            
