@@ -180,31 +180,54 @@ offset_byte+=4
    
 # read data
 data_count=2*ncorr*nnoise*nnoise*ntimes
+data_count=2*data_count
 raw_data=np.fromfile(path_to_file,dtype='<f8',offset=offset_byte)
 error_check(data_count!=len(raw_data),'len(data)!=expected lenght')
 
 ########################## DATA REORDERING ##########################
 
 # create an ordered data structure
-data= np.array([[[[[0]*2]*ntimes]*ncorr]*nnoise]*nnoise,dtype=np.float64)
+data_std=np.array([[[[[0]*2]*ntimes]*ncorr]*nnoise]*nnoise,dtype=np.float64)
+data_gau=np.array([[[[[0]*2]*ntimes]*ncorr]*nnoise]*nnoise,dtype=np.float64)
 offset_idx=0
     
+# standard data
 for corr in np.arange(0,ncorr,1):
     if(isreal[corr]==True):
         for time in np.arange(0,ntimes,1):
             for i1 in np.arange(0,nnoise,1):
                 for i2 in np.arange(0,nnoise,1):
                     idx=offset_idx + i2 + i1*nnoise + time*nnoise*nnoise
-                    data[i1][i2][corr][time][0] = raw_data[idx]    # only real part
+                    data_std[i1][i2][corr][time][0] = raw_data[idx]    # only real part
     else:
         for time in np.arange(0,ntimes,1):
             for i1 in np.arange(0,nnoise,1):
                 for i2 in np.arange(0,nnoise,1):
                     idx=offset_idx + 2*(i2 + i1*nnoise + time*nnoise*nnoise)
-                    data[i1][i2][corr][time][0] = raw_data[idx]    # real part
-                    data[i1][i2][corr][time][1] = raw_data[idx+1]  # immaginary part
+                    data_std[i1][i2][corr][time][0] = raw_data[idx]    # real part
+                    data_std[i1][i2][corr][time][1] = raw_data[idx+1]  # immaginary part
     offset_idx+=nnoise*nnoise*ntimes*(2-isreal[corr])
     
+# gauge transformed data
+offset_data=2*ncorr*nnoise*nnoise*ntimes
+offset_idx=0
+
+for corr in np.arange(0,ncorr,1):
+    if(isreal[corr]==True):
+        for time in np.arange(0,ntimes,1):
+            for i1 in np.arange(0,nnoise,1):
+                for i2 in np.arange(0,nnoise,1):
+                    idx=offset_idx + i2 + i1*nnoise + time*nnoise*nnoise
+                    data_gau[i1][i2][corr][time][0] = raw_data[offset_data+idx]    # only real part
+    else:
+        for time in np.arange(0,ntimes,1):
+            for i1 in np.arange(0,nnoise,1):
+                for i2 in np.arange(0,nnoise,1):
+                    idx=offset_idx + 2*(i2 + i1*nnoise + time*nnoise*nnoise)
+                    data_gau[i1][i2][corr][time][0] = raw_data[offset_data+idx]    # real part
+                    data_gau[i1][i2][corr][time][1] = raw_data[offset_data+idx+1]  # immaginary part
+    offset_idx+=nnoise*nnoise*ntimes*(2-isreal[corr])   
+
 ########################## CORRELATOR PLOT ##########################             
 # Example of some correlators
 
@@ -219,7 +242,7 @@ plt.ylabel("Real value of the correlator")
 plt.xlim(0,ntimes)
 plt.grid()
 for i in np.arange(0,ntimes,1):
-    tmp[i]=data[0][0][0][i][0]
+    tmp[i]=data_std[0][0][0][i][0]
 plt.plot(tmp,'2',label='Correlator sample',alpha=1,lw=0.75)
 plt.legend(loc='upper right')
 pp.savefig(real_plot, dpi=real_plot.dpi, transparent = True)
@@ -233,7 +256,7 @@ plt.ylabel("Immaginary value of the correlator")
 plt.xlim(0,ntimes)
 plt.grid()
 for i in np.arange(0,ntimes,1):
-    tmp[i]=data[0][0][0][i][1]
+    tmp[i]=data_std[0][0][0][i][1]
 plt.plot(tmp,'1',label='Correlator sample',alpha=1,lw=0.75)
 plt.legend(loc='upper right')
 pp.savefig(immaginary_plot, dpi=immaginary_plot.dpi, transparent = True)
