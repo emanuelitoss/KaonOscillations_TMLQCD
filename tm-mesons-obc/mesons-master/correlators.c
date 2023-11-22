@@ -3,7 +3,7 @@
 * File correlators.c
 * Copyright (C) 2023 Emanuele Rosi
 *
-* Based on tm mesons
+* Based on tm_mesons
 * Copyright (C) 2016 David Preti
 *
 * Based on mesons 
@@ -196,7 +196,7 @@ static FILE *fin=NULL,*flog=NULL,*fend=NULL,*fdat=NULL;
 /*
 static void lonfo(void)
 {
-   error(1,1,"[correlators.c]","%sIl lonfo non vaterca, né brigatta%s.",OBOLDWITHE,ORESET);
+   error(1,1,"[correlators.c]","Il lonfo non vaterca, né brigatta.");
 }
 
 static int check_null_spinor(spinor_dble *psi,char *str)
@@ -1375,10 +1375,7 @@ static void dfl_wsize(int *nws,int *nwv,int *nwvd) /*untouched*/
    MAX(*nwvd,4);
 }
 
-/* removed:          static void make_proplist(void) 
-*  exchanged with:   static void make_proplist(void) (new)   */
-
-static void make_proplist(void) /* new function */
+static void make_proplist(void) /* completely changed */
 {
    int icorr,j;
 
@@ -1510,7 +1507,6 @@ static void free_proplist(void)  /* new function */
 static void wsize(int *nws,int *nwsd,int *nwv,int *nwvd) /*modified*/
 {
    int nsd;
-   int proplist_nmax;
    solver_parms_t sp;
 
    (*nws)=0;
@@ -1519,13 +1515,8 @@ static void wsize(int *nws,int *nwsd,int *nwv,int *nwvd) /*modified*/
    (*nwvd)=0;
 
    sp=solver_parms(0);
-
-   proplist_nmax=0;  /* modified part */
-   MAX(proplist_nmax,proplist.len_1A);
-   MAX(proplist_nmax,proplist.len_3C);
-   MAX(proplist_nmax,proplist.len2);
-   MAX(proplist_nmax,proplist.len4);
-   nsd=2*(2*proplist_nmax+2); /* not completely sure */
+   /* modified part */
+   nsd=4+proplist.len_1A+proplist.len_3C+proplist.len4+proplist.len2;
 
    if (sp.solver==CGNE)
    {
@@ -1583,14 +1574,13 @@ static void random_source(spinor_dble *eta, int x0)   /*untouched*/
    }
 }
 
-/* I should remove kappas and use mus*/
 static void solve_dirac(int prop, spinor_dble *eta, spinor_dble *psi, int *status)  /* untouched */
 {
    solver_parms_t sp;
    sap_parms_t sap;
 
    sp=solver_parms(isps[prop]);
-   set_sw_parms(0.5/kappas[prop]-4.0); /* set c_{SW} parm, it need the bare quark mass */
+   set_sw_parms(0.5/kappas[prop]-4.0);
 
    if (sp.solver==CGNE)
    {
@@ -1627,7 +1617,7 @@ static void solve_dirac(int prop, spinor_dble *eta, spinor_dble *psi, int *statu
          printf("%i %i\n",status[0],status[1]);
       error_root((status[0]<0)||(status[1]<0),1,
                  "solve_dirac [correlators.c]","DFL_SAP_GCR solver failed "
-                 "(status = %d,%d)",status[0],status[1]);
+                 "(status = %d,%d,%d)",status[0],status[1],status[2]);
    }
    else
       error_root(1,1,"solve_dirac [correlators.c]",
@@ -2122,34 +2112,6 @@ static void correlators_contractions(void)  /*new function*/
       data.corr_tmp[l].im=0.0;
    }
 
-   /* ETA_1 noise vectors */
-   for(noise_idx1=0;noise_idx1<nnoise;noise_idx1++)
-   {
-      random_source(eta1,fixed_x0);
-
-      if(my_rank==0) printf("\tNoise vector eta1 number %i\n",noise_idx1);
-
-      /* evaluate the needed \xi_1 */
-      for(idx=0;idx<proplist.len_1A;idx++)
-      {
-         if (my_rank==0)
-            printf("\t\tXi_{1A}^{1,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeA[idx]), proplist.prop_type1[idx]);
-
-         make_source(eta1,proplist.matrix_typeA[idx],tmp_spinor);
-         solve_dirac(proplist.prop_type1[idx],tmp_spinor,xi1[idx],stat);
-         mulg5_dble(VOLUME,xi1[idx]);
-      }
-
-      /* evaluate the needed ZETA_1 s */
-      for(idx=0;idx<proplist.len4;idx++)
-      {
-         if (my_rank==0)
-            printf("\t\tZeta_1^{4,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type4[idx]);
-
-         assign_sd2sd(VOLUME,eta1,tmp_spinor);
-         solve_dirac(proplist.prop_type4[idx],tmp_spinor,zeta1[idx],stat);
-      }
-   }
    /* ETA_2 noise vectors */
    for(noise_idx2=0;noise_idx2<nnoise;noise_idx2++)
    {
@@ -2176,6 +2138,35 @@ static void correlators_contractions(void)  /*new function*/
 
          assign_sd2sd(VOLUME,eta2,tmp_spinor);
          solve_dirac(proplist.prop_type2[idx],tmp_spinor,zeta2[idx],stat);
+      }
+   }
+
+   /* ETA_1 noise vectors */
+   for(noise_idx1=0;noise_idx1<nnoise;noise_idx1++)
+   {
+      random_source(eta1,fixed_x0);
+
+      if(my_rank==0) printf("\tNoise vector eta1 number %i\n",noise_idx1);
+
+      /* evaluate the needed \xi_1 */
+      for(idx=0;idx<proplist.len_1A;idx++)
+      {
+         if (my_rank==0)
+            printf("\t\tXi_{1A}^{1,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeA[idx]), proplist.prop_type1[idx]);
+
+         make_source(eta1,proplist.matrix_typeA[idx],tmp_spinor);
+         solve_dirac(proplist.prop_type1[idx],tmp_spinor,xi1[idx],stat);
+         mulg5_dble(VOLUME,xi1[idx]);
+      }
+
+      /* evaluate the needed ZETA_1 s */
+      for(idx=0;idx<proplist.len4;idx++)
+      {
+         if (my_rank==0)
+            printf("\t\tZeta_1^{4,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type4[idx]);
+
+         assign_sd2sd(VOLUME,eta1,tmp_spinor);
+         solve_dirac(proplist.prop_type4[idx],tmp_spinor,zeta1[idx],stat);
       }
    }
 
@@ -2368,8 +2359,6 @@ int main(int argc,char *argv[])
       set_data(nc);
       write_data();
 
-      free_proplist();
-
       export_ranlux(nc,rng_file);
       error_chk();
       
@@ -2398,6 +2387,8 @@ int main(int argc,char *argv[])
    {
       fclose(flog);
    }
+
+   free_proplist();
 
    MPI_Finalize();
    exit(0);
