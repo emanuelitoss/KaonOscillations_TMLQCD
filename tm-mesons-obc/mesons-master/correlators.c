@@ -30,7 +30,7 @@
 *
 * Computation of three points correlators for mesons oscillations
 *
-* Syntax: mesons -i <input file> [-noexp] [-a] -rndmgauge -nogauge
+* Syntax: correlators -i <input file> [-noexp] [-a] -rndmgauge -nogauge
 *
 * For usage instructions see the file README.correlators
 *
@@ -76,25 +76,13 @@
 #include "OutputColors.h"
 #include "uflds.h"
 #include <time.h>
+#include "operators4q6d.h"
 
 /* lattice sizes */
 #define N0 (NPROC0*L0)
 #define N1 (NPROC1*L1)
 #define N2 (NPROC2*L2)
 #define N3 (NPROC3*L3)
-
-/* available operator types */
-#define SS 0
-#define PP 1
-#define SP 2
-#define PS 3
-#define VV 4
-#define AA 5
-#define VA 6
-#define AV 7
-#define TT 8
-#define TTt 9
-#define OPERATOR_MAX_TYPE 10
 
 #define MAX(n,m) \
    if ((n)<(m)) \
@@ -166,7 +154,6 @@ static struct
 /************************ STATICS ************************/
 
 static char line[NAME_SIZE+1];   /* useful string */
-static char str_type[4];         /* useful string */
 
 static int my_rank;                                      /* run rank */
 static int noexp,append,norng,endian,nogauge,rndmgauge;  /* running options */
@@ -192,49 +179,6 @@ static FILE *fin=NULL,*flog=NULL,*fend=NULL,*fdat=NULL;
 
 /************************ FUNCTIONS ************************/
 
-/* error function useful to solve coding problems */
-/*
-static void lonfo(void)
-{
-   error(1,1,"[correlators.c]","Il lonfo non vaterca, né brigatta.");
-}
-
-static int check_null_spinor(spinor_dble *psi,char *str)
-{
-   double variable;
-   int i_pos,i_time,idx,counter=0;
-
-   printf("%s\n",str);
-   printf("Prima locazione: %p\n",(void *)&(psi[0]));
-   for(i_time=0;i_time<L0;i_time++)
-   {
-      for (i_pos=0;i_pos<L1*L2*L3;i_pos++)
-      {
-         idx=ipt[i_pos+i_time*L1*L2*L3];
-
-         variable = psi[idx].c1.c1.re;
-         if(variable!=0)
-         {
-            printf("Non null value c1.c1.re: %f\n",variable);
-            counter++;  
-         }
-         variable = psi[idx].c2.c2.re;
-         if(variable!=0)
-         {
-            printf("Non null value c2.c1.re: %f\n",variable);
-            counter++;
-         }
-         if(i_time==(L0-1)&&i_pos==(L1*L2*L3-1))
-         printf("Ultima locazione: %p\n",(void *)&(psi[idx]));
-      }
-   }
-   
-   if(counter==0)
-      return 0;
-   else
-      return 1;
-}*/
-
 static void alloc_data(void)  /*modified*/
 {
    int number_of_data = file_head.ncorr*file_head.nnoise*file_head.nnoise*file_head.tvals;
@@ -243,47 +187,6 @@ static void alloc_data(void)  /*modified*/
    data.corr_tmp=malloc(number_of_data*sizeof(complex_dble));
 
    error((data.corr==NULL)||(data.corr_tmp==NULL),1,"alloc_data [correlators.c]", "Unable to allocate data arrays");
-}
-
-static char* operator_to_string(int type) /*new function*/
-{
-   switch (type)
-   {
-   case SS:
-      sprintf(str_type,"SS");
-      break;
-   case PP:
-      sprintf(str_type,"PP");
-      break;
-   case SP:
-      sprintf(str_type,"SP");
-      break;
-   case PS:
-      sprintf(str_type,"PS");
-      break;
-   case VV:
-      sprintf(str_type,"VV");
-      break;
-   case AA:
-      sprintf(str_type,"AA");
-      break;
-   case VA:
-      sprintf(str_type,"VA");
-      break;
-   case AV:
-      sprintf(str_type,"AV");
-      break;
-   case TT:
-      sprintf(str_type,"TT");
-      break;
-   case TTt:
-      sprintf(str_type,"TTt");
-      break;
-   default:
-      error(1,1,"operator_to_string [correlators.c]","Unknown operator type");
-      break;
-   }
-   return str_type;
 }
 
 static void write_file_head(void)   /*modified*/
@@ -1345,7 +1248,7 @@ static void print_info(void)  /*modified*/
             printf("Correlator %i:\n",i);
             printf("iprop = %i %i %i %i\n",props1[i],props2[i],props3[i],props4[i]);
             printf("type_sources = %i %i\n",typeA[i],typeC[i]);
-            printf("type_operator = %i\n\n",operator_type[i]);
+            printf("type_operator = %s\n\n",operator_to_string(operator_type[i]));
          }
       }
       print_solver_parms(&isap,&idfl);
@@ -1698,66 +1601,7 @@ void make_source(spinor_dble *eta, int type, spinor_dble *xi)  /* untouched */
 }
 
 /* removed:    void make_xi(spinor_dble *eta,int type,spinor_dble *xi)  */
-
 /* removed:    static void correlators(void) */
-
-static void mul_type_sd(spinor_dble *psi,int type) /* new function */
-{
-/* This function must be put into LINALG_SALG_DBLE_C */
-   switch (type)
-   {
-   case GAMMA0_TYPE:
-      mulg0_dble(VOLUME,psi);
-      break;
-   case GAMMA1_TYPE:
-      mulg1_dble(VOLUME,psi);
-      break;
-   case GAMMA2_TYPE:
-      mulg2_dble(VOLUME,psi);
-      break;
-   case GAMMA3_TYPE:
-      mulg3_dble(VOLUME,psi);
-      break;
-   case GAMMA5_TYPE:
-      mulg5_dble(VOLUME,psi);
-      break;
-   case ONE_TYPE:
-      break;
-   case GAMMA0GAMMA1_TYPE:
-      mulg0g1_dble(VOLUME,psi);
-      break;
-   case GAMMA0GAMMA2_TYPE:
-      mulg0g2_dble(VOLUME,psi);
-      break;
-   case GAMMA0GAMMA3_TYPE:
-      mulg0g3_dble(VOLUME,psi);
-      break;
-   case GAMMA0GAMMA5_TYPE:
-      mulg0g5_dble(VOLUME,psi);
-      break;
-   case GAMMA1GAMMA2_TYPE:
-      mulg1g2_dble(VOLUME,psi);
-      break;
-   case GAMMA1GAMMA3_TYPE:
-      mulg1g3_dble(VOLUME,psi);
-      break;
-   case GAMMA1GAMMA5_TYPE:
-      mulg1g5_dble(VOLUME,psi);
-      break;
-   case GAMMA2GAMMA3_TYPE:
-      mulg2g3_dble(VOLUME,psi);
-      break;
-   case GAMMA2GAMMA5_TYPE:
-      mulg2g5_dble(VOLUME,psi);
-      break;
-   case GAMMA3GAMMA5_TYPE:
-      mulg3g5_dble(VOLUME,psi);
-      break;
-   default:
-      error(1,1,"mul_type_sd [correlators.c]","Invalid Dirac matrix type");
-      break;
-   }
-}
 
 static void contraction_single_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_dble *zeta1,spinor_dble *zeta2,spinor_dble *psi1,spinor_dble *psi2,int idx_noise1,int idx_noise2,int idx_corr)   /* new function */
 {

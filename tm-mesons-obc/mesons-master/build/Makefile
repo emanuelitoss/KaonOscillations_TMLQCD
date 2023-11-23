@@ -77,6 +77,8 @@ LITTLE = Aw_gen Aw_com Aw_ops Aw_dble Aw ltl_modes
 
 MDFLDS = mdflds fcom
 
+OPERATORS = operators4q6d
+
 RANDOM = ranlux ranlxs ranlxd gauss
 
 RATFCTS = elliptic zolotarev ratfcts
@@ -104,7 +106,7 @@ WFLOW = wflow
 
 # Aggiungere $(CFCTS)
 MODULES = $(ARCHIVE) $(BLOCK) $(CHECKS) $(DFL) $(DIRAC) $(FLAGS) $(FORCES) \
-          $(LATTICE) $(LINALG) $(LINSOLV) $(LITTLE) $(MDFLDS) $(RANDOM) \
+          $(LATTICE) $(LINALG) $(LINSOLV) $(LITTLE) $(MDFLDS) $(OPERATORS) $(RANDOM) \
           $(RATFCTS) $(SAP) $(SFLDS) $(SU3FCTS) $(SW_TERM) $(TCHARGE) \
           $(UFLDS) $(UPDATE) $(UTILS) $(VFLDS) $(WFLOW)
 

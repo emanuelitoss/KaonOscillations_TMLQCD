@@ -1,6 +1,6 @@
 /*******************************************************************************
 *
-* File correlators.c
+* File check1_correlators.c
 * Copyright (C) 2023 Emanuele Rosi
 *
 * Based on tm mesons
@@ -30,7 +30,7 @@
 *
 * Computation of three points correlators for mesons oscillations
 *
-* Syntax: mesons -i <input file> [-noexp] [-a] -rndmgauge -nogauge
+* Syntax: check1_correlators -i <input file> [-noexp] [-a] -rndmgauge -nogauge
 *
 * For usage instructions see the file README.correlators
 *
@@ -77,25 +77,13 @@
 #include "uflds.h"
 #include <time.h>
 #include "gauge_transforms.h"
+#include "operators4q6d.h"
 
 /* lattice sizes */
 #define N0 (NPROC0*L0)
 #define N1 (NPROC1*L1)
 #define N2 (NPROC2*L2)
 #define N3 (NPROC3*L3)
-
-/* available operator types */
-#define SS 0
-#define PP 1
-#define SP 2
-#define PS 3
-#define VV 4
-#define AA 5
-#define VA 6
-#define AV 7
-#define TT 8
-#define TTt 9
-#define OPERATOR_MAX_TYPE 10
 
 #define N_COLOURS 3
 #define N_DIRAC 4
@@ -171,7 +159,6 @@ static struct
 /************************ STATICS ************************/
 
 static char line[NAME_SIZE+1];   /* useful string */
-static char str_type[4];         /* useful string */
 
 static int my_rank;                                      /* run rank */
 static int noexp,append,norng,endian,nogauge,rndmgauge;  /* running options */
@@ -195,51 +182,9 @@ static char rng_file[NAME_SIZE],rng_save[NAME_SIZE];
 static char cnfg_file[NAME_SIZE],run_name[NAME_SIZE],output_name[NAME_SIZE];
 static FILE *fin=NULL,*flog=NULL,*fend=NULL,*fdat=NULL;
 
-/************************ FUNCTIONS ************************/
-
-static void lonfo(void)
-{
-   error(1,1,"[correlators.c]","Il lonfo non vaterca, né brigatta.");
-}
-
-static int check_null_spinor(spinor_dble *psi,char *str)
-{
-   double variable;
-   int i_pos,i_time,idx,counter=0;
-
-   printf("%s\n",str);
-   printf("Prima locazione: %p\n",(void *)&(psi[0]));
-   for(i_time=0;i_time<L0;i_time++)
-   {
-      for (i_pos=0;i_pos<L1*L2*L3;i_pos++)
-      {
-         idx=ipt[i_pos+i_time*L1*L2*L3];
-
-         variable = psi[idx].c1.c1.re;
-         if(variable!=0)
-         {
-            printf("Non null value c1.c1.re: %f\n",variable);
-            counter++;  
-         }
-         variable = psi[idx].c2.c2.re;
-         if(variable!=0)
-         {
-            printf("Non null value c2.c1.re: %f\n",variable);
-            counter++;
-         }
-         if(i_time==(L0-1)&&i_pos==(L1*L2*L3-1))
-         printf("Ultima locazione: %p\n",(void *)&(psi[idx]));
-      }
-   }
-   
-   if(counter==0)
-      return 0;
-   else
-      return 1;
-}
+/************************ TOOL FUNCTIONS ************************/
 
 /* this function turns back the color index from an integer */
-
 extern int colour_index(int idx)
 {
    int colour;
@@ -255,7 +200,6 @@ extern int colour_index(int idx)
 }
 
 /* this function turns back the Dirac index from an integer */
-
 extern int dirac_index(int idx)
 {
    int remainder,result;
@@ -279,54 +223,11 @@ static void alloc_data(void)  /*modified*/
    int number_of_data = file_head.ncorr*file_head.nnoise*file_head.nnoise*file_head.tvals;
 
    data.offset=0;
+
    data.corr=malloc(2*number_of_data*sizeof(complex_dble));
-      /* additive x2 because I havo two sets of data:
-         - first set as usual
-         - second set for gauge transformed data */
    data.corr_tmp=malloc(number_of_data*sizeof(complex_dble));
 
    error((data.corr==NULL)||(data.corr_tmp==NULL),1,"alloc_data [correlators.c]", "Unable to allocate data arrays");
-}
-
-static char* operator_to_string(int type) /*new function*/
-{
-   switch (type)
-   {
-   case SS:
-      sprintf(str_type,"SS");
-      break;
-   case PP:
-      sprintf(str_type,"PP");
-      break;
-   case SP:
-      sprintf(str_type,"SP");
-      break;
-   case PS:
-      sprintf(str_type,"PS");
-      break;
-   case VV:
-      sprintf(str_type,"VV");
-      break;
-   case AA:
-      sprintf(str_type,"AA");
-      break;
-   case VA:
-      sprintf(str_type,"VA");
-      break;
-   case AV:
-      sprintf(str_type,"AV");
-      break;
-   case TT:
-      sprintf(str_type,"TT");
-      break;
-   case TTt:
-      sprintf(str_type,"TTt");
-      break;
-   default:
-      error(1,1,"operator_to_string [correlators.c]","Unknown operator type");
-      break;
-   }
-   return str_type;
 }
 
 static void write_file_head(void)   /*modified*/
@@ -546,7 +447,6 @@ static void write_data(void)  /*modified*/
    int nw;
    int chunk;
    int icorr,i;
-   int offset=0;
 
    if (my_rank==0)
    {
@@ -577,7 +477,7 @@ static void write_data(void)  /*modified*/
          }
       }
       /* BEGIN: write Gauge tranformed data */
-      offset=file_head.nnoise*file_head.nnoise*file_head.tvals*file_head.ncorr;
+      data.offset=file_head.nnoise*file_head.nnoise*file_head.tvals*file_head.ncorr;
       for (icorr=0;icorr<file_head.ncorr;icorr++)
       {
          chunk=file_head.nnoise*file_head.nnoise*file_head.tvals*(2-file_head.isreal[icorr]);
@@ -585,14 +485,15 @@ static void write_data(void)  /*modified*/
          if (file_head.isreal[icorr])
          {
             for (i=0;i<chunk;i++)
-               iw+=fwrite(&(data.corr[offset+icorr*file_head.tvals*file_head.nnoise*file_head.nnoise+i]),
+               iw+=fwrite(&(data.corr[data.offset+icorr*file_head.tvals*file_head.nnoise*file_head.nnoise+i]),
                        sizeof(double),1,fdat);
          }else
          {
-            iw+=fwrite(&(data.corr[offset+icorr*file_head.tvals*file_head.nnoise*file_head.nnoise]),
+            iw+=fwrite(&(data.corr[data.offset+icorr*file_head.tvals*file_head.nnoise*file_head.nnoise]),
                        sizeof(double),chunk,fdat);
          }
       }
+      data.offset=0;
       /* END: write Gauge tranformed data */
       if(endian==BIG_ENDIAN)
       {
@@ -941,9 +842,9 @@ static void read_lat_parms(void) /*modified*/
 
    MPI_Bcast(kappas,nprop,MPI_DOUBLE,0,MPI_COMM_WORLD);
    MPI_Bcast(mus,nprop,MPI_DOUBLE,0,MPI_COMM_WORLD);
-   MPI_Bcast(&csw,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+   /*MPI_Bcast(&csw,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
    MPI_Bcast(&cF,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
-   MPI_Bcast(&eoflg,1,MPI_INT,0,MPI_COMM_WORLD);
+   MPI_Bcast(&eoflg,1,MPI_INT,0,MPI_COMM_WORLD);*/
    MPI_Bcast(isps,nprop,MPI_INT,0,MPI_COMM_WORLD);
    MPI_Bcast(props1,ncorr,MPI_INT,0,MPI_COMM_WORLD);
    MPI_Bcast(props2,ncorr,MPI_INT,0,MPI_COMM_WORLD);
@@ -1408,7 +1309,7 @@ static void print_info(void)  /*modified*/
             printf("Correlator %i:\n",i);
             printf("iprop = %i %i %i %i\n",props1[i],props2[i],props3[i],props4[i]);
             printf("type_sources = %i %i\n",typeA[i],typeC[i]);
-            printf("type_operator = %i\n\n",operator_type[i]);
+            printf("type_operator = %s\n\n",operator_to_string(operator_type[i]));
          }
       }
       print_solver_parms(&isap,&idfl);
@@ -1573,7 +1474,6 @@ static void free_proplist(void)  /* new function */
 static void wsize(int *nws,int *nwsd,int *nwv,int *nwvd) /*modified*/
 {
    int nsd;
-   int proplist_nmax;
    solver_parms_t sp;
 
    (*nws)=0;
@@ -1582,13 +1482,8 @@ static void wsize(int *nws,int *nwsd,int *nwv,int *nwvd) /*modified*/
    (*nwvd)=0;
 
    sp=solver_parms(0);
-
-   proplist_nmax=0;  /* modified part */
-   MAX(proplist_nmax,proplist.len_1A);
-   MAX(proplist_nmax,proplist.len_3C);
-   MAX(proplist_nmax,proplist.len2);
-   MAX(proplist_nmax,proplist.len4);
-   nsd=2*(2*proplist_nmax+2); /* not completely sure */
+   /* modified part */
+   nsd=4+proplist.len_1A+proplist.len_3C+proplist.len4+proplist.len2;
 
    if (sp.solver==CGNE)
    {
@@ -1723,8 +1618,6 @@ static void pointlike_source(spinor_dble *eta, int x0, int dc_index)
       ix=ipt[y0*L1*L2*L3];  /* spatial point (0,0,0) */
       set_fixed_point(1,eta+ix,dc_index);
    }
-   else
-      lonfo();
 }
 
 static void solve_dirac(int prop, spinor_dble *eta, spinor_dble *psi, int *status)  /* untouched */
@@ -1853,64 +1746,6 @@ void make_source(spinor_dble *eta, int type, spinor_dble *xi)  /* untouched */
 /* removed:    void make_xi(spinor_dble *eta,int type,spinor_dble *xi)  */
 
 /* removed:    static void correlators(void) */
-
-static void mul_type_sd(spinor_dble *psi,int type) /* new function */
-{
-/* This function must be put into LINALG_SALG_DBLE_C */
-   switch (type)
-   {
-   case GAMMA0_TYPE:
-      mulg0_dble(VOLUME,psi);
-      break;
-   case GAMMA1_TYPE:
-      mulg1_dble(VOLUME,psi);
-      break;
-   case GAMMA2_TYPE:
-      mulg2_dble(VOLUME,psi);
-      break;
-   case GAMMA3_TYPE:
-      mulg3_dble(VOLUME,psi);
-      break;
-   case GAMMA5_TYPE:
-      mulg5_dble(VOLUME,psi);
-      break;
-   case ONE_TYPE:
-      break;
-   case GAMMA0GAMMA1_TYPE:
-      mulg0g1_dble(VOLUME,psi);
-      break;
-   case GAMMA0GAMMA2_TYPE:
-      mulg0g2_dble(VOLUME,psi);
-      break;
-   case GAMMA0GAMMA3_TYPE:
-      mulg0g3_dble(VOLUME,psi);
-      break;
-   case GAMMA0GAMMA5_TYPE:
-      mulg0g5_dble(VOLUME,psi);
-      break;
-   case GAMMA1GAMMA2_TYPE:
-      mulg1g2_dble(VOLUME,psi);
-      break;
-   case GAMMA1GAMMA3_TYPE:
-      mulg1g3_dble(VOLUME,psi);
-      break;
-   case GAMMA1GAMMA5_TYPE:
-      mulg1g5_dble(VOLUME,psi);
-      break;
-   case GAMMA2GAMMA3_TYPE:
-      mulg2g3_dble(VOLUME,psi);
-      break;
-   case GAMMA2GAMMA5_TYPE:
-      mulg2g5_dble(VOLUME,psi);
-      break;
-   case GAMMA3GAMMA5_TYPE:
-      mulg3g5_dble(VOLUME,psi);
-      break;
-   default:
-      error(1,1,"mul_type_sd [correlators.c]","Invalid Dirac matrix type");
-      break;
-   }
-}
 
 static void contraction_single_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_dble *zeta1,spinor_dble *zeta2,spinor_dble *psi1,spinor_dble *psi2,int idx_noise1,int idx_noise2,int idx_corr)   /* new function */
 {
@@ -2259,7 +2094,7 @@ static void correlators_contractions(void)  /*new function*/
    for(l=0;l<proplist.len2;l++)
       zeta2[l]=wsd[4+l+proplist.len_1A+proplist.len_3C+proplist.len4];
 
-   for(transform_idx=0;transform_idx<1;transform_idx++)
+   for(transform_idx=0;transform_idx<2;transform_idx++)
    {   
       for (l=0;l<nnoise*nnoise*ncorr*tvals;l++)
       {
@@ -2271,7 +2106,6 @@ static void correlators_contractions(void)  /*new function*/
       for(noise_idx1=0;noise_idx1<nnoise;noise_idx1++)
       {
          pointlike_source(eta1,fixed_x0,noise_idx1);
-         check_null_spinor(eta1,"Checking ETA1");
 
          if(my_rank==0) printf("\tNoise vector eta1 number %i\n",noise_idx1);
 
@@ -2343,10 +2177,8 @@ static void correlators_contractions(void)  /*new function*/
             }
          }
       }
-
-      printf("DATA OFFSET: %i\n",data.offset);
+      
       MPI_Allreduce(data.corr_tmp,data.corr+data.offset,nnoise*nnoise*ncorr*file_head.tvals*2,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-
       if(data.offset==0)
       {
          generate_g_trnsfrms();
@@ -2357,7 +2189,6 @@ static void correlators_contractions(void)  /*new function*/
 
    free_g_trnsfrms();
    
-   MPI_Allreduce(data.corr_tmp,data.corr,nnoise*nnoise*ncorr*file_head.tvals*2,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
    free(xi1);
    free(xi2);
    free(zeta1);
