@@ -202,7 +202,7 @@ real_plot=plt.figure(1,figsize=(13,5),dpi=300)
 plt.title(r'Correlators: $\mathbb{Re}\left\{C_{i[+]}(x_4,y_4,z_4)\right\}$')
 plt.xlabel("Timeslice $y_4$")
 plt.ylabel("Real value of the correlator")
-plt.xlim(0,ntimes)
+plt.xlim(0,ntimes-1)
 plt.grid()
 for idx,corr in enumerate(correlators):
     for i,val in enumerate(corr):
@@ -220,7 +220,7 @@ immaginary_plot=plt.figure(2,figsize=(13,5),dpi=300)
 plt.title(r'Correlators: $\mathbb{Im}\left\{C_{i[+]}(x_4,y_4,z_4)\right\}$')
 plt.xlabel("Timeslice $y_4$")
 plt.ylabel("Immaginary value of the correlator")
-plt.xlim(0,ntimes)
+plt.xlim(0,ntimes-1)
 plt.grid()
 for idx,corr in enumerate(correlators):
     for i,val in enumerate(corr):
