@@ -1247,7 +1247,7 @@ static void print_info(void)  /*modified*/
          {
             printf("Correlator %i:\n",i);
             printf("iprop = %i %i %i %i\n",props1[i],props2[i],props3[i],props4[i]);
-            printf("type_sources = %i %i\n",typeA[i],typeC[i]);
+            printf("type_sources = %s %s\n",diractype_to_string(typeA[i]),diractype_to_string(typeC[i]));
             printf("type_operator = %s\n\n",operator_to_string(operator_type[i]));
          }
       }
@@ -1667,8 +1667,6 @@ static void contraction_single_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_db
          }
          switch (type)
          {
-            mul_type_sd(psi1,GAMMA0_TYPE+mu);
-            mul_type_sd(psi2,GAMMA0_TYPE+mu);
             case VV:
                mul_type_sd(psi1,ONE_TYPE);
                mul_type_sd(psi2,ONE_TYPE);
@@ -1688,6 +1686,8 @@ static void contraction_single_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_db
             default:
                break;
          }
+         mul_type_sd(psi1,GAMMA0_TYPE+mu);
+         mul_type_sd(psi2,GAMMA0_TYPE+mu);
          for(y0=0;y0<L0;y0++)
          {
             for (l=0;l<L1*L2*L3;l++)
@@ -1828,8 +1828,6 @@ static void contraction_double_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_db
          }
          switch (type)
          {
-            mul_type_sd(psi1,GAMMA0_TYPE+mu);
-            mul_type_sd(psi2,GAMMA0_TYPE+mu);
             case VV:
                mul_type_sd(psi1,ONE_TYPE);
                mul_type_sd(psi2,ONE_TYPE);
@@ -1849,6 +1847,8 @@ static void contraction_double_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_db
             default:
                break;
          }
+         mul_type_sd(psi1,GAMMA0_TYPE+mu);
+         mul_type_sd(psi2,GAMMA0_TYPE+mu);
          for(y0=0;y0<L0;y0++)
          {
             for (l=0;l<L1*L2*L3;l++)
@@ -1956,35 +1956,6 @@ static void correlators_contractions(void)  /*new function*/
       data.corr_tmp[l].im=0.0;
    }
 
-   /* ETA_2 noise vectors */
-   for(noise_idx2=0;noise_idx2<nnoise;noise_idx2++)
-   {
-      random_source(eta2,fixed_z0);
-
-      if(my_rank==0) printf("\tNoise vector eta2 number %i\n",noise_idx2);
-
-      /* evaluate the needed XI_2 s */
-      for(idx=0;idx<proplist.len_3C;idx++)
-      {
-         if (my_rank==0)
-            printf("\t\tXi_{3C}^{3,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeC[idx]),proplist.prop_type3[idx]);
-
-         make_source(eta2,proplist.matrix_typeC[idx],tmp_spinor);
-         solve_dirac(proplist.prop_type3[idx],tmp_spinor,xi2[idx],stat);
-         mulg5_dble(VOLUME,xi2[idx]);
-      }
-
-      /* evaluate the needed ZETA_2 s */
-      for(idx=0;idx<proplist.len2;idx++)
-      {
-         if (my_rank==0)
-            printf("\t\tZeta_2^{2,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type2[idx]);
-
-         assign_sd2sd(VOLUME,eta2,tmp_spinor);
-         solve_dirac(proplist.prop_type2[idx],tmp_spinor,zeta2[idx],stat);
-      }
-   }
-
    /* ETA_1 noise vectors */
    for(noise_idx1=0;noise_idx1<nnoise;noise_idx1++)
    {
@@ -2012,27 +1983,49 @@ static void correlators_contractions(void)  /*new function*/
          assign_sd2sd(VOLUME,eta1,tmp_spinor);
          solve_dirac(proplist.prop_type4[idx],tmp_spinor,zeta1[idx],stat);
       }
-   }
 
-   if(my_rank==0) printf("Evaluation of Wick contractions:\n");
-
-   for(noise_idx1=0;noise_idx1<nnoise;noise_idx1++)
-   {
+      /* ETA_2 noise vectors */
       for(noise_idx2=0;noise_idx2<nnoise;noise_idx2++)
       {
-         if (my_rank==0)   printf("\tStohcastic vectors eta1 = %i\teta2 = %i\n",noise_idx1,noise_idx2);
-   
-         /* contractions */
-         for(idx=0;idx<ncorr;idx++)
+         random_source(eta2,fixed_z0);
+
+         if(my_rank==0) printf("\tNoise vector eta2 number %i\n",noise_idx2);
+
+         /* evaluate the needed XI_2 s */
+         for(idx=0;idx<proplist.len_3C;idx++)
          {
-            if (my_rank==0)   printf("\t\tOperator XY = %s",operator_to_string(file_head.operator_type[idx]));
-            contraction_single_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
-            contraction_double_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
-            if (my_rank==0)   printf("\t---> Work done.\n");
+            if (my_rank==0)
+               printf("\t\tXi_{3C}^{3,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeC[idx]),proplist.prop_type3[idx]);
+
+            make_source(eta2,proplist.matrix_typeC[idx],tmp_spinor);
+            solve_dirac(proplist.prop_type3[idx],tmp_spinor,xi2[idx],stat);
+            mulg5_dble(VOLUME,xi2[idx]);
+         }
+
+         /* evaluate the needed ZETA_2 s */
+         for(idx=0;idx<proplist.len2;idx++)
+         {
+            if (my_rank==0)
+               printf("\t\tZeta_2^{2,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type2[idx]);
+
+            assign_sd2sd(VOLUME,eta2,tmp_spinor);
+            solve_dirac(proplist.prop_type2[idx],tmp_spinor,zeta2[idx],stat);
          }
       }
-   }
+
+      if(my_rank==0) printf("Evaluation of Wick contractions:\n");
+      if (my_rank==0)   printf("\tStohcastic vectors eta1 = %i\teta2 = %i\n",noise_idx1,noise_idx2);
    
+      /* contractions */
+      for(idx=0;idx<ncorr;idx++)
+      {
+         if (my_rank==0)   printf("\t\tOperator XY = %s",operator_to_string(file_head.operator_type[idx]));
+         contraction_single_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
+         contraction_double_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
+         if (my_rank==0)   printf("\t---> Work done.\n");
+      }
+   }
+
    MPI_Allreduce(data.corr_tmp,data.corr,nnoise*nnoise*ncorr*file_head.tvals*2,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
    free(xi1);
    free(xi2);
