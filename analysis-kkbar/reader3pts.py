@@ -176,6 +176,7 @@ for corr in np.arange(0,ncorr,1):
                 for i2 in np.arange(0,nnoise,1):
                     idx=offset_idx + i2 + i1*nnoise + time*nnoise*nnoise
                     data[corr][time][0] += raw_data[idx]    # only real part
+            data[corr][time][0] = data[corr][time][0]/(volume3D*nnoise*nnoise)
     else:
         for time in np.arange(0,ntimes,1):
             for i1 in np.arange(0,nnoise,1):
@@ -183,9 +184,9 @@ for corr in np.arange(0,ncorr,1):
                     idx=offset_idx + 2*(i2 + i1*nnoise + time*nnoise*nnoise)
                     data[corr][time][0] += raw_data[idx]    # real part
                     data[corr][time][1] += raw_data[idx+1]  # immaginary part
+            data[corr][time][0] = data[corr][time][0]/(volume3D*nnoise*nnoise)
+            data[corr][time][1] = data[corr][time][1]/(volume3D*nnoise*nnoise)
     offset_idx+=nnoise*nnoise*ntimes*(2-isreal[corr])
-
-data/=(volume3D*nnoise*nnoise)
                 
 ########################## CORRELATOR PLOT ##########################             
 
