@@ -646,7 +646,8 @@ static void read_lat_parms(void) /*modified*/
       read_line("nprop","%d",&nprop);
       read_line("ncorr","%d",&ncorr);
       /*read_line("nnoise","%d",&nnoise);*/
-      nnoise=N_DIRAC*N_COLOURS;
+      /*nnoise=N_DIRAC*N_COLOURS;*/
+      nnoise=2;   /* da cambiare, rimettere quello della riga sopra */
       error_root(((nprop<1)||(ncorr<1)||(nnoise<1)),1,"read_lat_parms [correlators.c]",
                  "Specified nprop/ncorr/nnoise must be larger than zero");
       
@@ -1483,7 +1484,7 @@ static void wsize(int *nws,int *nwsd,int *nwv,int *nwvd) /*modified*/
 
    sp=solver_parms(0);
    /* modified part */
-   nsd=4+proplist.len_1A+proplist.len_3C+proplist.len4+proplist.len2;
+   nsd=4+nnoise*(proplist.len_1A+proplist.len_3C+proplist.len4+proplist.len2);
 
    if (sp.solver==CGNE)
    {
@@ -1505,53 +1506,7 @@ static void wsize(int *nws,int *nwsd,int *nwv,int *nwvd) /*modified*/
       error_root(1,1,"wsize [correlators.c]","Unknown or unsupported solver");
 }
 
-/*
-static void random_source(spinor_dble *eta, int x0)
-{
-   int y0,iy,ix;
-
-   set_sd2zero(VOLUME,eta);
-   y0=x0-cpr[0]*L0;
-
-   if ((y0>=0)&&(y0<L0))
-   {
-      if (noisetype==Z2_NOISE)
-      {
-         for (iy=0;iy<(L1*L2*L3);iy++)
-         {
-            ix=ipt[iy+y0*L1*L2*L3];
-            random_Z2_sd(1,eta+ix);
-         }
-      }
-      else if (noisetype==GAUSS_NOISE)
-      {
-         for (iy=0;iy<(L1*L2*L3);iy++)
-         {
-            ix=ipt[iy+y0*L1*L2*L3];
-            random_sd(1,eta+ix,1.0);
-         }
-      }
-      else if (noisetype==U1_NOISE)
-      {
-         for (iy=0;iy<(L1*L2*L3);iy++)
-         {
-            ix=ipt[iy+y0*L1*L2*L3];
-            random_U1_sd(1,eta+ix);
-         }
-      }
-   }
-}
-*/
-
-/* It generates an ETA source in
-   - timeslice x0
-   - lattice space position (0,0,0)
-   - fixed colour index and dirac index
-   The value of ETA in that point and in the indices is = 1+i
-   Otherwise, it in null.
-*/
-
-static void set_fixed_point(int vol,spinor_dble *sd,int dc_index)
+static void set_sdble_dirac_color_idx(int vol,spinor_dble *sd,int dc_index)
 {
    su3_vector_dble *colour_ptr=NULL;
    spinor_dble *sm=NULL;
@@ -1580,8 +1535,8 @@ static void set_fixed_point(int vol,spinor_dble *sd,int dc_index)
          colour_ptr = &((*sd).c4);
          break;
       default:
-         error_root(colour_ptr==NULL,1,"set_fixed_point [correlators.c]","Unable to allocate an su3_vector_dble pointer");
-         error_root(1,1,"set_fixed_point [correlators.c]","Invalid Dirac index");
+         error_root(colour_ptr==NULL,1,"set_sdble_dirac_color_idx [correlators.c]","Unable to allocate an su3_vector_dble pointer");
+         error_root(1,1,"set_sdble_dirac_color_idx [correlators.c]","Invalid Dirac index");
          break;
       }
 
@@ -1589,18 +1544,18 @@ static void set_fixed_point(int vol,spinor_dble *sd,int dc_index)
       {
       case 0:
          (*colour_ptr).c1.re=1.0;
-         (*colour_ptr).c1.im=1.0;
+         (*colour_ptr).c1.im=0.0;
          break;
       case 1:
          (*colour_ptr).c2.re=1.0;
-         (*colour_ptr).c2.im=1.0;
+         (*colour_ptr).c2.im=0.0;
          break;
       case 2:
          (*colour_ptr).c3.re=1.0;
-         (*colour_ptr).c3.im=1.0;
+         (*colour_ptr).c3.im=0.0;
          break;
       default:
-         error_root(1,1,"set_fixed_point [correlators.c]","Invalid colour index");
+         error_root(1,1,"set_sdble_dirac_color_idx [correlators.c]","Invalid colour index");
          break;
       }
    }
@@ -1616,7 +1571,7 @@ static void pointlike_source(spinor_dble *eta, int x0, int dc_index)
    if ((y0>=0)&&(y0<L0))
    {
       ix=ipt[y0*L1*L2*L3];  /* spatial point (0,0,0) */
-      set_fixed_point(1,eta+ix,dc_index);
+      set_sdble_dirac_color_idx(1,eta+ix,dc_index);
    }
 }
 
@@ -1811,8 +1766,6 @@ static void contraction_single_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_db
          }
          switch (type)
          {
-            mul_type_sd(psi1,GAMMA0_TYPE+mu);
-            mul_type_sd(psi2,GAMMA0_TYPE+mu);
             case VV:
                mul_type_sd(psi1,ONE_TYPE);
                mul_type_sd(psi2,ONE_TYPE);
@@ -1832,6 +1785,8 @@ static void contraction_single_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_db
             default:
                break;
          }
+         mul_type_sd(psi1,GAMMA0_TYPE+mu);
+         mul_type_sd(psi2,GAMMA0_TYPE+mu);
          for(y0=0;y0<L0;y0++)
          {
             for (l=0;l<L1*L2*L3;l++)
@@ -1972,8 +1927,6 @@ static void contraction_double_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_db
          }
          switch (type)
          {
-            mul_type_sd(psi1,GAMMA0_TYPE+mu);
-            mul_type_sd(psi2,GAMMA0_TYPE+mu);
             case VV:
                mul_type_sd(psi1,ONE_TYPE);
                mul_type_sd(psi2,ONE_TYPE);
@@ -1993,6 +1946,8 @@ static void contraction_double_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_db
             default:
                break;
          }
+         mul_type_sd(psi1,GAMMA0_TYPE+mu);
+         mul_type_sd(psi2,GAMMA0_TYPE+mu);
          for(y0=0;y0<L0;y0++)
          {
             for (l=0;l<L1*L2*L3;l++)
@@ -2038,8 +1993,10 @@ static void contraction_double_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_db
             {
                case TT:
                   mul_type_sd(psi1,ONE_TYPE);
+                  mul_type_sd(psi2,ONE_TYPE);
                case TTt:
                   mul_type_sd(psi1,GAMMA5_TYPE);
+                  mul_type_sd(psi2,ONE_TYPE);
                   break;
                default:
                   error(1,1,"contraction_double_trace [correlators.c]","Invalid operator type");
@@ -2070,125 +2027,154 @@ static void contraction_double_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_db
 
 static void correlators_contractions(void)  /*new function*/
 {
-   int idx,noise_idx1,noise_idx2,stat[4],l,transform_idx;
+   int idx,noise_idx1,noise_idx2,stat[4],l;
    spinor_dble *eta1,*eta2,*tmp_spinor,*tmp_spinor2;
    spinor_dble **xi1,**xi2,**zeta1,**zeta2,**wsd;
 
-   wsd=reserve_wsd(4+proplist.len_1A+proplist.len_3C+proplist.len4+proplist.len2);
+   wsd=reserve_wsd(4+nnoise*(proplist.len_1A+proplist.len_3C+proplist.len4+proplist.len2));
    eta1=wsd[0];
    eta2=wsd[1];
    tmp_spinor=wsd[2];
    tmp_spinor2=wsd[3];
-   xi1=malloc(proplist.len_1A*sizeof(spinor_dble*));
-   xi2=malloc(proplist.len_3C*sizeof(spinor_dble*));
-   zeta1=malloc(proplist.len4*sizeof(spinor_dble*));
-   zeta2=malloc(proplist.len2*sizeof(spinor_dble*));
+   xi1=malloc(nnoise*proplist.len_1A*sizeof(spinor_dble*));
+   xi2=malloc(nnoise*proplist.len_3C*sizeof(spinor_dble*));
+   zeta1=malloc(nnoise*proplist.len4*sizeof(spinor_dble*));
+   zeta2=malloc(nnoise*proplist.len2*sizeof(spinor_dble*));
    error((xi1==NULL)||(xi2==NULL)||(zeta1==NULL)||(zeta2==NULL),1,"correlators [correlators.c]","Out of memory");
 
-   for(l=0;l<proplist.len_1A;l++)
+   for(l=0;l<nnoise*proplist.len_1A;l++)
       xi1[l]=wsd[4+l];
-   for(l=0;l<proplist.len_3C;l++)
-      xi2[l]=wsd[4+l+proplist.len_1A];
-   for(l=0;l<proplist.len4;l++)
-      zeta1[l]=wsd[4+l+proplist.len_1A+proplist.len_3C];
-   for(l=0;l<proplist.len2;l++)
-      zeta2[l]=wsd[4+l+proplist.len_1A+proplist.len_3C+proplist.len4];
+   for(l=0;l<nnoise*proplist.len_3C;l++)
+      xi2[l]=wsd[4+l+nnoise*proplist.len_1A];
+   for(l=0;l<nnoise*proplist.len4;l++)
+      zeta1[l]=wsd[4+l+nnoise*(proplist.len_1A+proplist.len_3C)];
+   for(l=0;l<nnoise*proplist.len2;l++)
+      zeta2[l]=wsd[4+l+nnoise*(proplist.len_1A+proplist.len_3C+proplist.len4)];
 
-   for(transform_idx=0;transform_idx<2;transform_idx++)
-   {   
-      for (l=0;l<nnoise*nnoise*ncorr*tvals;l++)
+   for (l=0;l<nnoise*nnoise*ncorr*tvals;l++)
+   {
+      data.corr_tmp[l].re=0.0;
+      data.corr_tmp[l].im=0.0;
+   }
+
+   /* ETA_1 noise vectors */
+   for(noise_idx1=0;noise_idx1<nnoise;noise_idx1++)
+   {
+      pointlike_source(eta1,fixed_x0,noise_idx1);
+
+      if(my_rank==0) printf("\tNoise vector eta1 number %i\n",noise_idx1);
+
+      /* evaluate the needed \xi_1 */
+      for(idx=0;idx<proplist.len_1A;idx++)
       {
-         data.corr_tmp[l].re=0.0;
-         data.corr_tmp[l].im=0.0;
+         if (my_rank==0)
+            printf("\t\tXi_{1A}^{1,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeA[idx]), proplist.prop_type1[idx]);
+
+         make_source(eta1,proplist.matrix_typeA[idx],tmp_spinor);
+         solve_dirac(proplist.prop_type1[idx],tmp_spinor,xi1[nnoise*idx+noise_idx1],stat);
+         mulg5_dble(VOLUME,xi1[nnoise*idx+noise_idx1]);
       }
 
-      /* ETA_1 noise vectors */
-      for(noise_idx1=0;noise_idx1<nnoise;noise_idx1++)
+      /* evaluate the needed ZETA_1 s */
+      for(idx=0;idx<proplist.len4;idx++)
       {
-         pointlike_source(eta1,fixed_x0,noise_idx1);
+         if (my_rank==0)
+            printf("\t\tZeta_1^{4,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type4[idx]);
 
-         if(my_rank==0) printf("\tNoise vector eta1 number %i\n",noise_idx1);
-
-         /* evaluate the needed \xi_1 */
-         for(idx=0;idx<proplist.len_1A;idx++)
-         {
-            if (my_rank==0)
-               printf("\t\tXi_{1A}^{1,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeA[idx]), proplist.prop_type1[idx]);
-
-            make_source(eta1,proplist.matrix_typeA[idx],tmp_spinor);
-            solve_dirac(proplist.prop_type1[idx],tmp_spinor,xi1[idx],stat);
-            mulg5_dble(VOLUME,xi1[idx]);
-         }
-
-         /* evaluate the needed ZETA_1 s */
-         for(idx=0;idx<proplist.len4;idx++)
-         {
-            if (my_rank==0)
-               printf("\t\tZeta_1^{4,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type4[idx]);
-
-            assign_sd2sd(VOLUME,eta1,tmp_spinor);
-            solve_dirac(proplist.prop_type4[idx],tmp_spinor,zeta1[idx],stat);
-         }
+         assign_sd2sd(VOLUME,eta1,tmp_spinor);
+         solve_dirac(proplist.prop_type4[idx],tmp_spinor,zeta1[nnoise*idx+noise_idx1],stat);
       }
+   
       /* ETA_2 noise vectors */
       for(noise_idx2=0;noise_idx2<nnoise;noise_idx2++)
       {
          pointlike_source(eta2,fixed_z0,noise_idx2);
-
+   
          if(my_rank==0) printf("\tNoise vector eta2 number %i\n",noise_idx2);
-
+   
          /* evaluate the needed XI_2 s */
          for(idx=0;idx<proplist.len_3C;idx++)
          {
             if (my_rank==0)
                printf("\t\tXi_{3C}^{3,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeC[idx]),proplist.prop_type3[idx]);
-
+   
             make_source(eta2,proplist.matrix_typeC[idx],tmp_spinor);
-            solve_dirac(proplist.prop_type3[idx],tmp_spinor,xi2[idx],stat);
-            mulg5_dble(VOLUME,xi2[idx]);
+            solve_dirac(proplist.prop_type3[idx],tmp_spinor,xi2[nnoise*idx+noise_idx2],stat);
+            mulg5_dble(VOLUME,xi2[nnoise*idx+noise_idx2]);
          }
-
+   
          /* evaluate the needed ZETA_2 s */
          for(idx=0;idx<proplist.len2;idx++)
          {
             if (my_rank==0)
                printf("\t\tZeta_2^{2,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type2[idx]);
-
+   
             assign_sd2sd(VOLUME,eta2,tmp_spinor);
-            solve_dirac(proplist.prop_type2[idx],tmp_spinor,zeta2[idx],stat);
+            solve_dirac(proplist.prop_type2[idx],tmp_spinor,zeta2[nnoise*idx+noise_idx2],stat);
          }
-      }
 
-      if(my_rank==0) printf("Evaluation of Wick contractions:\n");
+         if(my_rank==0) printf("Evaluation of Wick contractions:\n");
+         if (my_rank==0)   printf("\tStohcastic vectors eta1 = %i\teta2 = %i\n",noise_idx1,noise_idx2);
 
-      for(noise_idx1=0;noise_idx1<nnoise;noise_idx1++)
-      {
-         for(noise_idx2=0;noise_idx2<nnoise;noise_idx2++)
+         /* contractions */
+         for(idx=0;idx<ncorr;idx++)
          {
-            if (my_rank==0)   printf("\tStohcastic vectors eta1 = %i\teta2 = %i\n",noise_idx1,noise_idx2);
-
-            /* contractions */
-            for(idx=0;idx<ncorr;idx++)
-            {
-               if (my_rank==0)   printf("\t\tOperator XY = %s",operator_to_string(file_head.operator_type[idx]));
-               contraction_single_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
-               contraction_double_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
-               if (my_rank==0)   printf("\t---> Work done.\n");
-            }
+            if (my_rank==0)   printf("\t\tOperator XY = %s",operator_to_string(file_head.operator_type[idx]));
+            contraction_single_trace(xi1[nnoise*proplist.idx_1A[idx]+noise_idx1],xi2[nnoise*proplist.idx_3C[idx]+noise_idx2],
+                                    zeta1[nnoise*proplist.idx_4[idx]+noise_idx1],zeta2[nnoise*proplist.idx_2[idx]+noise_idx2],
+                                    tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
+            contraction_double_trace(xi1[nnoise*proplist.idx_1A[idx]+noise_idx1],xi2[nnoise*proplist.idx_3C[idx]+noise_idx2],
+                                    zeta1[nnoise*proplist.idx_4[idx]+noise_idx1],zeta2[nnoise*proplist.idx_2[idx]+noise_idx2],
+                                    tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
+            if (my_rank==0)   printf("\t---> Work done.\n");
          }
       }
+   }
       
-      MPI_Allreduce(data.corr_tmp,data.corr+data.offset,nnoise*nnoise*ncorr*file_head.tvals*2,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-      if(data.offset==0)
+   MPI_Allreduce(data.corr_tmp,data.corr,nnoise*nnoise*ncorr*file_head.tvals*2,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+
+   if(my_rank==0) printf("\n\tTransformation of fields...\n\n");
+
+   generate_g_trnsfrms();
+   g_transform_ud();
+      
+   /* transformation of Xis and ZETAs */
+   for(idx=0;idx<nnoise*proplist.len_1A;idx++)
+      g_transform_sdble(VOLUME,xi1[idx]);
+   for(idx=0;idx<nnoise*proplist.len4;idx++)
+      g_transform_sdble(VOLUME,zeta1[idx]);
+   for(idx=0;idx<nnoise*proplist.len_3C;idx++)
+      g_transform_sdble(VOLUME,xi2[idx]);
+   for(idx=0;idx<nnoise*proplist.len2;idx++)
+      g_transform_sdble(VOLUME,zeta2[idx]);
+   
+   if(my_rank==0) printf("Evaluation of Wick contractions with transformed fields:\n");
+
+   for(noise_idx1=0;noise_idx1<nnoise;noise_idx1++)
+   {
+      for(noise_idx2=0;noise_idx2<nnoise;noise_idx2++)
       {
-         generate_g_trnsfrms();
-         g_transform_ud();
+         if (my_rank==0)   printf("\tStohcastic vectors eta1 = %i\teta2 = %i\n",noise_idx1,noise_idx2);
+
+         /* contractions */
+         for(idx=0;idx<ncorr;idx++)
+         {
+            if (my_rank==0)   printf("\t\tOperator XY = %s",operator_to_string(file_head.operator_type[idx]));
+            contraction_single_trace(xi1[nnoise*proplist.idx_1A[idx]+noise_idx1],xi2[nnoise*proplist.idx_3C[idx]+noise_idx2],
+                                    zeta1[nnoise*proplist.idx_4[idx]+noise_idx1],zeta2[nnoise*proplist.idx_2[idx]+noise_idx2],
+                                    tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
+            contraction_double_trace(xi1[nnoise*proplist.idx_1A[idx]+noise_idx1],xi2[nnoise*proplist.idx_3C[idx]+noise_idx2],
+                                    zeta1[nnoise*proplist.idx_4[idx]+noise_idx1],zeta2[nnoise*proplist.idx_2[idx]+noise_idx2],
+                                    tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
+            if (my_rank==0)   printf("\t---> Work done.\n");
+         }
       }
-      data.offset=file_head.ncorr*file_head.nnoise*file_head.nnoise*file_head.tvals;
    }
 
+   data.offset=file_head.ncorr*file_head.nnoise*file_head.nnoise*file_head.tvals;
+   MPI_Allreduce(data.corr_tmp,data.offset+data.corr,nnoise*nnoise*ncorr*file_head.tvals*2,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+
    free_g_trnsfrms();
-   
    free(xi1);
    free(xi2);
    free(zeta1);
