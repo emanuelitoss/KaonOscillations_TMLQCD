@@ -21,8 +21,7 @@
 extern void generate_g_trnsfrms(void);
 extern void free_g_trnsfrms(void);
 extern void g_transform_ud(void);
-/*
-extern void g_transform_sdble(spinor_dble *sp);
-*/
+extern void g_transform_sdble(int volume,spinor_dble *sp);
+
 
 #endif

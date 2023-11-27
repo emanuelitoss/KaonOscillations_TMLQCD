@@ -24,7 +24,8 @@
 *  extern void transform_ud(void)
 *     transforms the actual Gauge fields throught transformations g.
 *     If g is not initialized, it automatically generates the
-*     tranformations and free them.
+*     tranformations. In this case, the new g transformation are NOT
+*     freed at the end of this process.
 *
 *******************************************************************************/
 
@@ -155,7 +156,7 @@ extern void generate_g_trnsfrms(void)
    if (BNDRY!=0)
       gbuf=amalloc((BNDRY/2)*sizeof(*gbuf),4);
     
-   error((g==NULL)||((BNDRY!=0)&&(gbuf==NULL)),1,"generate_g_trnsfrms [uflds_trnsfrm.c]","Unable to allocate auxiliary arrays");
+   error((g==NULL)||((BNDRY!=0)&&(gbuf==NULL)),1,"generate_g_trnsfrms [gauge_transforms.c]","Unable to allocate auxiliary arrays");
 
    random_g();
 }
@@ -203,46 +204,50 @@ extern void g_transform_ud(void)
       ub+=8;
    }
 
-   if(allocate_check)
-      free_g_trnsfrms();
-
    set_flags(UPDATED_UD);
 }
 
-/*
-extern void g_transform_sdble(int volume,spinor_dble *sp){
 
-   su3_vector_dble *vec_iterate,*vec_max;
-   int dirac;
-   
-   for(dirac=0;dirac<4;dirac++)
+extern void g_transform_sdble(int vol,spinor_dble *sp)
+{
+   su3_vector_dble vec_su3,tmp_vec_su3;
+   su3_dble g_matrix;
+   int dirac,pos_sfld,idx;
+
+   error(g==NULL,1,"g_transform_sdble [gauge_transforms.c]","Gauge tranformations not generated. Generate them first.");
+
+   for(idx=0;idx<vol;idx++)
    {
-      switch (dirac)
+      g_matrix=g[idx];
+      pos_sfld=ipt[idx];
+
+      for(dirac=0;dirac<4;dirac++)
       {
-      case 0:
-         vec_iterate=&((*sp).c1);
-         break;
-      case 1:
-         vec_iterate=&((*sp).c2);
-         break;
-      case 2:
-         vec_iterate=&((*sp).c3);
-         break;
-      case 3:
-         vec_iterate=&((*sp).c4);
-         break;
-      default:
-         break;
-      }
-
-      vec_max=vec_iterate+volume;
-
-      error(vec_iterate==NULL||vec_max==NULL,1,"g_transform_sdble [gauge_trasnsforms.c]","Unable to allocate su3_vector_dble types.");
-
-      for(;vec_iterate<vec_max;vec_iterate++)
-      {
-         _su3_multiply(r,u,s)
+         switch (dirac)
+         {
+         case 0:
+            vec_su3=(*(sp+pos_sfld)).c1;
+            _su3_multiply(tmp_vec_su3,g_matrix,vec_su3);
+            (*(sp+pos_sfld)).c1=tmp_vec_su3; 
+            break;
+         case 1:
+            vec_su3=(*(sp+pos_sfld)).c2;
+            _su3_multiply(tmp_vec_su3,g_matrix,vec_su3);
+            (*(sp+pos_sfld)).c2=tmp_vec_su3;
+            break;
+         case 2:
+            vec_su3=(*(sp+pos_sfld)).c3;
+            _su3_multiply(tmp_vec_su3,g_matrix,vec_su3);
+            (*(sp+pos_sfld)).c3=tmp_vec_su3;
+            break;
+         case 3:
+            vec_su3=(*(sp+pos_sfld)).c4;
+            _su3_multiply(tmp_vec_su3,g_matrix,vec_su3);
+            (*(sp+pos_sfld)).c4=tmp_vec_su3;
+            break;
+         default:
+            break;
+         }
       }
    }
-
-}*/
+}
