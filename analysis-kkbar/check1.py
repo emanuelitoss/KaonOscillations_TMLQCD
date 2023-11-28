@@ -156,7 +156,6 @@ printCyan('\nGeneral settings')
 print(  '\tNumber of correlators Ncorr =',ncorr,
         '\n\tNumber of noise spinors Nnoise =',nnoise,
         '\n\tNumber of timeslices N_T =',ntimes,
-        '\n\tNoisetype:',noise_to_string(noisetype),
         '\n\tSource timeslice: x0 =',x0,
         '\n\tSource timeslice: z0 =',z0,'\n')
 

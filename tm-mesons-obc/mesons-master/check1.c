@@ -1,6 +1,6 @@
 /*******************************************************************************
 *
-* File check1_correlators.c
+* File check1.c
 * Copyright (C) 2023 Emanuele Rosi
 *
 * Based on tm mesons
@@ -28,24 +28,11 @@
 *
 *******************************************************************************
 *
-* Computation of three points correlators for mesons oscillations
-*
-* Syntax: check1_correlators -i <input file> [-noexp] [-a] -rndmgauge -nogauge
-*
-* For usage instructions see the file README.correlators
-*
-*******************************************************************************
-*
-* NOTES:
-* Some comments as 'modified','unchanged','new function',... refer to file
-* correlators.c, the originary one. Some comments explain some functions.
-* Other comments are just my notes.
-*
-*******************************************************************************
-*
-* DATA:  static struct data.
-* for each correlator I store each single contribution from 
-* stochastic vectors eta1 and eta2 with each intermediate time t.
+*  AIM:
+*  I want to check Gauge invariance of the computation of 3pts correlators.
+*  I generate pointlike sources with fixed Dirac and color indices. Data
+*  analysis will provide a summation over all the components. For further
+*  info see README.checks
 *
 *******************************************************************************/
 
@@ -97,7 +84,7 @@
 static struct
 {
    complex_dble *corr;        /* correlators */
-   complex_dble *corr_tmp;    /* temp. correlators */
+   complex_dble *corr_tmp;    /* temp correlators */
    int nc;                    /* configuration number */
    int offset;                /* to switch to gauge transformed data */
 } data;
@@ -160,7 +147,7 @@ static struct
 
 static char line[NAME_SIZE+1];   /* useful string */
 
-static int my_rank;                                      /* run rank */
+static int my_rank;
 static int noexp,append,norng,endian,nogauge,rndmgauge;  /* running options */
 static int first,last,step;                              /* configurations indices */
 static int level,seed;                                   /* random number generator */
@@ -184,53 +171,53 @@ static FILE *fin=NULL,*flog=NULL,*fend=NULL,*fdat=NULL;
 
 /************************ TOOL FUNCTIONS ************************/
 
-/* this function turns back the color index from an integer */
+/* this function turns back the color index from an integer in [0,11] */
 extern int colour_index(int idx)
 {
    int colour;
    if(idx<0||idx>=N_COLOURS*N_DIRAC)
-      error(1,1,"colour_index [correlators.c]","Invalid index number.");
+      error(1,1,"colour_index [check1.c]","Invalid index number.");
 
    colour=idx%N_COLOURS;
 
    if(colour<0||colour>2)
-      error(1,1,"colour_index [correlators.c]","We are working in SU(3).");
+      error(1,1,"colour_index [check1.c]","We are working in SU(3).");
 
    return colour;
 }
 
-/* this function turns back the Dirac index from an integer */
+/* this function turns back the Dirac index from an integer in [0,11] */
 extern int dirac_index(int idx)
 {
    int remainder,result;
 
    if(idx<0||idx>=N_COLOURS*N_DIRAC)
-      error(1,1,"[correlators.c]","Invalid index number.");
+      error(1,1,"[check1.c]","Invalid index number.");
 
    remainder=idx%N_COLOURS;
    result=(int)(idx-remainder)/N_COLOURS;
 
    if(result<0 || result>3)
-      error(1,1,"dirac_index [correlators.c]","Dirac spinor has 4 components.");
+      error(1,1,"dirac_index [check1.c]","Dirac spinor has 4 components.");
 
    return result;
 }
 
 /************************ CORRELATORS FUNCTIONS ************************/
 
-static void alloc_data(void)  /*modified*/
+static void alloc_data(void)
 {
    int number_of_data = file_head.ncorr*file_head.nnoise*file_head.nnoise*file_head.tvals;
 
    data.offset=0;
 
-   data.corr=malloc(2*number_of_data*sizeof(complex_dble));
+   data.corr=malloc(2*number_of_data*sizeof(complex_dble)); /* 2x due to Gauge tranformed data */
    data.corr_tmp=malloc(number_of_data*sizeof(complex_dble));
 
-   error((data.corr==NULL)||(data.corr_tmp==NULL),1,"alloc_data [correlators.c]", "Unable to allocate data arrays");
+   error((data.corr==NULL)||(data.corr_tmp==NULL),1,"alloc_data [check1.c]", "Unable to allocate data arrays");
 }
 
-static void write_file_head(void)   /*modified*/
+static void write_file_head(void)
 {
    stdint_t istd[1];
    int iw=0;
@@ -267,7 +254,7 @@ static void write_file_head(void)   /*modified*/
       bswap_int(1,istd);
    iw+=fwrite(istd,sizeof(stdint_t),1,fdat);
 
-   error_root(iw!=6,1,"write_file_head [correlators.c]", "Incorrect write count");
+   error_root(iw!=6,1,"write_file_head [check1.c]", "Incorrect write count");
 
    for (i=0;i<file_head.ncorr;i++)
    {
@@ -331,11 +318,11 @@ static void write_file_head(void)   /*modified*/
          bswap_int(1,istd);
       iw+=fwrite(istd,sizeof(stdint_t),1,fdat);
 
-      error_root(iw!=12,1,"write_file_head [correlators.c]","Incorrect write count");
+      error_root(iw!=12,1,"write_file_head [check1.c]","Incorrect write count");
    }
 }
 
-static void check_file_head(void)   /*modified*/
+static void check_file_head(void)   
 {
    int i,ir,ie;
    stdint_t istd[1];
@@ -371,8 +358,8 @@ static void check_file_head(void)   /*modified*/
       bswap_int(1,istd);
    ie+=(istd[0]!=(stdint_t)(file_head.z0));
 
-   error_root(ir!=6,1,"check_file_head [correlators.c]","Incorrect read count");
-   error_root(ie!=0,1,"check_file_head [correlators.c]", "Unexpected value of ncorr, nnoise, tvals or noisetype");
+   error_root(ir!=6,1,"check_file_head [check1.c]","Incorrect read count");
+   error_root(ie!=0,1,"check_file_head [check1.c]", "Unexpected value of ncorr, nnoise, tvals or noisetype");
    
    for (i=0;i<file_head.ncorr;i++)
    {
@@ -436,12 +423,12 @@ static void check_file_head(void)   /*modified*/
          bswap_int(1,istd);
       ie+=(istd[0]!=(stdint_t)(file_head.isreal[i]));
 
-      error_root(ir!=12,1,"check_file_head [correlators.c]","Incorrect read count");
-      error_root(ie!=0,1,"check_file_head [correlators.c]","Unexpected value of kappa, mu, typeA, typeC, OperatorType");
+      error_root(ir!=12,1,"check_file_head [check1.c]","Incorrect read count");
+      error_root(ie!=0,1,"check_file_head [check1.c]","Unexpected value of kappa, mu, typeA, typeC, OperatorType");
    }
 }
 
-static void write_data(void)  /*modified*/
+static void write_data(void)
 {
    int iw;
    int nw;
@@ -451,13 +438,13 @@ static void write_data(void)  /*modified*/
    if (my_rank==0)
    {
       fdat=fopen(dat_file,"ab");
-      error_root(fdat==NULL,1,"write_data [correlators.c]","Unable to open dat file");
+      error_root(fdat==NULL,1,"write_data [check1.c]","Unable to open dat file");
 
       nw = 1;
       if(endian==BIG_ENDIAN)
       {
          bswap_double(2*file_head.nnoise*file_head.nnoise*file_head.tvals*file_head.ncorr*2,
-                      data.corr);   /* additive x2*/
+                      data.corr);   /* note: additive x2*/
          bswap_int(1,&(data.nc));
       }
       iw=fwrite(&(data.nc),sizeof(int),1,fdat);
@@ -501,12 +488,12 @@ static void write_data(void)  /*modified*/
                       data.corr);
          bswap_int(1,&(data.nc));
       }
-      error_root(iw!=nw,1,"write_data [correlators.c]","Incorrect write count");
+      error_root(iw!=nw,1,"write_data [check1.c]","Incorrect write count");
       fclose(fdat);
    }
 }
 
-static int read_data(void) /*modified*/
+static int read_data(void)
 {
    int ir;
    int nr;
@@ -542,7 +529,7 @@ static int read_data(void) /*modified*/
    if (ir==0)
       return 0;
 
-   error_root(ir!=nr,1,"read_data [correlators.c]","Read error or incomplete data record");
+   error_root(ir!=nr,1,"read_data [check1.c]","Read error or incomplete data record");
    if(endian==BIG_ENDIAN)
    {
       bswap_double(nr,data.corr);
@@ -551,7 +538,7 @@ static int read_data(void) /*modified*/
    return 1;
 }
 
-static void read_dirs(void)   /*untouched*/
+static void read_dirs(void)
 {
    if (my_rank==0)
    {
@@ -583,7 +570,7 @@ static void read_dirs(void)   /*untouched*/
       read_line("last","%d",&last);
       read_line("step","%d",&step);
       error_root((last<first)||(step<1)||(((last-first)%step)!=0),1,
-                 "read_dirs [correlators.c]","Improper configuration range");
+                 "read_dirs [check1.c]","Improper configuration range");
 
       find_section("Random number generator");
       read_line("level","%d",&level);
@@ -606,22 +593,22 @@ static void read_dirs(void)   /*untouched*/
    MPI_Bcast(&seed,1,MPI_INT,0,MPI_COMM_WORLD);
 }
 
-static void setup_files(void) /*untouched*/
+static void setup_files(void)
 {
    if (noexp)
       error_root(name_size("%s/%sn%d_%d",loc_dir,run_name,last,NPROC-1)>=NAME_SIZE,
-                 1,"setup_files [correlators.c]","loc_dir name is too long");
+                 1,"setup_files [check1.c]","loc_dir name is too long");
    else if ((!nogauge)&&(!rndmgauge))
       error_root(name_size("%s/%sn%d",cnfg_dir,run_name,last)>=NAME_SIZE,
-                 1,"setup_files [correlators.c]","cnfg_dir name is too long");
+                 1,"setup_files [check1.c]","cnfg_dir name is too long");
 
    check_dir_root(dat_dir);
    error_root(name_size("%s/%s.mesons.dat~",dat_dir,output_name)>=NAME_SIZE,
-              1,"setup_files [correlators.c]","dat_dir name is too long");
+              1,"setup_files [check1.c]","dat_dir name is too long");
 
    check_dir_root(log_dir);
    error_root(name_size("%s/%s.mesons.log~",log_dir,output_name)>=NAME_SIZE,
-              1,"setup_files [correlators.c]","log_dir name is too long");
+              1,"setup_files [check1.c]","log_dir name is too long");
 
    sprintf(log_file,"%s/%s.correlators.log",log_dir,output_name);
    sprintf(end_file,"%s/%s.correlators.end",log_dir,output_name);
@@ -634,7 +621,7 @@ static void setup_files(void) /*untouched*/
    sprintf(rng_save,"%s~",rng_file);
 }
 
-static void read_lat_parms(void) /*modified*/
+static void read_lat_parms(void)
 {
    double csw,cF;
    char tmpstring[NAME_SIZE],tmpstring2[NAME_SIZE];
@@ -645,32 +632,31 @@ static void read_lat_parms(void) /*modified*/
       find_section("Measurements");
       read_line("nprop","%d",&nprop);
       read_line("ncorr","%d",&ncorr);
-      /*read_line("nnoise","%d",&nnoise);*/
-      /*nnoise=N_DIRAC*N_COLOURS;*/
-      nnoise=2;   /* da cambiare, rimettere quello della riga sopra */
-      error_root(((nprop<1)||(ncorr<1)||(nnoise<1)),1,"read_lat_parms [correlators.c]",
+      nnoise=N_DIRAC*N_COLOURS;
+      error_root(((nprop<1)||(ncorr<1)||(nnoise<1)),1,"read_lat_parms [check1.c]",
                  "Specified nprop/ncorr/nnoise must be larger than zero");
       
       read_line("noise_type","%s",tmpstring);
       noisetype=-1;
       if(strcmp(tmpstring,"Z2")==0)
          noisetype=Z2_NOISE;
-      if(strcmp(tmpstring,"GAUSS")==0)
+      else if(strcmp(tmpstring,"GAUSS")==0)
          noisetype=GAUSS_NOISE;
-      if(strcmp(tmpstring,"U1")==0)
+      else if(strcmp(tmpstring,"U1")==0)
          noisetype=U1_NOISE;
-      error_root(noisetype==-1,1,"read_lat_parms [correlators.c]",
+      else noisetype=U1_NOISE;
+      error_root(noisetype==-1,1,"read_lat_parms [check1.c]",
                  "Unknown noise type");
 
       read_line("csw","%lf",&csw);
       read_line("cF","%lf",&cF);
       read_line("eoflg","%d",&eoflg);
-      error_root(((eoflg!=0)&&(eoflg!=1)),1,"read_lat_parms [correlators.c]",
+      error_root(((eoflg!=0)&&(eoflg!=1)),1,"read_lat_parms [check1.c]",
 		 "Specified eoflg must be 0,1");
       
       read_line("x0","%d",&fixed_x0);
       read_line("z0","%d",&fixed_z0);
-      error_root((fixed_x0>N0)||(fixed_x0<0)||(fixed_z0>N0)||(fixed_z0<0)||(fixed_z0>fixed_x0),1,"read_lat_parms [correlators.c]",
+      error_root((fixed_x0>N0)||(fixed_x0<0)||(fixed_z0>N0)||(fixed_z0<0)||(fixed_z0>fixed_x0),1,"read_lat_parms [check1.c]",
                  "x0 and z0 must be in the range [0,N0], with x0>z0");
    }
 
@@ -715,7 +701,7 @@ static void read_lat_parms(void) /*modified*/
          (file_head.kappa1==NULL)||(file_head.kappa2==NULL)||(file_head.kappa3==NULL)||(file_head.kappa4==NULL)||
          (file_head.mus1==NULL)||(file_head.mus2==NULL)||(file_head.mus3==NULL)||(file_head.mus4==NULL)||
          (file_head.operator_type==NULL)||(file_head.isreal==NULL),
-         1,"read_lat_parms [correlators.c]","Out of memory");
+         1,"read_lat_parms [check1.c]","Out of memory");
 
    if (my_rank==0)
    {
@@ -733,13 +719,13 @@ static void read_lat_parms(void) /*modified*/
          find_section(tmpstring);
 
          read_line("iprop","%d %d %d %d",&props1[icorr],&props2[icorr],&props3[icorr],&props4[icorr]);
-         error_root((props1[icorr]<0)||(props1[icorr]>=nprop),1,"read_lat_parms [correlators.c]",
+         error_root((props1[icorr]<0)||(props1[icorr]>=nprop),1,"read_lat_parms [check1.c]",
                  "Propagator index out of range");
-         error_root((props2[icorr]<0)||(props2[icorr]>=nprop),1,"read_lat_parms [correlators.c]",
+         error_root((props2[icorr]<0)||(props2[icorr]>=nprop),1,"read_lat_parms [check1.c]",
                  "Propagator index out of range");
-         error_root((props3[icorr]<0)||(props3[icorr]>=nprop),1,"read_lat_parms [correlators.c]",
+         error_root((props3[icorr]<0)||(props3[icorr]>=nprop),1,"read_lat_parms [check1.c]",
                  "Propagator index out of range");
-         error_root((props4[icorr]<0)||(props4[icorr]>=nprop),1,"read_lat_parms [correlators.c]",
+         error_root((props4[icorr]<0)||(props4[icorr]>=nprop),1,"read_lat_parms [check1.c]",
                  "Propagator index out of range");
 
          read_line("type_sources","%s %s",tmpstring,tmpstring2);
@@ -836,16 +822,13 @@ static void read_lat_parms(void) /*modified*/
          else if(strncmp(tmpstring,"TT",2)==0)
             operator_type[icorr]=TT;
 
-         error_root((typeA[icorr]==-1)||(typeC[icorr]==-1)||(operator_type[icorr]==-1),1,"read_lat_parms [correlators.c]",
+         error_root((typeA[icorr]==-1)||(typeC[icorr]==-1)||(operator_type[icorr]==-1),1,"read_lat_parms [check1.c]",
                  "Unknown or unsupported Dirac structures or intermediate operator");
       }
    }
 
    MPI_Bcast(kappas,nprop,MPI_DOUBLE,0,MPI_COMM_WORLD);
    MPI_Bcast(mus,nprop,MPI_DOUBLE,0,MPI_COMM_WORLD);
-   /*MPI_Bcast(&csw,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
-   MPI_Bcast(&cF,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
-   MPI_Bcast(&eoflg,1,MPI_INT,0,MPI_COMM_WORLD);*/
    MPI_Bcast(isps,nprop,MPI_INT,0,MPI_COMM_WORLD);
    MPI_Bcast(props1,ncorr,MPI_INT,0,MPI_COMM_WORLD);
    MPI_Bcast(props2,ncorr,MPI_INT,0,MPI_COMM_WORLD);
@@ -876,12 +859,6 @@ static void read_lat_parms(void) /*modified*/
       file_head.mus3[icorr]=mus[props3[icorr]];
       file_head.mus4[icorr]=mus[props4[icorr]];
 
-      /*if ((typeA[icorr]==GAMMA5_TYPE)&&(typeC[icorr]==GAMMA5_TYPE)&&
-          (props1[icorr]==props2[icorr]))
-         file_head.isreal[icorr]=1;
-      else
-         file_head.isreal[icorr]=0;*/
-      /* substituted with: */
       file_head.isreal[icorr]=0;
    }
    if (append)
@@ -890,7 +867,7 @@ static void read_lat_parms(void) /*modified*/
       write_lat_parms(fdat);
 }
 
-static void read_sap_parms(void) /*untouched*/
+static void read_sap_parms(void)
 {
    int bs[4];
 
@@ -904,7 +881,7 @@ static void read_sap_parms(void) /*untouched*/
    set_sap_parms(bs,1,4,5);
 }
 
-static void read_dfl_parms(void) /*untouched*/
+static void read_dfl_parms(void)
 {
    int bs[4],Ns;
    int ninv,nmr,ncy,nkv,nmx;
@@ -952,7 +929,7 @@ static void read_dfl_parms(void) /*untouched*/
    set_dfl_pro_parms(nkv,nmx,res);
 }
 
-static void read_solvers(void)   /*untouched*/
+static void read_solvers(void)
 {
    solver_parms_t sp;
    int i,j;
@@ -983,7 +960,7 @@ static void read_solvers(void)   /*untouched*/
       read_dfl_parms();
 }
 
-static void read_infile(int argc,char *argv[])  /*modified*/
+static void read_infile(int argc,char *argv[])
 {
    int ifile;
    int error_exclusive_options;
@@ -995,10 +972,10 @@ static void read_infile(int argc,char *argv[])  /*modified*/
       ifile=find_opt(argc,argv,"-i");
       endian=endianness();
 
-      error_root((ifile==0)||(ifile==(argc-1)),1,"read_infile [correlators.c]",
+      error_root((ifile==0)||(ifile==(argc-1)),1,"read_infile [check1.c]",
                  "Syntax: mesons -i <input file> [-noexp] [-nogauge] [-rndmgauge] [-a [-norng]]");
 
-      error_root(endian==UNKNOWN_ENDIAN,1,"read_infile [correlators.c]",
+      error_root(endian==UNKNOWN_ENDIAN,1,"read_infile [check1.c]",
                  "Machine has unknown endianness");
 
       noexp=find_opt(argc,argv,"-noexp");
@@ -1007,13 +984,12 @@ static void read_infile(int argc,char *argv[])  /*modified*/
       append=find_opt(argc,argv,"-a");
       norng=find_opt(argc,argv,"-norng");
 
-      /* the options -noexp -nogauge -rndmgauge must be exclusive */
       error_exclusive_options=(int)(noexp>0)+(int)(nogauge>0)+(int)(rndmgauge>0);
-      error_root(error_exclusive_options>1,1,"read_infile [correlators.c]",
+      error_root(error_exclusive_options>1,1,"read_infile [check1.c]",
             "Invalid flags. Remember that you can use only one between -noexp,-nogauge,-rndmgauge ");
 
       fin=freopen(argv[ifile+1],"r",stdin);
-      error_root(fin==NULL,1,"read_infile [correlators.c]","Unable to open input file");
+      error_root(fin==NULL,1,"read_infile [check1.c]","Unable to open input file");
    }
 
    MPI_Bcast(&endian,1,MPI_INT,0,MPI_COMM_WORLD);
@@ -1033,7 +1009,7 @@ static void read_infile(int argc,char *argv[])  /*modified*/
       else
          fdat=fopen(par_file,"wb");
 
-      error_root(fdat==NULL,1,"read_infile [correlators.c]",
+      error_root(fdat==NULL,1,"read_infile [check1.c]",
                  "Unable to open parameter file");
    }
    read_lat_parms();
@@ -1049,14 +1025,14 @@ static void read_infile(int argc,char *argv[])  /*modified*/
    }
 }
 
-static void check_old_log(int *fst,int *lst,int *stp) /*untouched*/
+static void check_old_log(int *fst,int *lst,int *stp)
 {
    int ie,ic,isv;
    int fc,lc,dc,pc;
    int np[4],bp[4];
 
    fend=fopen(log_file,"r");
-   error_root(fend==NULL,1,"check_old_log [correlators.c]","Unable to open log file");
+   error_root(fend==NULL,1,"check_old_log [check1.c]","Unable to open log file");
 
    fc=0;
    lc=0;
@@ -1108,11 +1084,11 @@ static void check_old_log(int *fst,int *lst,int *stp) /*untouched*/
 
    fclose(fend);
 
-   error_root((ie&0x1)!=0x0,1,"check_old_log [correlators.c]",
+   error_root((ie&0x1)!=0x0,1,"check_old_log [check1.c]",
               "Incorrect read count");
-   error_root((ie&0x2)!=0x0,1,"check_old_log [correlators.c]",
+   error_root((ie&0x2)!=0x0,1,"check_old_log [check1.c]",
               "Configuration numbers are not equally spaced");
-   error_root(isv==0,1,"check_old_log [correlators.c]",
+   error_root(isv==0,1,"check_old_log [check1.c]",
               "Log file extends beyond the last configuration save");
 
    (*fst)=fc;
@@ -1120,13 +1096,13 @@ static void check_old_log(int *fst,int *lst,int *stp) /*untouched*/
    (*stp)=dc;
 }
 
-static void check_old_dat(int fst,int lst,int stp) /*untouched*/
+static void check_old_dat(int fst,int lst,int stp)
 {
    int ie,ic;
    int fc,lc,dc,pc;
 
    fdat=fopen(dat_file,"rb");
-   error_root(fdat==NULL,1,"check_old_dat [correlators.c]",
+   error_root(fdat==NULL,1,"check_old_dat [check1.c]",
               "Unable to open data file");
 
    check_file_head();
@@ -1154,12 +1130,12 @@ static void check_old_dat(int fst,int lst,int stp) /*untouched*/
 
    fclose(fdat);
 
-   error_root(ic==0,1,"check_old_dat [correlators.c]","No data records found");
-   error_root((ie&0x1)!=0x0,1,"check_old_dat [correlators.c]","Configuration numbers are not equally spaced");
-   error_root((fst!=fc)||(lst!=lc)||(stp!=dc),1,"check_old_dat [correlators.c]","Configuration range is not as reported in the log file");
+   error_root(ic==0,1,"check_old_dat [check1.c]","No data records found");
+   error_root((ie&0x1)!=0x0,1,"check_old_dat [check1.c]","Configuration numbers are not equally spaced");
+   error_root((fst!=fc)||(lst!=lc)||(stp!=dc),1,"check_old_dat [check1.c]","Configuration range is not as reported in the log file");
 }
 
-static void check_files(void) /*untouched*/
+static void check_files(void)
 {
    int fst,lst,stp;
 
@@ -1173,23 +1149,23 @@ static void check_files(void) /*untouched*/
          check_old_log(&fst,&lst,&stp);
          check_old_dat(fst,lst,stp);
 
-         error_root((fst!=lst)&&(stp!=step),1,"check_files [correlators.c]",
+         error_root((fst!=lst)&&(stp!=step),1,"check_files [check1.c]",
                     "Continuation run:\n"
                     "Previous run had a different configuration separation");
-         error_root(first!=lst+step,1,"check_files [correlators.c]",
+         error_root(first!=lst+step,1,"check_files [check1.c]",
                     "Continuation run:\n"
                     "Configuration range does not continue the previous one");
       }
       else
       {
          fin=fopen(log_file,"r");
-         error_root(fin!=NULL,1,"check_files [correlators.c]",
+         error_root(fin!=NULL,1,"check_files [check1.c]",
                     "Attempt to overwrite old *.log file");
          fdat=fopen(dat_file,"r");
-         error_root(fdat!=NULL,1,"check_files [correlators.c]",
+         error_root(fdat!=NULL,1,"check_files [check1.c]",
                     "Attempt to overwrite old *.dat file");
          fdat=fopen(dat_file,"wb");
-         error_root(fdat==NULL,1,"check_files [correlators.c]",
+         error_root(fdat==NULL,1,"check_files [check1.c]",
                     "Unable to open data file");
          write_file_head();
          fclose(fdat);
@@ -1197,7 +1173,7 @@ static void check_files(void) /*untouched*/
    }
 }
 
-static void print_info(void)  /*modified*/
+static void print_info(void)  
 {
    int i,isap,idfl;
    long ip;
@@ -1217,7 +1193,7 @@ static void print_info(void)  /*modified*/
       else
          flog=freopen(log_file,"w",stdout);
 
-      error_root(flog==NULL,1,"print_info [correlators.c]",
+      error_root(flog==NULL,1,"print_info [check1.c]",
                  "Unable to open log file");
       printf("\n");
 
@@ -1327,7 +1303,7 @@ static void print_info(void)  /*modified*/
    }
 }
 
-static void dfl_wsize(int *nws,int *nwv,int *nwvd) /*untouched*/
+static void dfl_wsize(int *nws,int *nwv,int *nwvd)
 {
    dfl_parms_t dp;
    dfl_pro_parms_t dpp;
@@ -1340,10 +1316,7 @@ static void dfl_wsize(int *nws,int *nwv,int *nwvd) /*untouched*/
    MAX(*nwvd,4);
 }
 
-/* removed:          static void make_proplist(void) 
-*  exchanged with:   static void make_proplist(void) (new)   */
-
-static void make_proplist(void) /* new function */
+static void make_proplist(void)
 {
    int icorr,j;
 
@@ -1362,15 +1335,13 @@ static void make_proplist(void) /* new function */
 
    error((proplist.idx_1A==NULL)||(proplist.idx_3C==NULL)||(proplist.idx_2==NULL)||(proplist.idx_4==NULL)
       ||(proplist.prop_type1==NULL)||(proplist.prop_type2==NULL)||(proplist.prop_type3==NULL)||(proplist.prop_type4==NULL)
-      ||(proplist.matrix_typeA==NULL)||(proplist.matrix_typeC==NULL),1,"make_proplist [correlators.c]","Out of memory");
+      ||(proplist.matrix_typeA==NULL)||(proplist.matrix_typeC==NULL),1,"make_proplist [check1.c]","Out of memory");
 
-   /* set to zero all the indices and lengths */
    proplist.len_1A=0;
    proplist.len_3C=0;
    proplist.len2=0;
    proplist.len4=0;
 
-   /* NOTA: questo potrebbe essere inutile, ci devo pensare un attimo*/
    for(icorr=0;icorr<ncorr;icorr++)
    {
       proplist.idx_2[icorr]=0;
@@ -1385,7 +1356,6 @@ static void make_proplist(void) /* new function */
       proplist.matrix_typeC[icorr]=0;
    }
 
-   /* main routine */
    for(icorr=0;icorr<ncorr;icorr++)
    {
       /* propagator of type 2 */
@@ -1458,7 +1428,7 @@ static void make_proplist(void) /* new function */
 
 }
 
-static void free_proplist(void)  /* new function */
+static void free_proplist(void)
 {
    free(proplist.idx_1A);
    free(proplist.idx_3C);
@@ -1472,7 +1442,7 @@ static void free_proplist(void)  /* new function */
    free(proplist.matrix_typeC);
 }
 
-static void wsize(int *nws,int *nwsd,int *nwv,int *nwvd) /*modified*/
+static void wsize(int *nws,int *nwsd,int *nwv,int *nwvd) 
 {
    int nsd;
    solver_parms_t sp;
@@ -1483,7 +1453,6 @@ static void wsize(int *nws,int *nwsd,int *nwv,int *nwvd) /*modified*/
    (*nwvd)=0;
 
    sp=solver_parms(0);
-   /* modified part */
    nsd=4+nnoise*(proplist.len_1A+proplist.len_3C+proplist.len4+proplist.len2);
 
    if (sp.solver==CGNE)
@@ -1503,7 +1472,7 @@ static void wsize(int *nws,int *nwsd,int *nwv,int *nwvd) /*modified*/
       dfl_wsize(nws,nwv,nwvd);
    }
    else
-      error_root(1,1,"wsize [correlators.c]","Unknown or unsupported solver");
+      error_root(1,1,"wsize [check1.c]","Unknown or unsupported solver");
 }
 
 static void set_sdble_dirac_color_idx(int vol,spinor_dble *sd,int dc_index)
@@ -1535,8 +1504,8 @@ static void set_sdble_dirac_color_idx(int vol,spinor_dble *sd,int dc_index)
          colour_ptr = &((*sd).c4);
          break;
       default:
-         error_root(colour_ptr==NULL,1,"set_sdble_dirac_color_idx [correlators.c]","Unable to allocate an su3_vector_dble pointer");
-         error_root(1,1,"set_sdble_dirac_color_idx [correlators.c]","Invalid Dirac index");
+         error_root(colour_ptr==NULL,1,"set_sdble_dirac_color_idx [check1.c]","Unable to allocate an su3_vector_dble pointer");
+         error_root(1,1,"set_sdble_dirac_color_idx [check1.c]","Invalid Dirac index");
          break;
       }
 
@@ -1555,7 +1524,7 @@ static void set_sdble_dirac_color_idx(int vol,spinor_dble *sd,int dc_index)
          (*colour_ptr).c3.im=0.0;
          break;
       default:
-         error_root(1,1,"set_sdble_dirac_color_idx [correlators.c]","Invalid colour index");
+         error_root(1,1,"set_sdble_dirac_color_idx [check1.c]","Invalid colour index");
          break;
       }
    }
@@ -1575,13 +1544,13 @@ static void pointlike_source(spinor_dble *eta, int x0, int dc_index)
    }
 }
 
-static void solve_dirac(int prop, spinor_dble *eta, spinor_dble *psi, int *status)  /* untouched */
+static void solve_dirac(int prop, spinor_dble *eta, spinor_dble *psi, int *status)
 {
    solver_parms_t sp;
    sap_parms_t sap;
 
    sp=solver_parms(isps[prop]);
-   set_sw_parms(0.5/kappas[prop]-4.0); /* set c_{SW} parm, it need the bare quark mass */
+   set_sw_parms(0.5/kappas[prop]-4.0);
 
    if (sp.solver==CGNE)
    {
@@ -1591,7 +1560,7 @@ static void solve_dirac(int prop, spinor_dble *eta, spinor_dble *psi, int *statu
       
       if (my_rank==0)
          printf("%i\n",status[0]);
-      error_root(status[0]<0,1,"solve_dirac [correlators.c]",
+      error_root(status[0]<0,1,"solve_dirac [check1.c]",
                  "CGNE solver failed (status = %d)",status[0]);
 
       Dw_dble(-mus[prop],eta,psi);
@@ -1605,7 +1574,7 @@ static void solve_dirac(int prop, spinor_dble *eta, spinor_dble *psi, int *statu
       sap_gcr(sp.nkv,sp.nmx,sp.res,mus[prop],eta,psi,status);
       if (my_rank==0)
          printf("%i\n",status[0]);
-      error_root(status[0]<0,1,"solve_dirac [correlators.c]",
+      error_root(status[0]<0,1,"solve_dirac [check1.c]",
                  "SAP_GCR solver failed (status = %d)",status[0]);
    }
    else if (sp.solver==DFL_SAP_GCR)
@@ -1617,15 +1586,15 @@ static void solve_dirac(int prop, spinor_dble *eta, spinor_dble *psi, int *statu
       if (my_rank==0)
          printf("%i %i\n",status[0],status[1]);
       error_root((status[0]<0)||(status[1]<0),1,
-                 "solve_dirac [correlators.c]","DFL_SAP_GCR solver failed "
+                 "solve_dirac [check1.c]","DFL_SAP_GCR solver failed "
                  "(status = %d,%d)",status[0],status[1]);
    }
    else
-      error_root(1,1,"solve_dirac [correlators.c]",
+      error_root(1,1,"solve_dirac [check1.c]",
                  "Unknown or unsupported solver");
 }
 
-void make_source(spinor_dble *eta, int type, spinor_dble *xi)  /* untouched */
+void make_source(spinor_dble *eta, int type, spinor_dble *xi)
 {
    switch (type) 
    {
@@ -1693,14 +1662,10 @@ void make_source(spinor_dble *eta, int type, spinor_dble *xi)  /* untouched */
          mulg5_dble(VOLUME,xi);
          break;
       default:
-         error_root(1,1,"make_source [correlators.c]",
+         error_root(1,1,"make_source [check1.c]",
                  "Unknown or unsupported type");
    }
 }
-
-/* removed:    void make_xi(spinor_dble *eta,int type,spinor_dble *xi)  */
-
-/* removed:    static void correlators(void) */
 
 static void contraction_single_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_dble *zeta1,spinor_dble *zeta2,spinor_dble *psi1,spinor_dble *psi2,int idx_noise1,int idx_noise2,int idx_corr)   /* new function */
 {
@@ -1839,7 +1804,7 @@ static void contraction_single_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_db
                   mul_type_sd(psi2,ONE_TYPE);
                   break;
                default:
-                  error(1,1,"contraction_single_trace [correlators.c]","Invalid operator type");
+                  error(1,1,"contraction_single_trace [check1.c]","Invalid operator type");
                   break;
             }
 
@@ -1862,7 +1827,7 @@ static void contraction_single_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_db
          }
       }
    }
-   else error(1,1,"contraction_single_trace [correlators.c]","Invalid Dirac-gamma types");
+   else error(1,1,"contraction_single_trace [check1.c]","Invalid Dirac-gamma types");
 }
 
 static void contraction_double_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_dble *zeta1,spinor_dble *zeta2,spinor_dble *psi1,spinor_dble *psi2,int idx_noise1,int idx_noise2,int idx_corr)   /* new function */
@@ -1999,7 +1964,7 @@ static void contraction_double_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_db
                   mul_type_sd(psi2,ONE_TYPE);
                   break;
                default:
-                  error(1,1,"contraction_double_trace [correlators.c]","Invalid operator type");
+                  error(1,1,"contraction_double_trace [check1.c]","Invalid operator type");
                   break;
             }
 
@@ -2022,34 +1987,34 @@ static void contraction_double_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_db
          }
       }
    }
-   else error(1,1,"contraction_double_trace [correlators.c]","Invalid Dirac-gamma types");
+   else error(1,1,"contraction_double_trace [check1.c]","Invalid Dirac-gamma types");
 }
 
-static void correlators_contractions(void)  /*new function*/
+static void correlators_contractions(void)
 {
    int idx,noise_idx1,noise_idx2,stat[4],l;
    spinor_dble *eta1,*eta2,*tmp_spinor,*tmp_spinor2;
    spinor_dble **xi1,**xi2,**zeta1,**zeta2,**wsd;
 
-   wsd=reserve_wsd(4+nnoise*(proplist.len_1A+proplist.len_3C+proplist.len4+proplist.len2));
+   wsd=reserve_wsd(4+(proplist.len_1A+proplist.len_3C+proplist.len4+proplist.len2));
    eta1=wsd[0];
    eta2=wsd[1];
    tmp_spinor=wsd[2];
    tmp_spinor2=wsd[3];
-   xi1=malloc(nnoise*proplist.len_1A*sizeof(spinor_dble*));
-   xi2=malloc(nnoise*proplist.len_3C*sizeof(spinor_dble*));
-   zeta1=malloc(nnoise*proplist.len4*sizeof(spinor_dble*));
-   zeta2=malloc(nnoise*proplist.len2*sizeof(spinor_dble*));
-   error((xi1==NULL)||(xi2==NULL)||(zeta1==NULL)||(zeta2==NULL),1,"correlators [correlators.c]","Out of memory");
+   xi1=malloc(proplist.len_1A*sizeof(spinor_dble*));
+   xi2=malloc(proplist.len_3C*sizeof(spinor_dble*));
+   zeta1=malloc(proplist.len4*sizeof(spinor_dble*));
+   zeta2=malloc(proplist.len2*sizeof(spinor_dble*));
+   error((xi1==NULL)||(xi2==NULL)||(zeta1==NULL)||(zeta2==NULL),1,"correlators [check1.c]","Out of memory");
 
-   for(l=0;l<nnoise*proplist.len_1A;l++)
+   for(l=0;l<proplist.len_1A;l++)
       xi1[l]=wsd[4+l];
-   for(l=0;l<nnoise*proplist.len_3C;l++)
-      xi2[l]=wsd[4+l+nnoise*proplist.len_1A];
-   for(l=0;l<nnoise*proplist.len4;l++)
-      zeta1[l]=wsd[4+l+nnoise*(proplist.len_1A+proplist.len_3C)];
-   for(l=0;l<nnoise*proplist.len2;l++)
-      zeta2[l]=wsd[4+l+nnoise*(proplist.len_1A+proplist.len_3C+proplist.len4)];
+   for(l=0;l<proplist.len_3C;l++)
+      xi2[l]=wsd[4+l+proplist.len_1A];
+   for(l=0;l<proplist.len4;l++)
+      zeta1[l]=wsd[4+l+proplist.len_1A+proplist.len_3C];
+   for(l=0;l<proplist.len2;l++)
+      zeta2[l]=wsd[4+l+proplist.len_1A+proplist.len_3C+proplist.len4];
 
    for (l=0;l<nnoise*nnoise*ncorr*tvals;l++)
    {
@@ -2071,8 +2036,8 @@ static void correlators_contractions(void)  /*new function*/
             printf("\t\tXi_{1A}^{1,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeA[idx]), proplist.prop_type1[idx]);
 
          make_source(eta1,proplist.matrix_typeA[idx],tmp_spinor);
-         solve_dirac(proplist.prop_type1[idx],tmp_spinor,xi1[nnoise*idx+noise_idx1],stat);
-         mulg5_dble(VOLUME,xi1[nnoise*idx+noise_idx1]);
+         solve_dirac(proplist.prop_type1[idx],tmp_spinor,xi1[idx],stat);
+         mulg5_dble(VOLUME,xi1[idx]);
       }
 
       /* evaluate the needed ZETA_1 s */
@@ -2082,56 +2047,48 @@ static void correlators_contractions(void)  /*new function*/
             printf("\t\tZeta_1^{4,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type4[idx]);
 
          assign_sd2sd(VOLUME,eta1,tmp_spinor);
-         solve_dirac(proplist.prop_type4[idx],tmp_spinor,zeta1[nnoise*idx+noise_idx1],stat);
-      }
-   }
-   
-   /* ETA_2 noise vectors */
-   for(noise_idx2=0;noise_idx2<nnoise;noise_idx2++)
-   {
-      pointlike_source(eta2,fixed_z0,noise_idx2);
-   
-      if(my_rank==0) printf("\tNoise vector eta2 number %i\n",noise_idx2);
-   
-      /* evaluate the needed XI_2 s */
-      for(idx=0;idx<proplist.len_3C;idx++)
-      {
-         if (my_rank==0)
-            printf("\t\tXi_{3C}^{3,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeC[idx]),proplist.prop_type3[idx]);
-   
-         make_source(eta2,proplist.matrix_typeC[idx],tmp_spinor);
-         solve_dirac(proplist.prop_type3[idx],tmp_spinor,xi2[nnoise*idx+noise_idx2],stat);
-         mulg5_dble(VOLUME,xi2[nnoise*idx+noise_idx2]);
+         solve_dirac(proplist.prop_type4[idx],tmp_spinor,zeta1[idx],stat);
       }
    
-      /* evaluate the needed ZETA_2 s */
-      for(idx=0;idx<proplist.len2;idx++)
-      {
-         if (my_rank==0)
-            printf("\t\tZeta_2^{2,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type2[idx]);
-
-         assign_sd2sd(VOLUME,eta2,tmp_spinor);
-         solve_dirac(proplist.prop_type2[idx],tmp_spinor,zeta2[nnoise*idx+noise_idx2],stat);
-      }
-   }
-   
-   if(my_rank==0) printf("Evaluation of Wick contractions:\n");
-         
-   for(noise_idx1=0;noise_idx1<nnoise;noise_idx1++)
-   {
+      /* ETA_2 noise vectors */
       for(noise_idx2=0;noise_idx2<nnoise;noise_idx2++)
       {
+         pointlike_source(eta2,fixed_z0,noise_idx2);
+
+         if(my_rank==0) printf("\tNoise vector eta2 number %i\n",noise_idx2);
+
+         /* evaluate the needed XI_2 s */
+         for(idx=0;idx<proplist.len_3C;idx++)
+         {
+            if (my_rank==0)
+               printf("\t\tXi_{3C}^{3,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeC[idx]),proplist.prop_type3[idx]);
+
+            make_source(eta2,proplist.matrix_typeC[idx],tmp_spinor);
+            solve_dirac(proplist.prop_type3[idx],tmp_spinor,xi2[idx],stat);
+            mulg5_dble(VOLUME,xi2[idx]);
+         }
+
+         /* evaluate the needed ZETA_2 s */
+         for(idx=0;idx<proplist.len2;idx++)
+         {
+            if (my_rank==0)
+               printf("\t\tZeta_2^{2,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type2[idx]);
+
+            assign_sd2sd(VOLUME,eta2,tmp_spinor);
+            solve_dirac(proplist.prop_type2[idx],tmp_spinor,zeta2[idx],stat);
+         }
+         
          if (my_rank==0)   printf("\tStohcastic vectors eta1 = %i\teta2 = %i\n",noise_idx1,noise_idx2);
 
          /* contractions */
          for(idx=0;idx<ncorr;idx++)
          {
             if (my_rank==0)   printf("\t\tOperator XY = %s",operator_to_string(file_head.operator_type[idx]));
-            contraction_single_trace(xi1[nnoise*proplist.idx_1A[idx]+noise_idx1],xi2[nnoise*proplist.idx_3C[idx]+noise_idx2],
-                                    zeta1[nnoise*proplist.idx_4[idx]+noise_idx1],zeta2[nnoise*proplist.idx_2[idx]+noise_idx2],
+            contraction_single_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],
+                                    zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],
                                     tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
-            contraction_double_trace(xi1[nnoise*proplist.idx_1A[idx]+noise_idx1],xi2[nnoise*proplist.idx_3C[idx]+noise_idx2],
-                                    zeta1[nnoise*proplist.idx_4[idx]+noise_idx1],zeta2[nnoise*proplist.idx_2[idx]+noise_idx2],
+            contraction_double_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],
+                                    zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],
                                     tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
             if (my_rank==0)   printf("\t---> Work done.\n");
          }
@@ -2150,34 +2107,76 @@ static void correlators_contractions(void)  /*new function*/
       data.corr_tmp[l].re=0.0;
       data.corr_tmp[l].im=0.0;
    }
-      
-   /* transformation of Xis and ZETAs */
-   for(idx=0;idx<nnoise*proplist.len_1A;idx++)
-      g_transform_sdble(VOLUME,xi1[idx]);
-   for(idx=0;idx<nnoise*proplist.len4;idx++)
-      g_transform_sdble(VOLUME,zeta1[idx]);
-   for(idx=0;idx<nnoise*proplist.len_3C;idx++)
-      g_transform_sdble(VOLUME,xi2[idx]);
-   for(idx=0;idx<nnoise*proplist.len2;idx++)
-      g_transform_sdble(VOLUME,zeta2[idx]);
    
-   if(my_rank==0) printf("Evaluation of Wick contractions with transformed fields:\n");
+   if(my_rank==0) printf("Evaluation of Wick contractions with Gauge transformed fields:\n");
 
+   /* ETA_1 noise vectors */
    for(noise_idx1=0;noise_idx1<nnoise;noise_idx1++)
    {
+      pointlike_source(eta1,fixed_x0,noise_idx1);
+
+      if(my_rank==0) printf("\tNoise vector eta1 number %i\n",noise_idx1);
+
+      /* evaluate the needed \xi_1 */
+      for(idx=0;idx<proplist.len_1A;idx++)
+      {
+         if (my_rank==0)
+            printf("\t\tXi_{1A}^{1,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeA[idx]), proplist.prop_type1[idx]);
+
+         make_source(eta1,proplist.matrix_typeA[idx],tmp_spinor);
+         solve_dirac(proplist.prop_type1[idx],tmp_spinor,xi1[idx],stat);
+         mulg5_dble(VOLUME,xi1[idx]);
+      }
+
+      /* evaluate the needed ZETA_1 s */
+      for(idx=0;idx<proplist.len4;idx++)
+      {
+         if (my_rank==0)
+            printf("\t\tZeta_1^{4,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type4[idx]);
+
+         assign_sd2sd(VOLUME,eta1,tmp_spinor);
+         solve_dirac(proplist.prop_type4[idx],tmp_spinor,zeta1[idx],stat);
+      }
+   
+      /* ETA_2 noise vectors */
       for(noise_idx2=0;noise_idx2<nnoise;noise_idx2++)
       {
+         pointlike_source(eta2,fixed_z0,noise_idx2);
+
+         if(my_rank==0) printf("\tNoise vector eta2 number %i\n",noise_idx2);
+
+         /* evaluate the needed XI_2 s */
+         for(idx=0;idx<proplist.len_3C;idx++)
+         {
+            if (my_rank==0)
+               printf("\t\tXi_{3C}^{3,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeC[idx]),proplist.prop_type3[idx]);
+
+            make_source(eta2,proplist.matrix_typeC[idx],tmp_spinor);
+            solve_dirac(proplist.prop_type3[idx],tmp_spinor,xi2[idx],stat);
+            mulg5_dble(VOLUME,xi2[idx]);
+         }
+
+         /* evaluate the needed ZETA_2 s */
+         for(idx=0;idx<proplist.len2;idx++)
+         {
+            if (my_rank==0)
+               printf("\t\tZeta_2^{2,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type2[idx]);
+
+            assign_sd2sd(VOLUME,eta2,tmp_spinor);
+            solve_dirac(proplist.prop_type2[idx],tmp_spinor,zeta2[idx],stat);
+         }
+         
          if (my_rank==0)   printf("\tStohcastic vectors eta1 = %i\teta2 = %i\n",noise_idx1,noise_idx2);
 
          /* contractions */
          for(idx=0;idx<ncorr;idx++)
          {
             if (my_rank==0)   printf("\t\tOperator XY = %s",operator_to_string(file_head.operator_type[idx]));
-            contraction_single_trace(xi1[nnoise*proplist.idx_1A[idx]+noise_idx1],xi2[nnoise*proplist.idx_3C[idx]+noise_idx2],
-                                    zeta1[nnoise*proplist.idx_4[idx]+noise_idx1],zeta2[nnoise*proplist.idx_2[idx]+noise_idx2],
+            contraction_single_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],
+                                    zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],
                                     tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
-            contraction_double_trace(xi1[nnoise*proplist.idx_1A[idx]+noise_idx1],xi2[nnoise*proplist.idx_3C[idx]+noise_idx2],
-                                    zeta1[nnoise*proplist.idx_4[idx]+noise_idx1],zeta2[nnoise*proplist.idx_2[idx]+noise_idx2],
+            contraction_double_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],
+                                    zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],
                                     tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
             if (my_rank==0)   printf("\t---> Work done.\n");
          }
@@ -2195,7 +2194,7 @@ static void correlators_contractions(void)  /*new function*/
    release_wsd();
 }
 
-static void set_data(int nc)  /*untouched*/
+static void set_data(int nc) 
 {
    data.nc=nc;
    correlators_contractions();
@@ -2210,7 +2209,7 @@ static void set_data(int nc)  /*untouched*/
    }
 }
 
-static void init_rng(void) /*untouched*/
+static void init_rng(void)
 {
    int ic;
 
@@ -2221,7 +2220,7 @@ static void init_rng(void) /*untouched*/
       else
       {
          ic=import_ranlux(rng_file);
-         error_root(ic!=(first-step),1,"init_rng [correlators.c]",
+         error_root(ic!=(first-step),1,"init_rng [check1.c]",
                     "Configuration number mismatch (*.rng file)");
       }
    }
@@ -2229,7 +2228,7 @@ static void init_rng(void) /*untouched*/
       start_ranlux(level,seed);
 }
 
-static void save_ranlux(void) /*untouched*/
+static void save_ranlux(void)
 {
    int nlxs,nlxd;
 
@@ -2241,7 +2240,7 @@ static void save_ranlux(void) /*untouched*/
       rlxs_state=malloc((nlxs+nlxd)*sizeof(int));
       rlxd_state=rlxs_state+nlxs;
 
-      error(rlxs_state==NULL,1,"save_ranlux [correlators.c]",
+      error(rlxs_state==NULL,1,"save_ranlux [check1.c]",
             "Unable to allocate state arrays");
    }
 
@@ -2249,13 +2248,13 @@ static void save_ranlux(void) /*untouched*/
    rlxd_get(rlxd_state);
 }
 
-static void restore_ranlux(void) /*untouched*/
+static void restore_ranlux(void)
 {
    rlxs_reset(rlxs_state);
    rlxd_reset(rlxd_state);
 }
 
-static void check_endflag(int *iend)   /*untouched*/
+static void check_endflag(int *iend)  
 {
    if (my_rank==0)
    {
@@ -2346,7 +2345,7 @@ int main(int argc,char *argv[])
       {
          dfl_modes(status);
 
-         error_root(status[0]<0,1,"main [correlators.c]",
+         error_root(status[0]<0,1,"main [check1.c]",
                     "Deflation subspace generation failed (status = %d)",
                     status[0]);
 
