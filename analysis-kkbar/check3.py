@@ -13,7 +13,7 @@ N3=8
 volume3D=N1*N2*N3   # number of lattice points for each timeslice
 
 # this number must be set by the user
-EPSILON = 1.0e-15   # error on the Gauge tranformed data
+EPSILON = 1.0e-5   # error on the Gauge tranformed data
 
 ######################## TOOLS ########################
 
@@ -95,8 +95,7 @@ noisetype=int_reads[3]
 printCyan('\nGeneral settings:')
 print(  '\tNumber of correlators =',ncorr,
         '\n\tNumber of noise spinors =',nnoise,
-        '\n\tNumber of timeslices =',ntimes,
-        '\n\tNoisetype:',noise_to_string(noisetype),'\n')
+        '\n\tNumber of timeslices =',ntimes,'\n')
 
 kappas=[[0]*2]*ncorr
 mus=[[0]*2]*ncorr
@@ -177,14 +176,10 @@ for icorr in np.arange(0,ncorr,1):
             data_gau[1][icorr][time] = data_gau[1][icorr][time]/(nnoise*volume3D)
     offset_idx+=nnoise*ntimes*(2-isreal[icorr])
 
-print(data_std)
-print('\n---------------------------\n')
-print(data_gau)
-
 ########################## CORRELATORS PLOT ##########################
 
 tmp = np.array([0]*ntimes,dtype=np.float128)
-pp = PdfPages("plots/check3.pdf")
+pp = PdfPages("plots/check3-nogauge.pdf")
 
 for corr in np.arange(0,ncorr,1):         
     # Real part of correlators
@@ -247,6 +242,7 @@ for corr in np.arange(0,ncorr,1):
             counter_good+=1
 
 printCyan('\nCheck ---> completed')
+print('\tEpsilon = ',EPSILON)
 print('\tNumber of positively checked values = ',counter_good)
 print('\tNumber of negatively checked values = ',counter_bad)
 error_check((counter_good+counter_bad)!=ncorr*ntimes,

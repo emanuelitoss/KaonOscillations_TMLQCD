@@ -1,7 +1,10 @@
 /*******************************************************************************
 *
-* File tm_mesons.c
+* File check3.c
 *
+* Copyright (C) 2023 Emanuele Rosi
+*
+* Based on tm_mesons
 * Copyright (C) 2016 David Preti
 *
 * Based on mesons 
@@ -26,11 +29,11 @@
 *
 *******************************************************************************
 *
-* Computation of quark propagators
+* Computation of quark propagators in 2 pts functions
 *
-* Syntax: mesons -i <input file> [-noexp] [-a]
+* Syntax: check1 -i <input file> [-noexp] [-a] [-nogauge] [-rndmgauge]
 *
-* For usage instructions see the file README.mesons
+* For usage instructions see the file README.mesons and README.checks
 *
 *******************************************************************************/
 
@@ -69,6 +72,9 @@
 #define N2 (NPROC2*L2)
 #define N3 (NPROC3*L3)
 
+#define N_COLOURS 3
+#define N_DIRAC 4
+
 static char line[NAME_SIZE+1];
 
 #define MAX(n,m) \
@@ -83,10 +89,10 @@ static struct
    int noisetype;
    double *kappa1;
    double *kappa2;
-/* DP */ 
+
    double *mus1;
    double *mus2;
-/* DP */
+
    int *type1;
    int *type2;
    int *x0;
@@ -110,7 +116,7 @@ static struct
    int **type;   /* type index of each x0 and propagator  */
 } proplist;
 
-static int my_rank,noexp,append,norng,endian,nogauge;
+static int my_rank,noexp,append,norng,endian,nogauge,rndmgauge;
 static int first,last,step;
 static int level,seed,nprop,ncorr,nnoise,noisetype,tvals;
 static int *isps,*props1,*props2,*type1,*type2,*x0s;
@@ -126,6 +132,43 @@ static char par_file[NAME_SIZE],par_save[NAME_SIZE];
 static char rng_file[NAME_SIZE],rng_save[NAME_SIZE];
 static char cnfg_file[NAME_SIZE],nbase[NAME_SIZE],outbase[NAME_SIZE];
 static FILE *fin=NULL,*flog=NULL,*fend=NULL,*fdat=NULL;
+
+/************************ TOOL FUNCTIONS ************************/
+
+/* this function turns back the color index from an integer */
+extern int colour_index(int idx)
+{
+   int colour;
+   if(idx<0||idx>=N_COLOURS*N_DIRAC)
+      error(1,1,"colour_index [correlators.c]","Invalid index number.");
+
+   colour=idx%N_COLOURS;
+
+   if(colour<0||colour>2)
+      error(1,1,"colour_index [correlators.c]","We are working in SU(3).");
+
+   return colour;
+}
+
+/* this function turns back the Dirac index from an integer */
+extern int dirac_index(int idx)
+{
+   int remainder,result;
+
+   if(idx<0||idx>=N_COLOURS*N_DIRAC)
+      error(1,1,"[correlators.c]","Invalid index number.");
+
+   remainder=idx%N_COLOURS;
+   result=(int)(idx-remainder)/N_COLOURS;
+
+   if(result<0 || result>3)
+      error(1,1,"dirac_index [correlators.c]","Dirac spinor has 4 components.");
+
+   return result;
+}
+
+/************************ CORRELATORS FUNCTIONS ************************/
+
 
 static void alloc_data(void)
 {
@@ -427,7 +470,7 @@ static void read_dirs(void)
          read_line("loc_dir","%s",loc_dir);
          cnfg_dir[0]='\0';
       }
-      else if(!nogauge)
+      else if((!nogauge)&&(!rndmgauge))
       {
          read_line("cnfg_dir","%s",cnfg_dir);
          loc_dir[0]='\0';
@@ -474,7 +517,7 @@ static void setup_files(void)
    if (noexp)
       error_root(name_size("%s/%sn%d_%d",loc_dir,nbase,last,NPROC-1)>=NAME_SIZE,
                  1,"setup_files [mesons.c]","loc_dir name is too long");
-   else if (!nogauge)
+   else if ((!nogauge)&&(!rndmgauge))
       error_root(name_size("%s/%sn%d",cnfg_dir,nbase,last)>=NAME_SIZE,
                  1,"setup_files [mesons.c]","cnfg_dir name is too long");
 
@@ -509,7 +552,7 @@ static void read_lat_parms(void)
       find_section("Measurements");
       read_line("nprop","%d",&nprop);
       read_line("ncorr","%d",&ncorr);
-      read_line("nnoise","%d",&nnoise);
+      nnoise=12;
       read_line("noise_type","%s",tmpstring);
       read_line("csw","%lf",&csw);
       read_line("cF","%lf",&cF);
@@ -828,13 +871,14 @@ static void read_infile(int argc,char *argv[])
       endian=endianness();
 
       error_root((ifile==0)||(ifile==(argc-1)),1,"read_infile [mesons.c]",
-                 "Syntax: mesons -i <input file> [-noexp] [-nogauge] [-a [-norng]]");
+                 "Syntax: mesons -i <input file> [-noexp] [-nogauge] [-rndmgauge] [-a [-norng]]");
 
       error_root(endian==UNKNOWN_ENDIAN,1,"read_infile [mesons.c]",
                  "Machine has unknown endianness");
 
       noexp=find_opt(argc,argv,"-noexp");
-      nogauge=find_opt(argc,argv,"-nogauge"); /* Option to use link variables = 1 */
+      nogauge=find_opt(argc,argv,"-nogauge");
+      rndmgauge=find_opt(argc,argv,"-rndmgauge");
       append=find_opt(argc,argv,"-a");
       norng=find_opt(argc,argv,"-norng");
 
@@ -846,6 +890,7 @@ static void read_infile(int argc,char *argv[])
    MPI_Bcast(&endian,1,MPI_INT,0,MPI_COMM_WORLD);
    MPI_Bcast(&noexp,1,MPI_INT,0,MPI_COMM_WORLD);
    MPI_Bcast(&nogauge,1,MPI_INT,0,MPI_COMM_WORLD);
+   MPI_Bcast(&rndmgauge,1,MPI_INT,0,MPI_COMM_WORLD);
    MPI_Bcast(&append,1,MPI_INT,0,MPI_COMM_WORLD);
    MPI_Bcast(&norng,1,MPI_INT,0,MPI_COMM_WORLD);
 
@@ -1287,39 +1332,72 @@ static void wsize(int *nws,int *nwsd,int *nwv,int *nwvd)
                  "Unknown or unsupported solver");
 }
 
-static void random_source(spinor_dble *eta, int x0)
+static void set_sdble_dirac_color_idx(int vol,spinor_dble *sd,int dc_index)
 {
-   int y0,iy,ix;
+   su3_vector_dble *colour_ptr=NULL;
+   spinor_dble *sm=NULL;
+   int col_idx,dir_idx;
+
+   col_idx = colour_index(dc_index);
+   dir_idx = dirac_index(dc_index);
+
+   sm=sd+vol;
+
+   for (;sd<sm;sd++)
+   {
+
+      switch (dir_idx)  /* choose the right Dirac index */
+      {
+      case 0:
+         colour_ptr = &((*sd).c1);
+         break;
+      case 1:
+         colour_ptr = &((*sd).c2);
+         break;
+      case 2:
+         colour_ptr = &((*sd).c3);
+         break;
+      case 3:
+         colour_ptr = &((*sd).c4);
+         break;
+      default:
+         error_root(colour_ptr==NULL,1,"set_sdble_dirac_color_idx [correlators.c]","Unable to allocate an su3_vector_dble pointer");
+         error_root(1,1,"set_sdble_dirac_color_idx [correlators.c]","Invalid Dirac index");
+         break;
+      }
+
+      switch (col_idx)  /* choose the right color index */
+      {
+      case 0:
+         (*colour_ptr).c1.re=1.0;
+         (*colour_ptr).c1.im=0.0;
+         break;
+      case 1:
+         (*colour_ptr).c2.re=1.0;
+         (*colour_ptr).c2.im=0.0;
+         break;
+      case 2:
+         (*colour_ptr).c3.re=1.0;
+         (*colour_ptr).c3.im=0.0;
+         break;
+      default:
+         error_root(1,1,"set_sdble_dirac_color_idx [correlators.c]","Invalid colour index");
+         break;
+      }
+   }
+}
+
+static void pointlike_source(spinor_dble *eta, int x0, int dc_index)
+{
+   int y0,ix;
 
    set_sd2zero(VOLUME,eta);
    y0=x0-cpr[0]*L0;
 
    if ((y0>=0)&&(y0<L0))
    {
-      if (noisetype==Z2_NOISE)
-      {
-         for (iy=0;iy<(L1*L2*L3);iy++)
-         {
-            ix=ipt[iy+y0*L1*L2*L3];
-            random_Z2_sd(1,eta+ix);
-         }
-      }
-      else if (noisetype==GAUSS_NOISE)
-      {
-         for (iy=0;iy<(L1*L2*L3);iy++)
-         {
-            ix=ipt[iy+y0*L1*L2*L3];
-            random_sd(1,eta+ix,1.0);
-         }
-      }
-      else if (noisetype==U1_NOISE)
-      {
-         for (iy=0;iy<(L1*L2*L3);iy++)
-         {
-            ix=ipt[iy+y0*L1*L2*L3];
-            random_U1_sd(1,eta+ix);
-         }
-      }
+      ix=ipt[y0*L1*L2*L3];  /* spatial point (0,0,0) */
+      set_sdble_dirac_color_idx(1,eta+ix,dc_index);
    }
 }
 
@@ -1549,40 +1627,30 @@ static void correlators(void)
    if (my_rank==0)
       printf("Inversions:\n");
    
-   /* ER: loop over the number of fixed x0 values nux0 */
    for (ix0=0;ix0<proplist.nux0;ix0++)
    {
       if (my_rank==0)
          printf("   x0=%i\n",proplist.ux0[ix0]);
 
-      /* ER: loop over the number of stochastic vectors generated */
       for (inoise=0;inoise<nnoise;inoise++)
       {
          if (my_rank==0)
             printf("      noise vector %i\n",inoise);
          
-         /* ER: creation of the random source ETA */
-         random_source(eta,proplist.ux0[ix0]);
+         pointlike_source(eta,proplist.ux0[ix0],inoise);
 
-         /* loop over the number of needed propagators at fixed value of x0 */
          for (iprop=0;iprop<proplist.nprop[ix0];iprop++)
          {
             if (my_rank==0)
                printf("         type=%i, prop=%i, status:",proplist.type[ix0][iprop], proplist.prop[ix0][iprop]);
 
-            /* ER: assigns xi = G5 gamma_type^dagger eta */
             make_source(eta,proplist.type[ix0][iprop],xi);
-            /* ER:
-            *  It assigns  zeta = (Dw-i*mu)^-1 * xi
-            *  and to xi reassigns  xi = (DwdagDw + mu^2)^-1 * G5 * xi */
             solve_dirac(proplist.prop[ix0][iprop],xi,zeta[iprop],stat);
          }
-         /* combine propagators to correlators */
          for (icorr=0;icorr<ncorr;icorr++)
          {
             if (x0s[icorr]==proplist.ux0[ix0])
             {
-               /* find the two propagators that are needed for this icorr */
                ip1=0;
                ip2=0;
                for (iprop=0;iprop<proplist.nprop[ix0];iprop++)
@@ -1594,16 +1662,13 @@ static void correlators(void)
                       (props1[icorr]==proplist.prop[ix0][iprop]))
                      ip2=iprop;
                }
-               /* ER: Evaluates xi = - \bar{GAMMA_B}^\dag * G5 * zeta*/
                make_xi(zeta[ip1],type2[icorr],xi);
-               /* evaluates correaltors for each y0 at x0 fixed */
                for (y0=0;y0<L0;y0++)
                {
-                  /* sum over \vec{y} in the propagator */
                   for (l=0;l<L1*L2*L3;l++)
                   {
                      iy = ipt[l+y0*L1*L2*L3];
-                     /* product between spinors in the noise average (correaltor formula) */
+
                      tmp = spinor_prod_dble(1,0,xi+iy,zeta[ip2]+iy);
                      data.corr_tmp[inoise+nnoise*(cpr[0]*L0+y0
                         +file_head.tvals*icorr)].re += tmp.re;
@@ -1613,47 +1678,81 @@ static void correlators(void)
                }
             }
          }
+      }
+   }
+
+   MPI_Allreduce(data.corr_tmp,data.corr,nnoise*ncorr*file_head.tvals*2
+      ,MPI_DOUBLE,MPI_SUM, MPI_COMM_WORLD);
+
+   if(my_rank==0) printf("\n\tTransformation of fields...\n\n");
+
+   generate_g_trnsfrms();
+   g_transform_ud();
+   
+   for (l=0;l<nnoise*ncorr*tvals;l++)
+   {
+      data.corr_tmp[l].re=0.0;
+      data.corr_tmp[l].im=0.0;
+   }
+
+   for (ix0=0;ix0<proplist.nux0;ix0++)
+   {
+      if (my_rank==0)
+         printf("   x0=%i\n",proplist.ux0[ix0]);
+
+      for (inoise=0;inoise<nnoise;inoise++)
+      {
+         if (my_rank==0)
+            printf("      noise vector %i\n",inoise);
+         
+         pointlike_source(eta,proplist.ux0[ix0],inoise);
+
+         for (iprop=0;iprop<proplist.nprop[ix0];iprop++)
+         {
+            if (my_rank==0)
+               printf("         type=%i, prop=%i, status:",proplist.type[ix0][iprop], proplist.prop[ix0][iprop]);
+
+            make_source(eta,proplist.type[ix0][iprop],xi);
+            solve_dirac(proplist.prop[ix0][iprop],xi,zeta[iprop],stat);
+         }
          for (icorr=0;icorr<ncorr;icorr++)
          {
-
-            MPI_Allreduce(data.corr_tmp,data.corr,nnoise*ncorr*file_head.tvals*2
-               ,MPI_DOUBLE,MPI_SUM, MPI_COMM_WORLD);
-            
-            for (l=0;l<nnoise*ncorr*tvals;l++)  /* initialization of the correlators to values = 0 */
+            if (x0s[icorr]==proplist.ux0[ix0])
             {
-               data.corr_tmp[l].re=0.0;
-               data.corr_tmp[l].im=0.0;
-            }
-            
-            generate_g_trnsfrms();
-            g_transform_ud();
-
-            for (iprop=0;iprop<proplist.nprop[ix0];iprop++)
-               g_transform_sdble(VOLUME,zeta[iprop]);
-            g_transform_sdble(VOLUME,xi);
-
-            for (y0=0;y0<L0;y0++)
-            {
-               /* sum over \vec{y} in the propagator */
-               for (l=0;l<L1*L2*L3;l++)
+               ip1=0;
+               ip2=0;
+               for (iprop=0;iprop<proplist.nprop[ix0];iprop++)
                {
-                  iy = ipt[l+y0*L1*L2*L3];
-                  /* product between spinors in the noise average (correaltor formula) */
-                  tmp = spinor_prod_dble(1,0,xi+iy,zeta[ip2]+iy);
-                  data.corr_tmp[inoise+nnoise*(cpr[0]*L0+y0
-                     +file_head.tvals*icorr)].re += tmp.re;
-                  data.corr_tmp[inoise+nnoise*(cpr[0]*L0+y0
-                     +file_head.tvals*icorr)].im += tmp.im;
+                  if ((type1[icorr]==proplist.type[ix0][iprop])&&
+                      (props2[icorr]==proplist.prop[ix0][iprop]))
+                     ip1=iprop;
+                  if ((GAMMA5_TYPE==proplist.type[ix0][iprop])&&
+                      (props1[icorr]==proplist.prop[ix0][iprop]))
+                     ip2=iprop;
+               }
+               make_xi(zeta[ip1],type2[icorr],xi);
+               for (y0=0;y0<L0;y0++)
+               {
+                  for (l=0;l<L1*L2*L3;l++)
+                  {
+                     iy = ipt[l+y0*L1*L2*L3];
+
+                     tmp = spinor_prod_dble(1,0,xi+iy,zeta[ip2]+iy);
+                     data.corr_tmp[inoise+nnoise*(cpr[0]*L0+y0
+                        +file_head.tvals*icorr)].re += tmp.re;
+                     data.corr_tmp[inoise+nnoise*(cpr[0]*L0+y0
+                        +file_head.tvals*icorr)].im += tmp.im;
+                  }
                }
             }
-
-            MPI_Allreduce(data.corr_tmp,data.corr+nnoise*ncorr*file_head.tvals,nnoise*ncorr*file_head.tvals*2
-               ,MPI_DOUBLE,MPI_SUM, MPI_COMM_WORLD);
-
-            free_g_trnsfrms();
          }
       }
    }
+
+   MPI_Allreduce(data.corr_tmp,data.corr+file_head.ncorr*file_head.nnoise*file_head.tvals,
+      nnoise*ncorr*file_head.tvals*2,MPI_DOUBLE,MPI_SUM, MPI_COMM_WORLD);
+
+   free_g_trnsfrms();
    free(zeta);
    release_wsd();
 }
@@ -1742,20 +1841,18 @@ static void check_endflag(int *iend)
 
 int main(int argc,char *argv[])
 {
-   int nc,iend,status[4]; /* nc := number of configurations, or configuration index
-                           iend := end index?
-                           status _:= */
+   int nc,iend,status[4];
    int nws,nwsd,nwv,nwvd;
    double wt1,wt2,wtavg;
    dfl_parms_t dfl;
 
-   MPI_Init(&argc,&argv);  /* initialize an open-mpi */
+   MPI_Init(&argc,&argv);
    MPI_Comm_rank(MPI_COMM_WORLD,&my_rank);
    
-   read_infile(argc,argv); /* read input file <filename>.in */
-   alloc_data(); /* allocate memory for correlators */
-   check_files(); /* check old log and data files */
-   print_info();  /* print info in .log file */
+   read_infile(argc,argv);
+   alloc_data();
+   check_files();
+   print_info();
    dfl=dfl_parms();
 
    geometry();
@@ -1786,7 +1883,7 @@ int main(int argc,char *argv[])
          read_cnfg(cnfg_file);
          restore_ranlux();
       }
-      else if(!nogauge)
+      else if((!nogauge)&&(!rndmgauge))
       {
          sprintf(cnfg_file,"%s/%sn%d",cnfg_dir,nbase,nc);
          import_cnfg(cnfg_file);
@@ -1795,9 +1892,9 @@ int main(int argc,char *argv[])
       {
          sprintf(cnfg_file,"# Gauge configurations are randomly generated\n");
 
-         /* my new function */
-         /*random_ud();*/
-         alloc_ud_to_identity();
+         if(nogauge) alloc_ud_to_identity();
+         else if(rndmgauge)   random_ud();
+         else error(1,1,"main [check3.c]","Invalid option");
 
          set_flags(UPDATED_UD);
       }
