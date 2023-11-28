@@ -2079,19 +2079,69 @@ static void correlators_contractions(void)  /*new function*/
 
    generate_g_trnsfrms();
    g_transform_ud();
-      
-   /* transformation of Xis and ZETAs */
-   for(idx=0;idx<nnoise*proplist.len_1A;idx++)
-      g_transform_sdble(VOLUME,xi1[idx]);
-   for(idx=0;idx<nnoise*proplist.len4;idx++)
-      g_transform_sdble(VOLUME,zeta1[idx]);
-   for(idx=0;idx<nnoise*proplist.len_3C;idx++)
-      g_transform_sdble(VOLUME,xi2[idx]);
-   for(idx=0;idx<nnoise*proplist.len2;idx++)
-      g_transform_sdble(VOLUME,zeta2[idx]);
    
    if(my_rank==0) printf("Evaluation of Wick contractions with transformed fields:\n");
 
+   /* ETA_1 noise vectors */
+   for(noise_idx1=0;noise_idx1<nnoise;noise_idx1++)
+   {
+      random_source(eta1,fixed_x0);
+
+      if(my_rank==0) printf("\tNoise vector eta1 number %i\n",noise_idx1);
+
+      /* evaluate the needed \xi_1 */
+      for(idx=0;idx<proplist.len_1A;idx++)
+      {
+         if (my_rank==0)
+            printf("\t\tXi_{1A}^{1,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeA[idx]), proplist.prop_type1[idx]);
+
+         make_source(eta1,proplist.matrix_typeA[idx],tmp_spinor);
+         solve_dirac(proplist.prop_type1[idx],tmp_spinor,xi1[nnoise*idx+noise_idx1],stat);
+         mulg5_dble(VOLUME,xi1[nnoise*idx+noise_idx1]);
+      }
+
+      /* evaluate the needed ZETA_1 s */
+      for(idx=0;idx<proplist.len4;idx++)
+      {
+         if (my_rank==0)
+            printf("\t\tZeta_1^{4,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type4[idx]);
+
+         assign_sd2sd(VOLUME,eta1,tmp_spinor);
+         solve_dirac(proplist.prop_type4[idx],tmp_spinor,zeta1[nnoise*idx+noise_idx1],stat);
+      }
+   }
+   
+   /* ETA_2 noise vectors */
+   for(noise_idx2=0;noise_idx2<nnoise;noise_idx2++)
+   {
+      random_source(eta2,fixed_z0);
+   
+      if(my_rank==0) printf("\tNoise vector eta2 number %i\n",noise_idx2);
+   
+      /* evaluate the needed XI_2 s */
+      for(idx=0;idx<proplist.len_3C;idx++)
+      {
+         if (my_rank==0)
+            printf("\t\tXi_{3C}^{3,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeC[idx]),proplist.prop_type3[idx]);
+   
+         make_source(eta2,proplist.matrix_typeC[idx],tmp_spinor);
+         solve_dirac(proplist.prop_type3[idx],tmp_spinor,xi2[nnoise*idx+noise_idx2],stat);
+         mulg5_dble(VOLUME,xi2[nnoise*idx+noise_idx2]);
+      }
+   
+      /* evaluate the needed ZETA_2 s */
+      for(idx=0;idx<proplist.len2;idx++)
+      {
+         if (my_rank==0)
+            printf("\t\tZeta_2^{2,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type2[idx]);
+   
+         assign_sd2sd(VOLUME,eta2,tmp_spinor);
+         solve_dirac(proplist.prop_type2[idx],tmp_spinor,zeta2[nnoise*idx+noise_idx2],stat);
+      }
+   }
+
+   if(my_rank==0) printf("Evaluation of Wick contractions:\n");
+   
    for(noise_idx1=0;noise_idx1<nnoise;noise_idx1++)
    {
       for(noise_idx2=0;noise_idx2<nnoise;noise_idx2++)
@@ -2112,6 +2162,7 @@ static void correlators_contractions(void)  /*new function*/
          }
       }
    }
+   
 
    data.offset=file_head.ncorr*file_head.nnoise*file_head.nnoise*file_head.tvals;
    MPI_Allreduce(data.corr_tmp,data.offset+data.corr,nnoise*nnoise*ncorr*file_head.tvals*2,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
