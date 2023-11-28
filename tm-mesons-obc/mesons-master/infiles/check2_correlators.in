@@ -34,12 +34,12 @@ z0           1
 ################################### For every quark line a Propagator 
                                   # section, nprop in total
 [Propagator 0]
-mus          0.01                 # Aggiunta da Emanuele: è la massa twistata dello strange
+mus          0.1                 # Aggiunta da Emanuele: è la massa twistata dello strange
 kappa        0.121951219512195    # hopping parameter
 isp          0                    # solver id > set solver (?)
 
 [Propagator 1]
-mus          -0.01
+mus          -0.1
 kappa        0.121951219512195
 isp          0
 
