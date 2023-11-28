@@ -1,0 +1,22 @@
+Several checking routines are available.
+
+    [check1.c]
+Checks gauge invariance of the 3 points correlators.
+The number of noise spinors is fixed to 12. To each index i=0,1,...,11 corresponds unique values
+of Dirac and color indices. The noise spinor is null everywhere but =1 in this indices, in spatial
+position (0,0,0) and in the timeslice x_0 read by the input file.
+In the development of data analysis, you will see that gauge invariance is preserved in the sum
+of the 12*12 datasets.
+
+    [check2.c]
+Checks gauge invariance of the 3 points correlators.
+The usual noise spinors definition is implemented.
+In the development of data analysis, noise average must be performed.
+
+    [check3.c]
+Checks invariance of 2 points correlators.
+Same as check1.
+
+    [check4.c]
+Checks invariance of 2 points correlators.
+Same as check2.
