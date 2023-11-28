@@ -2011,18 +2011,18 @@ static void correlators_contractions(void)  /*new function*/
             assign_sd2sd(VOLUME,eta2,tmp_spinor);
             solve_dirac(proplist.prop_type2[idx],tmp_spinor,zeta2[idx],stat);
          }
-      }
+      
+         if(my_rank==0) printf("Evaluation of Wick contractions:\n");
+         if (my_rank==0)   printf("\tStohcastic vectors eta1 = %i\teta2 = %i\n",noise_idx1,noise_idx2);
 
-      if(my_rank==0) printf("Evaluation of Wick contractions:\n");
-      if (my_rank==0)   printf("\tStohcastic vectors eta1 = %i\teta2 = %i\n",noise_idx1,noise_idx2);
-   
-      /* contractions */
-      for(idx=0;idx<ncorr;idx++)
-      {
-         if (my_rank==0)   printf("\t\tOperator XY = %s",operator_to_string(file_head.operator_type[idx]));
-         contraction_single_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
-         contraction_double_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
-         if (my_rank==0)   printf("\t---> Work done.\n");
+         /* contractions */
+         for(idx=0;idx<ncorr;idx++)
+         {
+            if (my_rank==0)   printf("\t\tOperator XY = %s",operator_to_string(file_head.operator_type[idx]));
+            contraction_single_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
+            contraction_double_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
+            if (my_rank==0)   printf("\t---> Work done.\n");
+         }
       }
    }
 
