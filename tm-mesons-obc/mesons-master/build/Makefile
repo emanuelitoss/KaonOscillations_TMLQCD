@@ -43,13 +43,13 @@ CFLAGS = -std=c89 -pedantic -fstrict-aliasing -Wall -Wno-long-long -Wstrict-prot
 
 
 
-MAIN = tm_mesons correlators check1_correlators check2_correlators check3 #sflds_tests
+MAIN = tm_mesons correlators check1 check2 check3 check4 #sflds_tests
 
 ARCHIVE = archive sarchive
 
 BLOCK = block blk_grid map_u2blk map_sw2blk map_s2blk
 
-CHECKS = gauge_transforms
+GAUGE = gauge_transforms
 
 # ER: from the other folder
 # CFCTS = cfcts2q cfcts4q ptsplit sfcfcts xsfcfcts
@@ -105,7 +105,7 @@ WFLOW = wflow
 
 
 # Aggiungere $(CFCTS)
-MODULES = $(ARCHIVE) $(BLOCK) $(CHECKS) $(DFL) $(DIRAC) $(FLAGS) $(FORCES) \
+MODULES = $(ARCHIVE) $(BLOCK) $(DFL) $(DIRAC) $(FLAGS) $(FORCES) $(GAUGE) \
           $(LATTICE) $(LINALG) $(LINSOLV) $(LITTLE) $(MDFLDS) $(OPERATORS) $(RANDOM) \
           $(RATFCTS) $(SAP) $(SFLDS) $(SU3FCTS) $(SW_TERM) $(TCHARGE) \
           $(UFLDS) $(UPDATE) $(UTILS) $(VFLDS) $(WFLOW)
