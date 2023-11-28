@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
 home_dir = '/Users/emanuelerosi/Thesis_MSc/kaons-oscillations/tm-mesons-obc/mesons-master/dat/'
-file_name = 'check2.correlators.dat'
+file_name = 'check4.correlators.dat'
 path_to_file = home_dir+file_name
 
 # this must be set by the user 
@@ -239,7 +239,7 @@ for corr in np.arange(0,ncorr,1):
 # Example of some correlators
 
 tmp = np.array([0]*ntimes,dtype=np.float128)
-pp = PdfPages("plots/check2.pdf")
+pp = PdfPages("plots/check4.pdf")
 
 for corr in np.arange(0,ncorr,1):         
     # Real part of correlators

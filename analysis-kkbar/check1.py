@@ -33,7 +33,7 @@ N3=8
 volume3D=N1*N2*N3   # number of lattice points for each timeslice
 
 # this number must be set by the user
-EPSILON = 1.0e-24   # error on the Gauge tranformed data
+EPSILON = 1.0e-18   # error on the Gauge tranformed data
 
 number_of_colours=3
 number_of_dirac_indices=4
@@ -203,8 +203,8 @@ error_check(data_count!=len(raw_data),'len(data)!=expected lenght')
 ############################## DATA REORDERING ##############################
 
 # create an ordered data structure
-data_std=np.array([[[[[0]*2]*ntimes]*ncorr]*nnoise]*nnoise,dtype=np.float64)
-data_gau=np.array([[[[[0]*2]*ntimes]*ncorr]*nnoise]*nnoise,dtype=np.float64)
+data_std=np.array([[[0]*2]*ntimes]*ncorr,dtype=np.float64)
+data_gau=np.array([[[0]*2]*ntimes]*ncorr,dtype=np.float64)
 offset_idx=0
     
 # standard data
@@ -214,138 +214,82 @@ for corr in np.arange(0,ncorr,1):
             for i1 in np.arange(0,nnoise,1):
                 for i2 in np.arange(0,nnoise,1):
                     idx=offset_idx + i2 + i1*nnoise + time*nnoise*nnoise
-                    data_std[i1][i2][corr][time][0] = raw_data[idx]    # only real part
+                    data_std[corr][time][0] += raw_data[idx]    # only real part
     else:
         for time in np.arange(0,ntimes,1):
             for i1 in np.arange(0,nnoise,1):
                 for i2 in np.arange(0,nnoise,1):
                     idx=offset_idx + 2*(i2 + i1*nnoise + time*nnoise*nnoise)
-                    data_std[i1][i2][corr][time][0] = raw_data[idx]    # real part
-                    data_std[i1][i2][corr][time][1] = raw_data[idx+1]  # immaginary part
+                    data_std[corr][time][0] += raw_data[idx]    # real part
+                    data_std[corr][time][1] += raw_data[idx+1]  # immaginary part
     offset_idx+=nnoise*nnoise*ntimes*(2-isreal[corr])
     
 # gauge transformed data
-
 for corr in np.arange(0,ncorr,1):
     if(isreal[corr]==True):
         for time in np.arange(0,ntimes,1):
             for i1 in np.arange(0,nnoise,1):
                 for i2 in np.arange(0,nnoise,1):
                     idx=offset_idx + i2 + i1*nnoise + time*nnoise*nnoise
-                    data_gau[i1][i2][corr][time][0] = raw_data[idx]    # only real part
+                    data_gau[corr][time][0] += raw_data[idx]    # only real part
     else:
         for time in np.arange(0,ntimes,1):
             for i1 in np.arange(0,nnoise,1):
                 for i2 in np.arange(0,nnoise,1):
                     idx=offset_idx + 2*(i2 + i1*nnoise + time*nnoise*nnoise)
-                    data_gau[i1][i2][corr][time][0] = raw_data[idx]    # real part
-                    data_gau[i1][i2][corr][time][1] = raw_data[idx+1]  # immaginary part
+                    data_gau[corr][time][0] += raw_data[idx]    # real part
+                    data_gau[corr][time][1] += raw_data[idx+1]  # immaginary part
     offset_idx+=nnoise*nnoise*ntimes*(2-isreal[corr])   
 
 ############################## CORRELATOR PLOT ##############################            
 # Example of some correlators
 
-plot_option=str(input("Do you want to plot the whole dataset? [y,n] : "))
-if(plot_option=='yes' or plot_option=='y'):
-    plot_option=int(True)
-else:
-    plot_option=int(False)
-    
-if plot_option==False:
-    i1 = int(input("Choose the eta1 index to plot (range [{},{}]): ".format(0,nnoise-1)))
-    print("Your eta 1 choice: {}\n\tDirac index = {}\n\tColour index = {}".format(i1,dirac_idx(i1),colour_idx(i1)))
-    i2 = int(input("Choose the eta2 index to plot (range [{},{}]): ".format(0,nnoise-1)))
-    print("Your eta 2 choice: {}\n\tDirac index = {}\n\tColour index = {}".format(i2,dirac_idx(i2),colour_idx(i2)))
-
 tmp = np.array([0]*ntimes,dtype=np.float128)
 pp = PdfPages("plots/check1.pdf")
 
-if plot_option==True:
-    for corr in np.arange(0,ncorr,1):
-        for i1 in np.arange(0,nnoise,1):
-            for i2 in np.arange(0,nnoise,1):
+for corr in np.arange(0,ncorr,1):
+    #for i1 in np.arange(0,nnoise,1):
+    #    for i2 in np.arange(0,nnoise,1):
                 
-                # Real part of correlators
-                real_plot=plt.figure(1,figsize=(13,5),dpi=300)
-                plt.title(r'Real part of correlator #{}, #$\eta_1$ = {}, #$\eta_2$ = {}'.format(corr,i1,i2))
-                plt.xlabel("Timeslice $y_4$")
-                plt.ylabel("Real value of the correlator")
-                plt.xlim(0,ntimes-1)
-                plt.grid()
-                for idx_trnsfrm in [1,2]:
-                    if(idx_trnsfrm==1):
-                        for i in np.arange(0,ntimes,1):
-                            tmp[i]=data_std[i1][i2][corr][i][0]
-                        plt.plot(tmp,str(idx_trnsfrm),label='Original data',alpha=1,lw=0.75)
-                    elif(idx_trnsfrm==2):
-                        for i in np.arange(0,ntimes,1):
-                            tmp[i]=data_gau[i1][i2][corr][i][0]
-                        plt.plot(tmp,str(idx_trnsfrm),label='Transformed data',alpha=1,lw=0.75)
-                plt.legend(loc='upper right')
-                pp.savefig(real_plot, dpi=real_plot.dpi, transparent = True)
-                plt.close() 
+    # Real part of correlators
+    real_plot=plt.figure(1,figsize=(13,5),dpi=300)
+    plt.title(r'Real part of correlator #{}'.format(corr))
+    plt.xlabel("Timeslice $y_4$")
+    plt.ylabel("Real value of the correlator")
+    plt.xlim(0,ntimes-1)
+    plt.grid()
+    for idx_trnsfrm in [1,2]:
+        if(idx_trnsfrm==1):
+            for i in np.arange(0,ntimes,1):
+                tmp[i]=data_std[corr][i][0]
+            plt.plot(tmp,str(idx_trnsfrm),label='Original data',alpha=1,lw=0.75)
+        elif(idx_trnsfrm==2):
+            for i in np.arange(0,ntimes,1):
+                tmp[i]=data_gau[corr][i][0]
+            plt.plot(tmp,str(idx_trnsfrm),label='Transformed data',alpha=1,lw=0.75)
+    plt.legend(loc='upper right')
+    pp.savefig(real_plot, dpi=real_plot.dpi, transparent = True)
+    plt.close() 
 
-                # Real part of correlators
-                immaginary_plot=plt.figure(1,figsize=(13,5),dpi=300)
-                plt.title(r'Immaginary part of correlator #{}, #$\eta_1$ = {}, #$\eta_2$ = {}'.format(corr,i1,i2))
-                plt.xlabel("Timeslice $y_4$")
-                plt.ylabel("Immaginary value of the correlator")
-                plt.xlim(0,ntimes-1)
-                plt.grid()
-                for idx_trnsfrm in [1,2]:
-                    if(idx_trnsfrm==1):
-                        for i in np.arange(0,ntimes,1):
-                            tmp[i]=data_std[i1][i2][corr][i][1]
-                        plt.plot(tmp,str(idx_trnsfrm),label='Original data',alpha=1,lw=0.75)
-                    elif(idx_trnsfrm==2):
-                        for i in np.arange(0,ntimes,1):
-                            tmp[i]=data_gau[i1][i2][corr][i][1]
-                        plt.plot(tmp,str(idx_trnsfrm),label='Transformed data',alpha=1,lw=0.75)
-                plt.legend(loc='upper right')
-                pp.savefig(immaginary_plot, dpi=immaginary_plot.dpi, transparent = True)
-                plt.close()
-
-elif plot_option==False:
-    for corr in np.arange(0,ncorr,1):         
-        # Real part of correlators
-        real_plot=plt.figure(1,figsize=(13,5),dpi=300)
-        plt.title(r'Real part of correlator #{}, #$\eta_1$ = {}, #$\eta_2$ = {}'.format(corr,i1,i2))
-        plt.xlabel("Timeslice $y_4$")
-        plt.ylabel("Real value of the correlator")
-        plt.xlim(0,ntimes-1)
-        plt.grid()
-        for idx_trnsfrm in [1,2]:
-            if(idx_trnsfrm==1):
-                for i in np.arange(0,ntimes,1):
-                    tmp[i]=data_std[i1][i2][corr][i][0]
-                plt.plot(tmp,str(idx_trnsfrm),label='Original data',alpha=1,lw=0.75)
-            elif(idx_trnsfrm==2):
-                for i in np.arange(0,ntimes,1):
-                    tmp[i]=data_gau[i1][i2][corr][i][0]
-                plt.plot(tmp,str(idx_trnsfrm),label='Transformed data',alpha=1,lw=0.75)
-        plt.legend(loc='upper right')
-        pp.savefig(real_plot, dpi=real_plot.dpi, transparent = True)
-        plt.close() 
-
-        # Real part of correlators
-        immaginary_plot=plt.figure(1,figsize=(13,5),dpi=300)
-        plt.title(r'Immaginary part of correlator #{}, #$\eta_1$ = {}, #$\eta_2$ = {}'.format(corr,i1,i2))
-        plt.xlabel("Timeslice $y_4$")
-        plt.ylabel("Immaginary value of the correlator")
-        plt.xlim(0,ntimes-1)
-        plt.grid()
-        for idx_trnsfrm in [1,2]:
-            if(idx_trnsfrm==1):
-                for i in np.arange(0,ntimes,1):
-                    tmp[i]=data_std[i1][i2][corr][i][1]
-                plt.plot(tmp,str(idx_trnsfrm),label='Original data',alpha=1,lw=0.75)
-            elif(idx_trnsfrm==2):
-                for i in np.arange(0,ntimes,1):
-                    tmp[i]=data_gau[i1][i2][corr][i][1]
-                plt.plot(tmp,str(idx_trnsfrm),label='Transformed data',alpha=1,lw=0.75)
-        plt.legend(loc='upper right')
-        pp.savefig(immaginary_plot, dpi=immaginary_plot.dpi, transparent = True)
-        plt.close()
+    # Real part of correlators
+    immaginary_plot=plt.figure(1,figsize=(13,5),dpi=300)
+    plt.title(r'Immaginary part of correlator #{}'.format(corr))
+    plt.xlabel("Timeslice $y_4$")
+    plt.ylabel("Immaginary value of the correlator")
+    plt.xlim(0,ntimes-1)
+    plt.grid()
+    for idx_trnsfrm in [1,2]:
+        if(idx_trnsfrm==1):
+            for i in np.arange(0,ntimes,1):
+                tmp[i]=data_std[corr][i][1]
+            plt.plot(tmp,str(idx_trnsfrm),label='Original data',alpha=1,lw=0.75)
+        elif(idx_trnsfrm==2):
+            for i in np.arange(0,ntimes,1):
+                tmp[i]=data_gau[corr][i][1]
+            plt.plot(tmp,str(idx_trnsfrm),label='Transformed data',alpha=1,lw=0.75)
+    plt.legend(loc='upper right')
+    pp.savefig(immaginary_plot, dpi=immaginary_plot.dpi, transparent = True)
+    plt.close()
 
 # Save plots in a single file
 pp.close()
@@ -358,18 +302,17 @@ counter_bad=0
 
 for corr in np.arange(0,ncorr,1):
     for time in np.arange(0,ntimes,1):
-        for i1 in np.arange(0,nnoise,1):
-            for i2 in np.arange(0,nnoise,1):
-                check1 = abs(data_std[i1][i2][corr][time][0]-data_gau[i1][i2][corr][time][0])<EPSILON
-                check1 = check1 and (abs(data_std[i1][i2][corr][time][1]-data_gau[i1][i2][corr][time][1])<EPSILON)
-                if(check1==False):
-                    #printRed('Too different couple of values found.')
-                    counter_bad+=1
-                else:
-                    counter_good+=1
+        check1 = abs(data_std[corr][time][0]-data_gau[corr][time][0])<EPSILON
+        check1 = check1 and (abs(data_std[corr][time][1]-data_gau[corr][time][1])<EPSILON)
+        if(check1==False):
+            #printRed('Too different couple of values found.')
+            counter_bad+=1
+        else:
+            counter_good+=1
 
 printCyan('\nCheck ---> completed')
+print('Epsilon value:',EPSILON)
 print('\tNumber of positively checked values = ',counter_good)
 print('\tNumber of negatively checked values = ',counter_bad)
-error_check((counter_good+counter_bad)!=ncorr*nnoise*nnoise*ntimes,
+error_check((counter_good+counter_bad)!=ncorr*ntimes,
             'Incorret data check. Rewrite the code.')
