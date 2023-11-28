@@ -2070,6 +2070,12 @@ static void correlators_contractions(void)  /*new function*/
    MPI_Allreduce(data.corr_tmp,data.corr,nnoise*nnoise*ncorr*file_head.tvals*2,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 
    if(my_rank==0) printf("\n\tTransformation of fields...\n\n");
+   
+   for (l=0;l<nnoise*nnoise*ncorr*tvals;l++)
+   {
+      data.corr_tmp[l].re=0.0;
+      data.corr_tmp[l].im=0.0;
+   }
 
    generate_g_trnsfrms();
    g_transform_ud();

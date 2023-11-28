@@ -2144,6 +2144,12 @@ static void correlators_contractions(void)  /*new function*/
 
    generate_g_trnsfrms();
    g_transform_ud();
+
+   for (l=0;l<nnoise*nnoise*ncorr*tvals;l++)
+   {
+      data.corr_tmp[l].re=0.0;
+      data.corr_tmp[l].im=0.0;
+   }
       
    /* transformation of Xis and ZETAs */
    for(idx=0;idx<nnoise*proplist.len_1A;idx++)
