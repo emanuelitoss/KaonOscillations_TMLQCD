@@ -1,6 +1,6 @@
 [Run name]
-name         check4
-output       check4      # optional
+name         check2
+output       check2      # optional
 
 
 [Directories]                     # as in openQCD            
@@ -23,7 +23,7 @@ seed         15483
 [Measurements]                    # THIS TIME NNOISE IS THE NUMBER OF N_DIRAC*N_COLOURS - do not change
 nprop        2                    # number of different quark lines
 ncorr        1                    # number of different correlators
-nnoise       15                   # number of noise vectors
+nnoise       25                   # number of noise vectors
 noise_type   U1                   # noise type: U1 or Z2 or GAUSS
 csw          1.4951               # Dirac operator options >> Coefficient of the Sheikholeslami-Wohlert term
 cF           1.0                  # common to all quark lines >> coefficient of the Fermions Fermion O(a) boundary counterterm
