@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
 home_dir = '/Users/emanuelerosi/Thesis_MSc/kaons-oscillations/tm-mesons-obc/mesons-master/dat/'
-file_name = 'check4.correlators.dat'
+file_name = 'check2.correlators.dat'
 path_to_file = home_dir+file_name
 
 # this must be set by the user 
@@ -33,7 +33,7 @@ N3=8
 volume3D=N1*N2*N3   # number of lattice points for each timeslice
 
 # this number must be set by the user
-EPSILON = 1.0e-21   # error on the Gauge tranformed data
+EPSILON = 1.0e-8   # error on the Gauge tranformed data
 
 ########################### FUNCTIONS, TOOLS ############################
 
@@ -239,7 +239,7 @@ for corr in np.arange(0,ncorr,1):
 # Example of some correlators
 
 tmp = np.array([0]*ntimes,dtype=np.float128)
-pp = PdfPages("plots/check4.pdf")
+pp = PdfPages("plots/check2.pdf")
 
 for corr in np.arange(0,ncorr,1):         
     # Real part of correlators
@@ -287,7 +287,6 @@ pp.close()
 
 ############################## EFFECTIVE CHECK ##############################
 
-check2=False
 counter_good=0
 counter_bad=0
 
@@ -302,6 +301,7 @@ for corr in np.arange(0,ncorr,1):
             counter_good+=1
 
 printCyan('\nCheck ---> completed')
+print('\tEpsilon = ',EPSILON)
 print('\tNumber of positively checked values = ',counter_good)
 print('\tNumber of negatively checked values = ',counter_bad)
 error_check((counter_good+counter_bad)!=ncorr*ntimes,

@@ -1,6 +1,6 @@
 /*******************************************************************************
 *
-* File check2_correlators.c
+* File check2.c
 * Copyright (C) 2023 Emanuele Rosi
 *
 * Based on tm mesons
@@ -46,6 +46,13 @@
 * DATA:  static struct data.
 * for each correlator I store each single contribution from 
 * stochastic vectors eta1 and eta2 with each intermediate time t.
+*
+*******************************************************************************
+*
+* AIM:
+* computation of 3 points correlators (see correlators.c) and their gauge
+* transformed partners. The Gauge invariance principle states that the result
+* must be the same.
 *
 *******************************************************************************/
 
@@ -181,7 +188,7 @@ static FILE *fin=NULL,*flog=NULL,*fend=NULL,*fdat=NULL;
 
 /************************ CORRELATORS FUNCTIONS ************************/
 
-static void alloc_data(void)  /*modified*/
+static void alloc_data(void)  
 {
    int number_of_data = file_head.ncorr*file_head.nnoise*file_head.nnoise*file_head.tvals;
 
@@ -193,7 +200,7 @@ static void alloc_data(void)  /*modified*/
    error((data.corr==NULL)||(data.corr_tmp==NULL),1,"alloc_data [correlators.c]", "Unable to allocate data arrays");
 }
 
-static void write_file_head(void)   /*modified*/
+static void write_file_head(void)   
 {
    stdint_t istd[1];
    int iw=0;
@@ -298,7 +305,7 @@ static void write_file_head(void)   /*modified*/
    }
 }
 
-static void check_file_head(void)   /*modified*/
+static void check_file_head(void)   
 {
    int i,ir,ie;
    stdint_t istd[1];
@@ -404,7 +411,7 @@ static void check_file_head(void)   /*modified*/
    }
 }
 
-static void write_data(void)  /*modified*/
+static void write_data(void)  
 {
    int iw;
    int nw;
@@ -469,7 +476,7 @@ static void write_data(void)  /*modified*/
    }
 }
 
-static int read_data(void) /*modified*/
+static int read_data(void) 
 {
    int ir;
    int nr;
@@ -514,7 +521,7 @@ static int read_data(void) /*modified*/
    return 1;
 }
 
-static void read_dirs(void)   /*untouched*/
+static void read_dirs(void)   
 {
    if (my_rank==0)
    {
@@ -569,7 +576,7 @@ static void read_dirs(void)   /*untouched*/
    MPI_Bcast(&seed,1,MPI_INT,0,MPI_COMM_WORLD);
 }
 
-static void setup_files(void) /*untouched*/
+static void setup_files(void) 
 {
    if (noexp)
       error_root(name_size("%s/%sn%d_%d",loc_dir,run_name,last,NPROC-1)>=NAME_SIZE,
@@ -597,7 +604,7 @@ static void setup_files(void) /*untouched*/
    sprintf(rng_save,"%s~",rng_file);
 }
 
-static void read_lat_parms(void) /*modified*/
+static void read_lat_parms(void) 
 {
    double csw,cF;
    char tmpstring[NAME_SIZE],tmpstring2[NAME_SIZE];
@@ -804,9 +811,6 @@ static void read_lat_parms(void) /*modified*/
 
    MPI_Bcast(kappas,nprop,MPI_DOUBLE,0,MPI_COMM_WORLD);
    MPI_Bcast(mus,nprop,MPI_DOUBLE,0,MPI_COMM_WORLD);
-   /*MPI_Bcast(&csw,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
-   MPI_Bcast(&cF,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
-   MPI_Bcast(&eoflg,1,MPI_INT,0,MPI_COMM_WORLD);*/
    MPI_Bcast(isps,nprop,MPI_INT,0,MPI_COMM_WORLD);
    MPI_Bcast(props1,ncorr,MPI_INT,0,MPI_COMM_WORLD);
    MPI_Bcast(props2,ncorr,MPI_INT,0,MPI_COMM_WORLD);
@@ -851,7 +855,7 @@ static void read_lat_parms(void) /*modified*/
       write_lat_parms(fdat);
 }
 
-static void read_sap_parms(void) /*untouched*/
+static void read_sap_parms(void) 
 {
    int bs[4];
 
@@ -865,7 +869,7 @@ static void read_sap_parms(void) /*untouched*/
    set_sap_parms(bs,1,4,5);
 }
 
-static void read_dfl_parms(void) /*untouched*/
+static void read_dfl_parms(void) 
 {
    int bs[4],Ns;
    int ninv,nmr,ncy,nkv,nmx;
@@ -913,7 +917,7 @@ static void read_dfl_parms(void) /*untouched*/
    set_dfl_pro_parms(nkv,nmx,res);
 }
 
-static void read_solvers(void)   /*untouched*/
+static void read_solvers(void)   
 {
    solver_parms_t sp;
    int i,j;
@@ -944,7 +948,7 @@ static void read_solvers(void)   /*untouched*/
       read_dfl_parms();
 }
 
-static void read_infile(int argc,char *argv[])  /*modified*/
+static void read_infile(int argc,char *argv[])  
 {
    int ifile;
    int error_exclusive_options;
@@ -1010,7 +1014,7 @@ static void read_infile(int argc,char *argv[])  /*modified*/
    }
 }
 
-static void check_old_log(int *fst,int *lst,int *stp) /*untouched*/
+static void check_old_log(int *fst,int *lst,int *stp) 
 {
    int ie,ic,isv;
    int fc,lc,dc,pc;
@@ -1081,7 +1085,7 @@ static void check_old_log(int *fst,int *lst,int *stp) /*untouched*/
    (*stp)=dc;
 }
 
-static void check_old_dat(int fst,int lst,int stp) /*untouched*/
+static void check_old_dat(int fst,int lst,int stp) 
 {
    int ie,ic;
    int fc,lc,dc,pc;
@@ -1120,7 +1124,7 @@ static void check_old_dat(int fst,int lst,int stp) /*untouched*/
    error_root((fst!=fc)||(lst!=lc)||(stp!=dc),1,"check_old_dat [correlators.c]","Configuration range is not as reported in the log file");
 }
 
-static void check_files(void) /*untouched*/
+static void check_files(void) 
 {
    int fst,lst,stp;
 
@@ -1158,7 +1162,7 @@ static void check_files(void) /*untouched*/
    }
 }
 
-static void print_info(void)  /*modified*/
+static void print_info(void)  
 {
    int i,isap,idfl;
    long ip;
@@ -1288,7 +1292,7 @@ static void print_info(void)  /*modified*/
    }
 }
 
-static void dfl_wsize(int *nws,int *nwv,int *nwvd) /*untouched*/
+static void dfl_wsize(int *nws,int *nwv,int *nwvd) 
 {
    dfl_parms_t dp;
    dfl_pro_parms_t dpp;
@@ -1433,7 +1437,7 @@ static void free_proplist(void)  /* new function */
    free(proplist.matrix_typeC);
 }
 
-static void wsize(int *nws,int *nwsd,int *nwv,int *nwvd) /*modified*/
+static void wsize(int *nws,int *nwsd,int *nwv,int *nwvd) 
 {
    int nsd;
    solver_parms_t sp;
@@ -2175,7 +2179,7 @@ static void correlators_contractions(void)  /*new function*/
    release_wsd();
 }
 
-static void set_data(int nc)  /*untouched*/
+static void set_data(int nc)  
 {
    data.nc=nc;
    correlators_contractions();
@@ -2190,7 +2194,7 @@ static void set_data(int nc)  /*untouched*/
    }
 }
 
-static void init_rng(void) /*untouched*/
+static void init_rng(void) 
 {
    int ic;
 
@@ -2209,7 +2213,7 @@ static void init_rng(void) /*untouched*/
       start_ranlux(level,seed);
 }
 
-static void save_ranlux(void) /*untouched*/
+static void save_ranlux(void) 
 {
    int nlxs,nlxd;
 
@@ -2229,13 +2233,13 @@ static void save_ranlux(void) /*untouched*/
    rlxd_get(rlxd_state);
 }
 
-static void restore_ranlux(void) /*untouched*/
+static void restore_ranlux(void) 
 {
    rlxs_reset(rlxs_state);
    rlxd_reset(rlxd_state);
 }
 
-static void check_endflag(int *iend)   /*untouched*/
+static void check_endflag(int *iend)   
 {
    if (my_rank==0)
    {
