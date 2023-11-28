@@ -35,9 +35,9 @@ z0           1                      # source timeslice
 ################################### For every quark line a Propagator 
 
 [Propagator 0]                      # quark 'down prime' : mu = -mu_d
-mus          -0.001                   # twisted mass
+mus          -0.001                 # twisted mass
 kappa        0.121951219512195      # hopping parameter
-isp          0                      # solver id > set solver (?)
+isp          0                      
 
 [Propagator 1]                      # quark 'strange' and 'strange prime' : mu = +mu_s
 mus          0.003

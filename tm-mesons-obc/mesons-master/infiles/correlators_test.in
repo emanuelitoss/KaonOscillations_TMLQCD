@@ -25,18 +25,18 @@ nprop        2                    # number of different quark lines
 ncorr        2                    # number of different correlators
 nnoise       10                   # number of noise vectors / conf >> the xi,zeta spinors!
 noise_type   U1                   # noise type: U1 or Z2 or GAUSS
-csw          1.4951               # Dirac operator options >> Coefficient of the Sheikholeslami-Wohlert term
-cF           1.0                  # common to all quark lines >> coefficient of the Fermions Fermion O(a) boundary counterterm
-eoflg        0                    # Aggiunta da Emanuele: if = 1, Twisted Mass term is not used.
+csw          1.4951               # coefficient of the Sheikholeslami-Wohlert term
+cF           1.0                  # coefficient of the Fermions Fermion O(a) boundary counterterm
+eoflg        0                    
 x0           28
 z0           1
 
 ################################### For every quark line a Propagator 
                                   # section, nprop in total
 [Propagator 0]
-mus          0.1                  # Aggiunta da Emanuele: è la massa twistata dello strange
-kappa        0.121951219512195    # hopping parameter
-isp          0                    # solver id > set solver (?)
+mus          0.1                  
+kappa        0.121951219512195    
+isp          0                    
 
 [Propagator 1]
 mus          -0.1
