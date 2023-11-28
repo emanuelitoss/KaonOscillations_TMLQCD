@@ -179,7 +179,7 @@ for icorr in np.arange(0,ncorr,1):
 ########################## CORRELATORS PLOT ##########################
 
 tmp = np.array([0]*ntimes,dtype=np.float128)
-pp = PdfPages("plots/check3-nogauge.pdf")
+pp = PdfPages("plots/check3.pdf")
 
 for corr in np.arange(0,ncorr,1):         
     # Real part of correlators
