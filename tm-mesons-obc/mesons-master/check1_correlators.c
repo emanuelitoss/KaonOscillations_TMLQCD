@@ -2084,36 +2084,43 @@ static void correlators_contractions(void)  /*new function*/
          assign_sd2sd(VOLUME,eta1,tmp_spinor);
          solve_dirac(proplist.prop_type4[idx],tmp_spinor,zeta1[nnoise*idx+noise_idx1],stat);
       }
+   }
    
-      /* ETA_2 noise vectors */
+   /* ETA_2 noise vectors */
+   for(noise_idx2=0;noise_idx2<nnoise;noise_idx2++)
+   {
+      pointlike_source(eta2,fixed_z0,noise_idx2);
+   
+      if(my_rank==0) printf("\tNoise vector eta2 number %i\n",noise_idx2);
+   
+      /* evaluate the needed XI_2 s */
+      for(idx=0;idx<proplist.len_3C;idx++)
+      {
+         if (my_rank==0)
+            printf("\t\tXi_{3C}^{3,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeC[idx]),proplist.prop_type3[idx]);
+   
+         make_source(eta2,proplist.matrix_typeC[idx],tmp_spinor);
+         solve_dirac(proplist.prop_type3[idx],tmp_spinor,xi2[nnoise*idx+noise_idx2],stat);
+         mulg5_dble(VOLUME,xi2[nnoise*idx+noise_idx2]);
+      }
+   
+      /* evaluate the needed ZETA_2 s */
+      for(idx=0;idx<proplist.len2;idx++)
+      {
+         if (my_rank==0)
+            printf("\t\tZeta_2^{2,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type2[idx]);
+
+         assign_sd2sd(VOLUME,eta2,tmp_spinor);
+         solve_dirac(proplist.prop_type2[idx],tmp_spinor,zeta2[nnoise*idx+noise_idx2],stat);
+      }
+   }
+   
+   if(my_rank==0) printf("Evaluation of Wick contractions:\n");
+         
+   for(noise_idx1=0;noise_idx1<nnoise;noise_idx1++)
+   {
       for(noise_idx2=0;noise_idx2<nnoise;noise_idx2++)
       {
-         pointlike_source(eta2,fixed_z0,noise_idx2);
-   
-         if(my_rank==0) printf("\tNoise vector eta2 number %i\n",noise_idx2);
-   
-         /* evaluate the needed XI_2 s */
-         for(idx=0;idx<proplist.len_3C;idx++)
-         {
-            if (my_rank==0)
-               printf("\t\tXi_{3C}^{3,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeC[idx]),proplist.prop_type3[idx]);
-   
-            make_source(eta2,proplist.matrix_typeC[idx],tmp_spinor);
-            solve_dirac(proplist.prop_type3[idx],tmp_spinor,xi2[nnoise*idx+noise_idx2],stat);
-            mulg5_dble(VOLUME,xi2[nnoise*idx+noise_idx2]);
-         }
-   
-         /* evaluate the needed ZETA_2 s */
-         for(idx=0;idx<proplist.len2;idx++)
-         {
-            if (my_rank==0)
-               printf("\t\tZeta_2^{2,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type2[idx]);
-   
-            assign_sd2sd(VOLUME,eta2,tmp_spinor);
-            solve_dirac(proplist.prop_type2[idx],tmp_spinor,zeta2[nnoise*idx+noise_idx2],stat);
-         }
-
-         if(my_rank==0) printf("Evaluation of Wick contractions:\n");
          if (my_rank==0)   printf("\tStohcastic vectors eta1 = %i\teta2 = %i\n",noise_idx1,noise_idx2);
 
          /* contractions */
