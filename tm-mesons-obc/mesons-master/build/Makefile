@@ -52,7 +52,6 @@ BLOCK = block blk_grid map_u2blk map_sw2blk map_s2blk
 GAUGE = gauge_transforms
 
 # ER: from the other folder
-# CFCTS = cfcts2q cfcts4q ptsplit sfcfcts xsfcfcts
 
 DFL = dfl_geometry dfl_subspace ltl_gcr dfl_sap_gcr dfl_modes
 # ER: from the other folder
