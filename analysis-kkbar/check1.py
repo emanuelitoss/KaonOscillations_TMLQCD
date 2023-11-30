@@ -290,10 +290,7 @@ for corr in np.arange(0,ncorr,1):
     pp.savefig(immaginary_plot, dpi=immaginary_plot.dpi, transparent = True)
     plt.close()
 
-# Save plots in a single file
-pp.close()
-
-############################## EFFECTIVE CHECK ##############################
+############################## CHECK ##############################
 
 check1=False
 counter_good=0
@@ -315,3 +312,28 @@ print('\tNumber of positively checked values = ',counter_good)
 print('\tNumber of negatively checked values = ',counter_bad)
 error_check((counter_good+counter_bad)!=ncorr*ntimes,
             'Incorret data check. Rewrite the code.')
+
+if ncorr==1:
+    firstPage = plt.figure(1,figsize=(13,5),dpi=300)
+    firstPage.clf()
+    text = 'GENERAL SETTINGS:\n'+r'$N_{corr}$ = '+str(ncorr)+'\n'+'$N_{noise}$ = '+str(nnoise)+'\n$N_T$ = '+str(ntimes)+'\nSource timeslice: $x_0$ = '+str(x0)+'\nSource timeslice: $z_0$ = '+str(z0)+'\n'+'\n\nCORRELATOR:\nHopping parameters: '+str(tmp_string)+'\n'+r'Twisted masses $\mu_s$ : '+str(mus[0])+'\n'+r'$\Gamma_A$: '+dirac_to_str(typeC_z[0])+'\n'+r'$\Gamma_C$: '+dirac_to_str(typeA_x[0])+'\nMixing operator: '+operator_to_str(operator_type[0])+' \nIsreal: '+str(bool(isreal[0]))+'\n'
+    firstPage.text(0.5,0.5,text,transform=firstPage.transFigure,size=9,ha="center",fontstyle='normal')
+    pp.savefig(firstPage, dpi=firstPage.dpi, transparent = True)
+    plt.close()
+else:
+    firstPage = plt.figure(1,figsize=(13,5),dpi=300)
+    firstPage.clf()
+    text = 'GENERAL SETTINGS:\n'+r'$N_{corr}$ = '+str(ncorr)+'\n'+'$N_{noise}$ = '+str(nnoise)+'\n$N_T$ = '+str(ntimes)+'\nSource timeslice: $x_0$ = '+str(x0)+'\nSource timeslice: $z_0$ = '+str(z0)
+    firstPage.text(0.5,0.5,text,transform=firstPage.transFigure,size=10,ha="center",fontstyle='normal')
+    pp.savefig(firstPage, dpi=firstPage.dpi, transparent = True)
+    plt.close()
+    
+firstPage = plt.figure(1,figsize=(13,5),dpi=300)
+firstPage.clf()
+text = 'CHECK OF THE VALUES:\n'+r'$\epsilon$ = '+str(EPSILON)+'\n'+r'$N_{good}$ = '+str(counter_good)+'\n'+r'$N_{bad}$ = '+str(counter_bad)+'\n'
+firstPage.text(0.5,0.5,text,transform=firstPage.transFigure,size=12,ha="center",fontstyle='normal')
+pp.savefig(firstPage, dpi=firstPage.dpi, transparent = True)
+plt.close()
+    
+# Save plots in a single file
+pp.close()
