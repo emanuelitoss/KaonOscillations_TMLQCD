@@ -1603,7 +1603,7 @@ void make_source(spinor_dble *eta, int type, spinor_dble *xi)  /* untouched */
 /* removed:    void make_xi(spinor_dble *eta,int type,spinor_dble *xi)  */
 /* removed:    static void correlators(void) */
 
-static void contraction_single_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_dble *zeta1,spinor_dble *zeta2,spinor_dble *psi1,spinor_dble *psi2,int idx_noise1,int idx_noise2,int idx_corr)   /* new function */
+static void contraction_single_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_dble *zeta1,spinor_dble *zeta2,spinor_dble *psi1,spinor_dble *psi2,int idx_noise1,int idx_noise2,int idx_corr)
 {
    int y0,iy,l,mu,nu,data_index;
    complex_dble complex1,complex2,contribution;
@@ -1637,7 +1637,7 @@ static void contraction_single_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_db
          default:
             break;
       }
-      for(y0=0;y0<L0;y0++) /* non sono molto sicuro di questa scelta!!! Non avrebbe senso solo per x0 < y0 < z0? */
+      for(y0=0;y0<L0;y0++)
       {
          for (l=0;l<L1*L2*L3;l++)
          {
@@ -1648,8 +1648,6 @@ static void contraction_single_trace(spinor_dble *xi1,spinor_dble *xi2,spinor_db
             contribution.re = complex1.re*complex2.re - complex1.im*complex2.im;
             contribution.im = complex1.re*complex2.im + complex1.im*complex2.re;
 
-            /* I choose to structure my data in this way.
-               I need to check that all the functions behave coherently with this. */
             data_index = idx_noise2+nnoise*(idx_noise1+nnoise*(cpr[0]*L0+y0+file_head.tvals*idx_corr));
             data.corr_tmp[data_index].re -= contribution.re;
             data.corr_tmp[data_index].im -= contribution.im;
