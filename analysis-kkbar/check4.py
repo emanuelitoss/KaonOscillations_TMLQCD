@@ -13,7 +13,7 @@ N3=8
 volume3D=N1*N2*N3   # number of lattice points for each timeslice
 
 # this number must be set by the user
-EPSILON = 1.0e-3   # error on the Gauge tranformed data
+EPSILON = 1.0e-5   # error on the Gauge tranformed data
 
 ######################## TOOLS ########################
 
@@ -139,8 +139,8 @@ error_check(data_count!=len(raw_data),'len(data)!=expected lenght')
 
 # create an ordered data structure
 offset_idx=0
-data_std=np.array([[[0]*ntimes]*ncorr]*2,dtype=np.float64)
-data_gau=np.array([[[0]*ntimes]*ncorr]*2,dtype=np.float64)
+data_std=np.array([[[0]*ntimes]*ncorr]*2,dtype=np.float128)
+data_gau=np.array([[[0]*ntimes]*ncorr]*2,dtype=np.float128)
     
 for icorr in np.arange(0,ncorr,1):
     if(isreal[icorr]==True):
@@ -175,6 +175,37 @@ for icorr in np.arange(0,ncorr,1):
             data_gau[0][icorr][time] = data_gau[0][icorr][time]/(nnoise*volume3D)
             data_gau[1][icorr][time] = data_gau[1][icorr][time]/(nnoise*volume3D)
     offset_idx+=nnoise*ntimes*(2-isreal[icorr])
+    
+############################## CHECK ##############################
+
+counter_good_re=0
+counter_bad_re=0
+counter_good_im=0
+counter_bad_im=0
+
+for corr in np.arange(0,ncorr,1):
+    for time in np.arange(0,ntimes,1):
+        check_re = abs(data_std[0][corr][time]-data_gau[0][corr][time])<EPSILON
+        check_im = abs(data_std[1][corr][time]-data_gau[1][corr][time])<EPSILON
+        if(check_re==False):
+            counter_bad_re+=1
+        else:
+            counter_good_re+=1
+        if(check_im==False):
+            counter_bad_im+=1
+        else:
+            counter_good_im+=1
+
+printCyan('\nCheck ---> completed')
+print('\tEpsilon = ',EPSILON)
+print('\tReal part:')
+print('\t\tNumber of positively checked values = ',counter_good_re)
+print('\t\tNumber of negatively checked values = ',counter_bad_re)
+print('\tImmaginary part:')
+print('\t\tNumber of positively checked values = ',counter_good_im)
+print('\t\tNumber of negatively checked values = ',counter_bad_im)
+error_check((counter_good_re+counter_bad_re)!=ncorr*ntimes or (counter_good_im+counter_bad_im)!=ncorr*ntimes,
+            'Incorret data check. Rewrite the code.')
 
 ########################## CORRELATORS PLOT ##########################
 
@@ -221,29 +252,26 @@ for corr in np.arange(0,ncorr,1):
     plt.legend(loc='upper right')
     pp.savefig(immaginary_plot, dpi=immaginary_plot.dpi, transparent = True)
     plt.close()
+    
+
+if ncorr==1:
+    firstPage = plt.figure(1,figsize=(13,5),dpi=300)
+    firstPage.clf()
+    text = 'GENERAL SETTINGS:\n'+r'$N_{corr}$ = '+str(ncorr)+'\n'+'$N_{noise}$ = '+str(nnoise)+'\n$N_T$ = '+str(ntimes)+'\nSource timeslice: $x_0$ = '+str(x0)+'\n'+'\n\nCORRELATOR:\nHopping parameters: '+str(tmp_string)+'\n'+r'Twisted masses $\mu_s$ : '+str(mus[0])+'\n'+r'$\Gamma_X$: '+dirac_to_str(type1[0])+'\n'+r'$\Gamma_Y$: '+dirac_to_str(type2[0])+' \nIsreal: '+str(bool(isreal[0]))+'\n'
+    firstPage.text(0.1,0.2,text,transform=firstPage.transFigure,size=12,ha="left",fontstyle='normal')
+    text = 'CHECK OF THE VALUES:\n'+r'$\epsilon$ = '+str(EPSILON)+'\n'+r'$N_{good}(real)$ = '+str(counter_good_re)+'\n'+r'$N_{bad}(real)$ = '+str(counter_bad_re)+'\n'+r'$N_{good}(immag.)$ = '+str(counter_good_im)+'\n'+r'$N_{bad}(immag.)$ = '+str(counter_bad_im)+'\n'
+    firstPage.text(0.87,0.5,text,transform=firstPage.transFigure,size=12,ha="right",fontstyle='normal')
+    pp.savefig(firstPage, dpi=firstPage.dpi, transparent = True)
+    plt.close()
+else:
+    firstPage = plt.figure(1,figsize=(13,5),dpi=300)
+    firstPage.clf()
+    text = 'GENERAL SETTINGS:\n'+r'$N_{corr}$ = '+str(ncorr)+'\n'+'$N_{noise}$ = '+str(nnoise)+'\n$N_T$ = '+str(ntimes)+'\nSource timeslice: $x_0$ = '+str(x0)+'\n'
+    firstPage.text(0.1,0.2,text,transform=firstPage.transFigure,size=12,ha="left",fontstyle='normal')
+    text = 'CHECK OF THE VALUES:\n'+r'$\epsilon$ = '+str(EPSILON)+'\n'+r'$N_{good}(real)$ = '+str(counter_good_re)+'\n'+r'$N_{bad}(real)$ = '+str(counter_bad_re)+'\n'+r'$N_{good}(immag.)$ = '+str(counter_good_im)+'\n'+r'$N_{bad}(immag.)$ = '+str(counter_bad_im)+'\n'
+    firstPage.text(0.87,0.5,text,transform=firstPage.transFigure,size=12,ha="right",fontstyle='normal')
+    pp.savefig(firstPage, dpi=firstPage.dpi, transparent = True)
+    plt.close()
 
 # Save plots in a single file
 pp.close()
-
-############################## EFFECTIVE CHECK ##############################
-
-check=False
-counter_good=0
-counter_bad=0
-
-for corr in np.arange(0,ncorr,1):
-    for time in np.arange(0,ntimes,1):
-        check = abs(data_std[0][corr][time]-data_gau[0][corr][time])<EPSILON
-        check = check and (abs(data_std[1][corr][time]-data_gau[1][corr][time])<EPSILON)
-        if(check==False):
-            #printRed('Too different couple of values found.')
-            counter_bad+=1
-        else:
-            counter_good+=1
-
-printCyan('\nCheck ---> completed')
-print('\tEpsilon = ',EPSILON)
-print('\tNumber of positively checked values = ',counter_good)
-print('\tNumber of negatively checked values = ',counter_bad)
-error_check((counter_good+counter_bad)!=ncorr*ntimes,
-            'Incorret data check. Rewrite the code.')

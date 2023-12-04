@@ -33,7 +33,7 @@ N3=8
 volume3D=N1*N2*N3   # number of lattice points for each timeslice
 
 # this number must be set by the user
-EPSILON = 1.0e-18   # error on the Gauge tranformed data
+EPSILON = 1.0e-17   # error on the Gauge tranformed data
 
 number_of_colours=3
 number_of_dirac_indices=4
@@ -202,8 +202,8 @@ error_check(data_count!=len(raw_data),'len(data)!=expected lenght')
 ############################## DATA REORDERING ##############################
 
 # create an ordered data structure
-data_std=np.array([[[0]*2]*ntimes]*ncorr,dtype=np.float64)
-data_gau=np.array([[[0]*2]*ntimes]*ncorr,dtype=np.float64)
+data_std=np.array([[[0]*2]*ntimes]*ncorr,dtype=np.float128)
+data_gau=np.array([[[0]*2]*ntimes]*ncorr,dtype=np.float128)
 offset_idx=0
     
 # standard data
@@ -239,6 +239,38 @@ for corr in np.arange(0,ncorr,1):
                     data_gau[corr][time][0] += raw_data[idx]    # real part
                     data_gau[corr][time][1] += raw_data[idx+1]  # immaginary part
     offset_idx+=nnoise*nnoise*ntimes*(2-isreal[corr])   
+    
+############################## CHECK ##############################
+
+counter_good_re=0
+counter_bad_re=0
+counter_good_im=0
+counter_bad_im=0
+
+for corr in np.arange(0,ncorr,1):
+    for time in np.arange(0,ntimes,1):
+        check2re = abs(data_std[corr][time][0]-data_gau[corr][time][0])<EPSILON
+        if(check2re==False):
+            counter_bad_re+=1
+        else:
+            counter_good_re+=1
+        check2im = abs(data_std[corr][time][1]-data_gau[corr][time][1])<EPSILON
+        if(check2im==False):
+            counter_bad_im+=1
+        else:
+            counter_good_im+=1
+            
+printCyan('\nCheck ---> completed')
+print('\tEpsilon = ',EPSILON)
+print('\tReal part:')
+print('\t\tNumber of positively checked values = ',counter_good_re)
+print('\t\tNumber of negatively checked values = ',counter_bad_re)
+print('\tImmaginary part:')
+print('\t\tNumber of positively checked values = ',counter_good_im)
+print('\t\tNumber of negatively checked values = ',counter_bad_im)
+
+error_check((counter_good_re+counter_bad_re)!=ncorr*ntimes or (counter_good_im+counter_bad_im)!=ncorr*ntimes,
+            'Incorret data check. Rewrite the code.')
 
 ############################## CORRELATOR PLOT ##############################            
 # Example of some correlators
@@ -256,6 +288,7 @@ for corr in np.arange(0,ncorr,1):
     plt.xlabel("Timeslice $y_4$")
     plt.ylabel("Real value of the correlator")
     plt.xlim(0,ntimes-1)
+    plt.ylim(0,EPSILON*1000000)
     plt.grid()
     for idx_trnsfrm in [1,2]:
         if(idx_trnsfrm==1):
@@ -290,50 +323,24 @@ for corr in np.arange(0,ncorr,1):
     pp.savefig(immaginary_plot, dpi=immaginary_plot.dpi, transparent = True)
     plt.close()
 
-############################## CHECK ##############################
-
-check1=False
-counter_good=0
-counter_bad=0
-
-for corr in np.arange(0,ncorr,1):
-    for time in np.arange(0,ntimes,1):
-        check1 = abs(data_std[corr][time][0]-data_gau[corr][time][0])<EPSILON
-        check1 = check1 and (abs(data_std[corr][time][1]-data_gau[corr][time][1])<EPSILON)
-        if(check1==False):
-            #printRed('Too different couple of values found.')
-            counter_bad+=1
-        else:
-            counter_good+=1
-
-printCyan('\nCheck ---> completed')
-print('Epsilon value:',EPSILON)
-print('\tNumber of positively checked values = ',counter_good)
-print('\tNumber of negatively checked values = ',counter_bad)
-error_check((counter_good+counter_bad)!=ncorr*ntimes,
-            'Incorret data check. Rewrite the code.')
-
 if ncorr==1:
     firstPage = plt.figure(1,figsize=(13,5),dpi=300)
     firstPage.clf()
     text = 'GENERAL SETTINGS:\n'+r'$N_{corr}$ = '+str(ncorr)+'\n'+'$N_{noise}$ = '+str(nnoise)+'\n$N_T$ = '+str(ntimes)+'\nSource timeslice: $x_0$ = '+str(x0)+'\nSource timeslice: $z_0$ = '+str(z0)+'\n'+'\n\nCORRELATOR:\nHopping parameters: '+str(tmp_string)+'\n'+r'Twisted masses $\mu_s$ : '+str(mus[0])+'\n'+r'$\Gamma_A$: '+dirac_to_str(typeC_z[0])+'\n'+r'$\Gamma_C$: '+dirac_to_str(typeA_x[0])+'\nMixing operator: '+operator_to_str(operator_type[0])+' \nIsreal: '+str(bool(isreal[0]))+'\n'
-    firstPage.text(0.5,0.5,text,transform=firstPage.transFigure,size=9,ha="center",fontstyle='normal')
+    firstPage.text(0.1,0.2,text,transform=firstPage.transFigure,size=12,ha="left",fontstyle='normal')
+    text = 'CHECK OF THE VALUES:\n'+r'$\epsilon$ = '+str(EPSILON)+'\n'+r'$N_{good}(real)$ = '+str(counter_good_re)+'\n'+r'$N_{bad}(real)$ = '+str(counter_bad_re)+'\n'+r'$N_{good}(imm.)$ = '+str(counter_good_im)+'\n'+r'$N_{bad}(imm.)$ = '+str(counter_bad_im)+'\n'
+    firstPage.text(0.87,0.5,text,transform=firstPage.transFigure,size=12,ha="right",fontstyle='normal')
     pp.savefig(firstPage, dpi=firstPage.dpi, transparent = True)
     plt.close()
 else:
     firstPage = plt.figure(1,figsize=(13,5),dpi=300)
     firstPage.clf()
     text = 'GENERAL SETTINGS:\n'+r'$N_{corr}$ = '+str(ncorr)+'\n'+'$N_{noise}$ = '+str(nnoise)+'\n$N_T$ = '+str(ntimes)+'\nSource timeslice: $x_0$ = '+str(x0)+'\nSource timeslice: $z_0$ = '+str(z0)
-    firstPage.text(0.5,0.5,text,transform=firstPage.transFigure,size=10,ha="center",fontstyle='normal')
+    firstPage.text(0.1,0.2,text,transform=firstPage.transFigure,size=12,ha="left",fontstyle='normal')
+    text = 'CHECK OF THE VALUES:\n'+r'$\epsilon$ = '+str(EPSILON)+'\n'+r'$N_{good}(real)$ = '+str(counter_good_re)+'\n'+r'$N_{bad}(real)$ = '+str(counter_bad_re)+'\n'+r'$N_{good}(imm.)$ = '+str(counter_good_im)+'\n'+r'$N_{bad}(imm.)$ = '+str(counter_bad_im)+'\n'
+    firstPage.text(0.87,0.5,text,transform=firstPage.transFigure,size=12,ha="right",fontstyle='normal')
     pp.savefig(firstPage, dpi=firstPage.dpi, transparent = True)
     plt.close()
-    
-firstPage = plt.figure(1,figsize=(13,5),dpi=300)
-firstPage.clf()
-text = 'CHECK OF THE VALUES:\n'+r'$\epsilon$ = '+str(EPSILON)+'\n'+r'$N_{good}$ = '+str(counter_good)+'\n'+r'$N_{bad}$ = '+str(counter_bad)+'\n'
-firstPage.text(0.5,0.5,text,transform=firstPage.transFigure,size=12,ha="center",fontstyle='normal')
-pp.savefig(firstPage, dpi=firstPage.dpi, transparent = True)
-plt.close()
     
 # Save plots in a single file
 pp.close()
