@@ -222,4 +222,22 @@ plt.legend(loc='upper right')
 pp.savefig(immaginary_plot, dpi=immaginary_plot.dpi, transparent = True)
 plt.close()
 
+epsis = [1.0e-5,1.0e-6,1.0e-7,1.0e-8,1.0e-9]
+
+for eps in epsis:
+    # Real part of correlators
+    real_plot=plt.figure(1,figsize=(13,5),dpi=300)
+    plt.title(r'Correlators: $\mathbb{Re}\left\{C_{i[+]}(x_4,y_4,z_4)\right\}$')
+    plt.xlabel("Timeslice $y_4$")
+    plt.ylabel("Real value of the correlator")
+    plt.xlim(0,ntimes-1)
+    plt.ylim(-eps,eps)
+    plt.grid()
+    for i in np.arange(0,ntimes,1):
+        tmp[i]=-data[0][i][0]
+    plt.plot(tmp,'*',label='Test-data',alpha=1,lw=0.75)
+    plt.legend(loc='upper right')
+    pp.savefig(real_plot, dpi=real_plot.dpi, transparent = True)
+    plt.close()
+
 pp.close()
