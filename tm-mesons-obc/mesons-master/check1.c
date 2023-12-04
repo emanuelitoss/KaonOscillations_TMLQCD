@@ -1996,7 +1996,7 @@ static void correlators_contractions(void)
    spinor_dble *eta1,*eta2,*tmp_spinor,*tmp_spinor2;
    spinor_dble **xi1,**xi2,**zeta1,**zeta2,**wsd;
 
-   wsd=reserve_wsd(4+(proplist.len_1A+proplist.len_3C+proplist.len4+proplist.len2));
+   wsd=reserve_wsd(4+nnoise*(proplist.len_1A+proplist.len_3C+proplist.len4+proplist.len2));
    eta1=wsd[0];
    eta2=wsd[1];
    tmp_spinor=wsd[2];
@@ -2007,14 +2007,14 @@ static void correlators_contractions(void)
    zeta2=malloc(proplist.len2*sizeof(spinor_dble*));
    error((xi1==NULL)||(xi2==NULL)||(zeta1==NULL)||(zeta2==NULL),1,"correlators [check1.c]","Out of memory");
 
-   for(l=0;l<proplist.len_1A;l++)
+   for(l=0;l<nnoise*proplist.len_1A;l++)
       xi1[l]=wsd[4+l];
-   for(l=0;l<proplist.len_3C;l++)
-      xi2[l]=wsd[4+l+proplist.len_1A];
-   for(l=0;l<proplist.len4;l++)
-      zeta1[l]=wsd[4+l+proplist.len_1A+proplist.len_3C];
-   for(l=0;l<proplist.len2;l++)
-      zeta2[l]=wsd[4+l+proplist.len_1A+proplist.len_3C+proplist.len4];
+   for(l=0;l<nnoise*proplist.len_3C;l++)
+      xi2[l]=wsd[4+l+nnoise*proplist.len_1A];
+   for(l=0;l<nnoise*proplist.len4;l++)
+      zeta1[l]=wsd[4+l+nnoise*(proplist.len_1A+proplist.len_3C)];
+   for(l=0;l<nnoise*proplist.len2;l++)
+      zeta2[l]=wsd[4+l+nnoise*(proplist.len_1A+proplist.len_3C+proplist.len4)];
 
    for (l=0;l<nnoise*nnoise*ncorr*tvals;l++)
    {
@@ -2036,8 +2036,8 @@ static void correlators_contractions(void)
             printf("\t\tXi_{1A}^{1,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeA[idx]), proplist.prop_type1[idx]);
 
          make_source(eta1,proplist.matrix_typeA[idx],tmp_spinor);
-         solve_dirac(proplist.prop_type1[idx],tmp_spinor,xi1[idx],stat);
-         mulg5_dble(VOLUME,xi1[idx]);
+         solve_dirac(proplist.prop_type1[idx],tmp_spinor,xi1[noise_idx1+nnoise*idx],stat);
+         mulg5_dble(VOLUME,xi1[noise_idx1+nnoise*idx]);
       }
 
       /* evaluate the needed ZETA_1 s */
@@ -2047,48 +2047,54 @@ static void correlators_contractions(void)
             printf("\t\tZeta_1^{4,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type4[idx]);
 
          assign_sd2sd(VOLUME,eta1,tmp_spinor);
-         solve_dirac(proplist.prop_type4[idx],tmp_spinor,zeta1[idx],stat);
+         solve_dirac(proplist.prop_type4[idx],tmp_spinor,zeta1[noise_idx1+nnoise*idx],stat);
       }
+   }
    
-      /* ETA_2 noise vectors */
+   /* ETA_2 noise vectors */
+   for(noise_idx2=0;noise_idx2<nnoise;noise_idx2++)
+   {
+      pointlike_source(eta2,fixed_z0,noise_idx2);
+
+      if(my_rank==0) printf("\tNoise vector eta2 number %i\n",noise_idx2);
+
+      /* evaluate the needed XI_2 s */
+      for(idx=0;idx<proplist.len_3C;idx++)
+      {
+         if (my_rank==0)
+            printf("\t\tXi_{3C}^{3,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeC[idx]),proplist.prop_type3[idx]);
+
+         make_source(eta2,proplist.matrix_typeC[idx],tmp_spinor);
+         solve_dirac(proplist.prop_type3[idx],tmp_spinor,xi2[noise_idx2+nnoise*idx],stat);
+         mulg5_dble(VOLUME,xi2[noise_idx2+nnoise*idx]);
+      }
+
+      /* evaluate the needed ZETA_2 s */
+      for(idx=0;idx<proplist.len2;idx++)
+      {
+         if (my_rank==0)
+            printf("\t\tZeta_2^{2,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type2[idx]);
+
+         assign_sd2sd(VOLUME,eta2,tmp_spinor);
+         solve_dirac(proplist.prop_type2[idx],tmp_spinor,zeta2[noise_idx2+nnoise*idx],stat);
+      }
+   }
+         
+   if (my_rank==0)   printf("\tStohcastic vectors eta1 = %i\teta2 = %i\n",noise_idx1,noise_idx2);
+
+   for(noise_idx1=0;noise_idx1<nnoise;noise_idx1++)
+   {
       for(noise_idx2=0;noise_idx2<nnoise;noise_idx2++)
       {
-         pointlike_source(eta2,fixed_z0,noise_idx2);
-
-         if(my_rank==0) printf("\tNoise vector eta2 number %i\n",noise_idx2);
-
-         /* evaluate the needed XI_2 s */
-         for(idx=0;idx<proplist.len_3C;idx++)
-         {
-            if (my_rank==0)
-               printf("\t\tXi_{3C}^{3,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeC[idx]),proplist.prop_type3[idx]);
-
-            make_source(eta2,proplist.matrix_typeC[idx],tmp_spinor);
-            solve_dirac(proplist.prop_type3[idx],tmp_spinor,xi2[idx],stat);
-            mulg5_dble(VOLUME,xi2[idx]);
-         }
-
-         /* evaluate the needed ZETA_2 s */
-         for(idx=0;idx<proplist.len2;idx++)
-         {
-            if (my_rank==0)
-               printf("\t\tZeta_2^{2,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type2[idx]);
-
-            assign_sd2sd(VOLUME,eta2,tmp_spinor);
-            solve_dirac(proplist.prop_type2[idx],tmp_spinor,zeta2[idx],stat);
-         }
-         
-         if (my_rank==0)   printf("\tStohcastic vectors eta1 = %i\teta2 = %i\n",noise_idx1,noise_idx2);
-
          /* contractions */
          for(idx=0;idx<ncorr;idx++)
          {
             if (my_rank==0)   printf("\t\tOperator XY = %s",operator_to_string(file_head.operator_type[idx]));
-            contraction_single_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],
-                                    zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],
+            contraction_single_trace(xi1[noise_idx1+nnoise*proplist.idx_1A[idx]],xi2[noise_idx2+nnoise*proplist.idx_3C[idx]],
+                                    zeta1[noise_idx1+nnoise*proplist.idx_4[idx]],zeta2[noise_idx2+nnoise*proplist.idx_2[idx]],
                                     tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
-            contraction_double_trace(xi1[proplist.idx_1A[idx]],xi2[proplist.idx_3C[idx]],
-                                    zeta1[proplist.idx_4[idx]],zeta2[proplist.idx_2[idx]],
+            contraction_double_trace(xi1[noise_idx1+nnoise*proplist.idx_1A[idx]],xi2[noise_idx2+nnoise*proplist.idx_3C[idx]],
+                                    zeta1[noise_idx1+nnoise*proplist.idx_4[idx]],zeta2[noise_idx2+nnoise*proplist.idx_2[idx]],
                                     tmp_spinor,tmp_spinor2,noise_idx1,noise_idx2,idx);
             if (my_rank==0)   printf("\t---> Work done.\n");
          }
