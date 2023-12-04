@@ -46,7 +46,7 @@ isp          0
                                  # section, ncorr in total
 [Correlator 0]
 iprop        0 0 0 1             # quark lines
-type_sources 1 G5                # Dirac structures src snk A,C
+type_sources G5 1                # Dirac structures src snk A,C
 operator     PS                  # intermediate Dirac matrices B,D
 
 ################################# For every solver id used, one Solver

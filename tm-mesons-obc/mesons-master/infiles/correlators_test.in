@@ -22,13 +22,13 @@ seed         73099
 
 [Measurements]
 nprop        2                    # number of different quark lines
-ncorr        2                    # number of different correlators
-nnoise       10                   # number of noise vectors / conf >> the xi,zeta spinors!
+ncorr        1                    # number of different correlators
+nnoise       20                   # number of noise vectors / conf >> the xi,zeta spinors!
 noise_type   U1                   # noise type: U1 or Z2 or GAUSS
 csw          1.4951               # coefficient of the Sheikholeslami-Wohlert term
 cF           1.0                  # coefficient of the Fermions Fermion O(a) boundary counterterm
 eoflg        0                    
-x0           28
+x0           14
 z0           1
 
 ################################### For every quark line a Propagator 
@@ -48,11 +48,6 @@ isp          0
 [Correlator 0]
 iprop        0 0 0 1             # quark lines
 type_sources G5 1                # Dirac structures src snk A,C
-operator     PS                  # intermediate Dirac matrices B,D
-
-[Correlator 1]
-iprop        0 0 0 1             # quark lines
-type_sources G5 1                # Dirac structures src snk A,C
 operator     SP                  # intermediate Dirac matrices B,D
 
 ################################# For every solver id used, one Solver
@@ -65,7 +60,7 @@ isolv        0                  # = 0. If = 1 the even-odd precondition is used.
 nmr          4                  # Number of block minimal residual iterations to be used when the SAP smoother is applied.
 ncy          10                 # Number of SAP cycles per inverse iteration.
 nmx          128                # Maximal total number of Krylov vectors that may be generated.
-res          10.0e-12           # Desired maximal relative residue |eta-D*psi|/|eta| of the calculated solution.
+res          1.0e-13           # Desired maximal relative residue |eta-D*psi|/|eta| of the calculated solution.
 
 [Solver 1]
 solver       DFL_SAP_GCR

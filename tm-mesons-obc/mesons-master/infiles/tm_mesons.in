@@ -37,15 +37,15 @@ kappa        0.121951219512195
 isp          0                    
 
 [Propagator 1]
-mus          0.1666667            
-kappa        0.12
+mus          0.2           
+kappa        0.121951219512195
 isp          0
 
 ################################## For every correlator a Correlator
                                  # section, ncorr in total
 [Correlator 0]
 iprop        0 0                 # quark lines
-type         G5 G5               # Dirac structures src snk
+type         G5 1                # Dirac structures src snk
 x0           1                   # source time slice
 
 [Correlator 1]

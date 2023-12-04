@@ -45,7 +45,7 @@ isp          0
                                  # section, ncorr in total
 [Correlator 0]
 iprop        0 0                 # quark lines
-type         G5 G5               # Dirac structures src snk
+type         1 G5               # Dirac structures src snk
 x0           1                   # source time slice
 
 ################################# For every solver id used, one Solver
