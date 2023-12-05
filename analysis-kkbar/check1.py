@@ -288,7 +288,6 @@ for corr in np.arange(0,ncorr,1):
     plt.xlabel("Timeslice $y_4$")
     plt.ylabel("Real value of the correlator")
     plt.xlim(0,ntimes-1)
-    plt.ylim(0,EPSILON*1000000)
     plt.grid()
     for idx_trnsfrm in [1,2]:
         if(idx_trnsfrm==1):
