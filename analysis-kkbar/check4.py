@@ -1,3 +1,17 @@
+#########################################################################
+#########################################################################
+#
+#   This is a check test. It aims to validate Gauge invariance
+#   of the program.
+#
+#   Correlators must be Gauge invariant. The program analyzes
+#   two data sets - one the Gauge tranformed of the other - and 
+#   checks the invariance. In other words, the results of the
+#   correlators must be identical.
+#
+#########################################################################
+#########################################################################
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages

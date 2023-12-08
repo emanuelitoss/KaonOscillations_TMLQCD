@@ -3,15 +3,11 @@
 #
 #   This is a check test. It aims to validate Gauge invariance
 #   of the program.
-# 
-#   Each noise vector represents a couple of indices (c,alpha)
-#   where 'c' is the colour index of SU(3) and 'alpha' the Dirac
-#   index. Thus I do not evaluate noise average.
 #
 #   Correlators must be Gauge invariant. The program analyzes
 #   two data sets - one the Gauge tranformed of the other - and 
 #   checks the invariance. In other words, the results of the
-#   correlators must be identical
+#   correlators must be identical.
 #
 #########################################################################
 #########################################################################
