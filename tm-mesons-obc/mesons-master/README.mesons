@@ -8,7 +8,7 @@ Main program mesons, tm_mesons and correlators
 SYNTAX
 
 mesons -i <filename> [-noexp] [-a [-norng]]
-tm_mesons -i <filename> [-noexp] [-a [-norng]] [-nogauge]
+tm_mesons -i <filename> [-noexp] [-a [-norng]] [-nogauge] [-rndmgauge]
 
 DESCRIPTION
 
@@ -41,6 +41,15 @@ through an input file. The options are
                  to be used (see section RANDOM NUMBER GENERATOR below).
                  NOTE: starting from the saved state is not possible if
                  the process grid sizes NPROC0,..,NPROC3 are changed.
+
+-nogauge         The sea Guage fields are not imported but set to identity.
+                 This option could be useful to check programs and/or input
+                 files.
+
+-rndmgauge       The sea Guage fields are not imported but the 3x3 unitary
+                 matrices are randomly generated. It is clear that the
+                 physical meaning is completely absent. This option could be
+                 useful to check programs and/or input files.
 
 INPUT PARAMETERS
 
