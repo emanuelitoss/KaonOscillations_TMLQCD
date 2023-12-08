@@ -314,24 +314,17 @@ for corr in np.arange(0,ncorr,1):
     pp.savefig(immaginary_plot, dpi=immaginary_plot.dpi, transparent = True)
     plt.close()
 
+# info print
+firstPage = plt.figure(1,figsize=(13,5),dpi=300)
+firstPage.clf()
+text='GENERAL SETTINGS:\n'+r'$N_{corr}$ = '+str(ncorr)+'\n'+'$N_{noise}$ = '+str(nnoise)+'\n$N_T$ = '+str(ntimes)+'\nSource timeslice: $x_0$ = '+str(x0)+'\nSource timeslice: $z_0$ = '+str(z0)
 if ncorr==1:
-    firstPage = plt.figure(1,figsize=(13,5),dpi=300)
-    firstPage.clf()
-    text = 'GENERAL SETTINGS:\n'+r'$N_{corr}$ = '+str(ncorr)+'\n'+'$N_{noise}$ = '+str(nnoise)+'\n$N_T$ = '+str(ntimes)+'\nSource timeslice: $x_0$ = '+str(x0)+'\nSource timeslice: $z_0$ = '+str(z0)+'\n'+'\n\nCORRELATOR:\nHopping parameters: '+str(tmp_string)+'\n'+r'Twisted masses $\mu_s$ : '+str(mus[0])+'\n'+r'$\Gamma_A$: '+dirac_to_str(typeC_z[0])+'\n'+r'$\Gamma_C$: '+dirac_to_str(typeA_x[0])+'\nMixing operator: '+operator_to_str(operator_type[0])+' \nIsreal: '+str(bool(isreal[0]))+'\n'
-    firstPage.text(0.1,0.2,text,transform=firstPage.transFigure,size=12,ha="left",fontstyle='normal')
-    text = 'CHECK OF THE VALUES:\n'+r'$\epsilon$ = '+str(EPSILON)+'\n'+r'$N_{good}(real)$ = '+str(counter_good_re)+'\n'+r'$N_{bad}(real)$ = '+str(counter_bad_re)+'\n'+r'$N_{good}(immag.)$ = '+str(counter_good_im)+'\n'+r'$N_{bad}(immag.)$ = '+str(counter_bad_im)+'\n'
-    firstPage.text(0.87,0.5,text,transform=firstPage.transFigure,size=12,ha="right",fontstyle='normal')
-    pp.savefig(firstPage, dpi=firstPage.dpi, transparent = True)
-    plt.close()
-else:
-    firstPage = plt.figure(1,figsize=(13,5),dpi=300)
-    firstPage.clf()
-    text = 'GENERAL SETTINGS:\n'+r'$N_{corr}$ = '+str(ncorr)+'\n'+'$N_{noise}$ = '+str(nnoise)+'\n$N_T$ = '+str(ntimes)+'\nSource timeslice: $x_0$ = '+str(x0)+'\nSource timeslice: $z_0$ = '+str(z0)
-    firstPage.text(0.1,0.2,text,transform=firstPage.transFigure,size=12,ha="left",fontstyle='normal')
-    text = 'CHECK OF THE VALUES:\n'+r'$\epsilon$ = '+str(EPSILON)+'\n'+r'$N_{good}(real)$ = '+str(counter_good_re)+'\n'+r'$N_{bad}(real)$ = '+str(counter_bad_re)+'\n'+r'$N_{good}(immag.)$ = '+str(counter_good_im)+'\n'+r'$N_{bad}(immag.)$ = '+str(counter_bad_im)+'\n'
-    firstPage.text(0.87,0.5,text,transform=firstPage.transFigure,size=12,ha="right",fontstyle='normal')
-    pp.savefig(firstPage, dpi=firstPage.dpi, transparent = True)
-    plt.close()
+    text+='\n'+'\n\nCORRELATOR:\nHopping parameters: '+str(tmp_string)+'\n'+r'Twisted masses $\mu_s$ : '+str(mus[0])+'\n'+r'$\Gamma_A$: '+dirac_to_str(typeC_z[0])+'\n'+r'$\Gamma_C$: '+dirac_to_str(typeA_x[0])+'\nMixing operator: '+operator_to_str(operator_type[0])+' \nIsreal: '+str(bool(isreal[0]))+'\n'
+firstPage.text(0.1,0.2,text,transform=firstPage.transFigure,size=12,ha="left",fontstyle='normal')
+text = 'CHECK OF THE VALUES:\n'+r'$\epsilon$ = '+str(EPSILON)+'\n'+r'$N_{good}(real)$ = '+str(counter_good_re)+'\n'+r'$N_{bad}(real)$ = '+str(counter_bad_re)+'\n'+r'$N_{good}(imm.)$ = '+str(counter_good_im)+'\n'+r'$N_{bad}(imm.)$ = '+str(counter_bad_im)+'\n'
+firstPage.text(0.87,0.5,text,transform=firstPage.transFigure,size=12,ha="right",fontstyle='normal')
+pp.savefig(firstPage, dpi=firstPage.dpi, transparent = True)
+plt.close()
     
 # Save plots in a single file
 pp.close()
