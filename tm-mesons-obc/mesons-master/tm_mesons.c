@@ -107,7 +107,7 @@ static struct
    int **type;   /* type index of each x0 and propagator  */
 } proplist;
 
-static int my_rank,noexp,append,norng,endian,nogauge;
+static int my_rank,noexp,append,norng,endian,nogauge,rndmgauge;
 static int first,last,step;
 static int level,seed,nprop,ncorr,nnoise,noisetype,tvals;
 static int *isps,*props1,*props2,*type1,*type2,*x0s;
@@ -452,7 +452,7 @@ static void read_dirs(void)
          read_line("loc_dir","%s",loc_dir);
          cnfg_dir[0]='\0';
       }
-      else if(!nogauge)
+      else if((!nogauge)&&(!rndmgauge))
       {
          read_line("cnfg_dir","%s",cnfg_dir);
          loc_dir[0]='\0';
@@ -499,7 +499,7 @@ static void setup_files(void)
    if (noexp)
       error_root(name_size("%s/%sn%d_%d",loc_dir,nbase,last,NPROC-1)>=NAME_SIZE,
                  1,"setup_files [mesons.c]","loc_dir name is too long");
-   else if (!nogauge)
+   else if ((!nogauge)&&(!rndmgauge))
       error_root(name_size("%s/%sn%d",cnfg_dir,nbase,last)>=NAME_SIZE,
                  1,"setup_files [mesons.c]","cnfg_dir name is too long");
 
@@ -859,7 +859,8 @@ static void read_infile(int argc,char *argv[])
                  "Machine has unknown endianness");
 
       noexp=find_opt(argc,argv,"-noexp");
-      nogauge=find_opt(argc,argv,"-nogauge"); /* Option to use link variables = 1 */
+      nogauge=find_opt(argc,argv,"-nogauge");
+      rndmgauge=find_opt(argc,argv,"-rndmgauge")
       append=find_opt(argc,argv,"-a");
       norng=find_opt(argc,argv,"-norng");
 
@@ -871,6 +872,7 @@ static void read_infile(int argc,char *argv[])
    MPI_Bcast(&endian,1,MPI_INT,0,MPI_COMM_WORLD);
    MPI_Bcast(&noexp,1,MPI_INT,0,MPI_COMM_WORLD);
    MPI_Bcast(&nogauge,1,MPI_INT,0,MPI_COMM_WORLD);
+   MPI_Bcast(&rndmgauge,1,MPI_INT,0,MPI_COMM_WORLD);
    MPI_Bcast(&append,1,MPI_INT,0,MPI_COMM_WORLD);
    MPI_Bcast(&norng,1,MPI_INT,0,MPI_COMM_WORLD);
 
@@ -1775,18 +1777,23 @@ int main(int argc,char *argv[])
          read_cnfg(cnfg_file);
          restore_ranlux();
       }
-      else if(!nogauge)
+      else if((!nogauge)&&(!rndmgauge))
       {
          sprintf(cnfg_file,"%s/%sn%d",cnfg_dir,nbase,nc);
          import_cnfg(cnfg_file);
       }
       else
       {
-         sprintf(cnfg_file,"# Gauge configurations are randomly generated\n");
-
-         /* my new function */
-         /*random_ud();*/
-         alloc_ud_to_identity();
+         if(rndmgauge)
+         {
+            sprintf(cnfg_file,"# Gauge configurations are randomly generated\n");
+            random_ud();
+         }
+         else if(nogauge)
+         {
+            sprintf(cnfg_file,"# Gauge configurations are set tu null A_mu (or U_mu = 1)\n");
+            alloc_ud_to_identity();
+         }
 
          set_flags(UPDATED_UD);
       }
