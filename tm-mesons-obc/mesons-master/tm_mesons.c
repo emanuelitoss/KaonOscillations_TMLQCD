@@ -860,7 +860,7 @@ static void read_infile(int argc,char *argv[])
 
       noexp=find_opt(argc,argv,"-noexp");
       nogauge=find_opt(argc,argv,"-nogauge");
-      rndmgauge=find_opt(argc,argv,"-rndmgauge")
+      rndmgauge=find_opt(argc,argv,"-rndmgauge");
       append=find_opt(argc,argv,"-a");
       norng=find_opt(argc,argv,"-norng");
 
