@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-home_dir = '/Users/emanuelerosi/Thesis_MSc/kaons-oscillations/tm-mesons-obc/mesons-master/dat/'
+home_dir = '/Users/emanuelerosi/thesis-MSc/kaons-oscillations/tm-mesons-obc/mesons-master/dat/'
 file_name = 'test2.mesons.dat'
 path_to_file = home_dir+file_name
 
