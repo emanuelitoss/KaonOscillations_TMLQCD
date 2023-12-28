@@ -15,10 +15,12 @@
 all: rmxeq mkdep mkxeq
 .PHONY: all
 
+MPI_HOME=/usr/local/Cellar/open-mpi/4.1.3
+
 
 # main programs and modules to be compiled
 
-MAIN = ym1 qcd1 qcd2 ms1 ms2 ms3 ms4
+MAIN = ym1 # qcd1 qcd2 ms1 ms2 ms3 ms4
 
 ARCHIVE = archive sarchive
 
@@ -107,7 +109,7 @@ LIBPATH = $(MPI_HOME)/lib
 
 CFLAGS = -std=c89 -pedantic -fstrict-aliasing \
          -Wall -Wno-long-long -Wstrict-prototypes -Werror \
-         -O -mno-avx -Dx64 -DPM 
+         -O #-mno-avx -Dx64 -DPM 
 
 
 # debugging flags (add to CFLAGS if needed)
@@ -168,6 +170,10 @@ mkdep:  $(addsuffix .d,$(PGMS))
 
 clean:
 	@ -rm -rf *.d *.o *.alog *.clog *.slog $(MAIN)
+.PHONY: clean
+
+clean-data:
+	@ -rm -rf ../data/ym1/dat/* ../data/ym1/log/*
 .PHONY: clean
 
 ################################################################################
