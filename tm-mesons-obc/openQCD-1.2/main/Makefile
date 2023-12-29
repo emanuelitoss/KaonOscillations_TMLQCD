@@ -173,7 +173,7 @@ clean:
 .PHONY: clean
 
 clean-data:
-	@ -rm -rf ../data/ym1/dat/* ../data/ym1/log/*
-.PHONY: clean
+	@ -rm -rf ../data/ym1/dat/* ../data/ym1/log/* ../data/ym1/cnfg/*
+.PHONY: clean-data
 
 ################################################################################
