@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
 home_dir = '/Users/emanuelerosi/thesis-MSc/kaons-oscillations/tm-mesons-obc/mesons-master/dat/'
-file_name = 'test2.mesons.dat'
+file_name = 'YMpureSU3-2pts.mesons.dat'
 path_to_file = home_dir+file_name
 
 # this must be set by the user 
@@ -206,7 +206,7 @@ for icorr in np.arange(0,ncorr,1):
 plt.legend(loc='upper right')
 
 # Save plots in a single file
-pp = PdfPages("plots/complete2pts.pdf")
+pp = PdfPages("plots/pureYM-2pts.pdf")
 pp.savefig(real_plot, dpi=real_plot.dpi, transparent = True)
 pp.savefig(immaginary_plot, dpi=immaginary_plot.dpi, transparent = True)
 
