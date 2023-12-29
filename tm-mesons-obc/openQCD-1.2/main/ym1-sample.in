@@ -1,0 +1,48 @@
+
+[Run name]
+name         YMpureSU3-sample
+
+[Directories]
+log_dir      ../data/ym1/log
+dat_dir      ../data/ym1/dat
+loc_dir      ../data/ym1/cnfg
+cnfg_dir     ../data/ym1/cnfg
+
+[Lattice parameters]
+beta         6.00
+c0           1.6667
+cG           1.0
+
+[Random number generator]
+level        0
+seed         73099
+
+[Trajectory length]
+tau          3.0
+
+[MD integrator]
+integrator   OMF4  
+lambda       0.19  
+nstep        16   
+
+[MD trajectories]
+nth          20                   # Number of thermalization trajectories
+ntr          160                 # Total number of trajectories
+dtr_log      4                     # Separation of log entries
+dtr_ms       4                     # Separation of measurements
+dtr_cnfg     20                    # Separation of configuration saves
+
+# RULES
+#   "nth" and "ntr" must be integer multiples of "dtr_cnfg"
+#   "nth" must be equal to zero in a continuation run (option -a).
+#   "dtr_cnfg" must be a multiple of "dtr_log".
+#   "dtr_cnfg" must be a multiple of "dtr_ms" and the latter must be a multiple of "dtr_log".
+# WHY
+#   Configurations are saved after the first nth trajectories
+#   and then each dtr_cnfg trajectories
+
+[Wilson flow]
+integrator   RK3
+eps          2.0e-2
+nstep        100   
+dnms         10    
