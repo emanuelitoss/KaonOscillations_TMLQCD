@@ -34,6 +34,4 @@ Data analysis codes are written in Python language and lies in <span style="colo
 ---
 
 ### Contacts:
-rosiemanuele99@gmail.com, rosi.1812180@studenti.uniroma1.it
-
-![Kaons are mixing!](kaon.jpg "Kaons oscillatoions")
+rosiemanuele99@gmail.com, rosi.1812180@studenti.uniroma1.
