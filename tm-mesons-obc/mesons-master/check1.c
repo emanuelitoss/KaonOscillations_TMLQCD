@@ -75,6 +75,9 @@
 #define N_COLOURS 3
 #define N_DIRAC 4
 
+#define REVERSE_MU 1
+#define STANDARD_MU 0
+
 #define MAX(n,m) \
    if ((n)<(m)) \
       (n)=(m)
@@ -1544,10 +1547,14 @@ static void pointlike_source(spinor_dble *eta, int x0, int dc_index)
    }
 }
 
-static void solve_dirac(int prop, spinor_dble *eta, spinor_dble *psi, int *status)
+static void solve_dirac(int prop, spinor_dble *eta, spinor_dble *psi, int *status, int reverse)  /* modified */
 {
    solver_parms_t sp;
    sap_parms_t sap;
+   double mu;
+
+   if(reverse) mu=-mus[prop];
+   else mu=mus[prop];
 
    sp=solver_parms(isps[prop]);
    set_sw_parms(0.5/kappas[prop]-4.0);
@@ -1556,14 +1563,14 @@ static void solve_dirac(int prop, spinor_dble *eta, spinor_dble *psi, int *statu
    {
       mulg5_dble(VOLUME,eta);
 
-      tmcg(sp.nmx,sp.res,mus[prop],eta,eta,status);
+      tmcg(sp.nmx,sp.res,mu,eta,eta,status);
       
       if (my_rank==0)
          printf("%i\n",status[0]);
-      error_root(status[0]<0,1,"solve_dirac [check1.c]",
+      error_root(status[0]<0,1,"solve_dirac [correlators.c]",
                  "CGNE solver failed (status = %d)",status[0]);
 
-      Dw_dble(-mus[prop],eta,psi);
+      Dw_dble(-mu,eta,psi);
       mulg5_dble(VOLUME,psi);
    }
    else if (sp.solver==SAP_GCR)
@@ -1571,10 +1578,10 @@ static void solve_dirac(int prop, spinor_dble *eta, spinor_dble *psi, int *statu
       sap=sap_parms();
       set_sap_parms(sap.bs,sp.isolv,sp.nmr,sp.ncy);
 
-      sap_gcr(sp.nkv,sp.nmx,sp.res,mus[prop],eta,psi,status);
+      sap_gcr(sp.nkv,sp.nmx,sp.res,mu,eta,psi,status);
       if (my_rank==0)
          printf("%i\n",status[0]);
-      error_root(status[0]<0,1,"solve_dirac [check1.c]",
+      error_root(status[0]<0,1,"solve_dirac [correlators.c]",
                  "SAP_GCR solver failed (status = %d)",status[0]);
    }
    else if (sp.solver==DFL_SAP_GCR)
@@ -1582,15 +1589,15 @@ static void solve_dirac(int prop, spinor_dble *eta, spinor_dble *psi, int *statu
       sap=sap_parms();
       set_sap_parms(sap.bs,sp.isolv,sp.nmr,sp.ncy);
 
-      dfl_sap_gcr2(sp.nkv,sp.nmx,sp.res,mus[prop],eta,psi,status);
+      dfl_sap_gcr2(sp.nkv,sp.nmx,sp.res,mu,eta,psi,status);
       if (my_rank==0)
          printf("%i %i\n",status[0],status[1]);
       error_root((status[0]<0)||(status[1]<0),1,
-                 "solve_dirac [check1.c]","DFL_SAP_GCR solver failed "
-                 "(status = %d,%d)",status[0],status[1]);
+                 "solve_dirac [correlators.c]","DFL_SAP_GCR solver failed "
+                 "(status = %d,%d,%d)",status[0],status[1],status[2]);
    }
    else
-      error_root(1,1,"solve_dirac [check1.c]",
+      error_root(1,1,"solve_dirac [correlators.c]",
                  "Unknown or unsupported solver");
 }
 
@@ -2036,7 +2043,7 @@ static void correlators_contractions(void)
             printf("\t\tXi_{1A}^{1,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeA[idx]), proplist.prop_type1[idx]);
 
          make_source(eta1,proplist.matrix_typeA[idx],tmp_spinor);
-         solve_dirac(proplist.prop_type1[idx],tmp_spinor,xi1[noise_idx1+nnoise*idx],stat);
+         solve_dirac(proplist.prop_type1[idx],tmp_spinor,xi1[noise_idx1+nnoise*idx],stat,REVERSE_MU);
          mulg5_dble(VOLUME,xi1[noise_idx1+nnoise*idx]);
       }
 
@@ -2047,7 +2054,7 @@ static void correlators_contractions(void)
             printf("\t\tZeta_1^{4,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type4[idx]);
 
          assign_sd2sd(VOLUME,eta1,tmp_spinor);
-         solve_dirac(proplist.prop_type4[idx],tmp_spinor,zeta1[noise_idx1+nnoise*idx],stat);
+         solve_dirac(proplist.prop_type4[idx],tmp_spinor,zeta1[noise_idx1+nnoise*idx],stat,STANDARD_MU);
       }
    }
    
@@ -2065,7 +2072,7 @@ static void correlators_contractions(void)
             printf("\t\tXi_{3C}^{3,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeC[idx]),proplist.prop_type3[idx]);
 
          make_source(eta2,proplist.matrix_typeC[idx],tmp_spinor);
-         solve_dirac(proplist.prop_type3[idx],tmp_spinor,xi2[noise_idx2+nnoise*idx],stat);
+         solve_dirac(proplist.prop_type3[idx],tmp_spinor,xi2[noise_idx2+nnoise*idx],stat,REVERSE_MU);
          mulg5_dble(VOLUME,xi2[noise_idx2+nnoise*idx]);
       }
 
@@ -2076,7 +2083,7 @@ static void correlators_contractions(void)
             printf("\t\tZeta_2^{2,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type2[idx]);
 
          assign_sd2sd(VOLUME,eta2,tmp_spinor);
-         solve_dirac(proplist.prop_type2[idx],tmp_spinor,zeta2[noise_idx2+nnoise*idx],stat);
+         solve_dirac(proplist.prop_type2[idx],tmp_spinor,zeta2[noise_idx2+nnoise*idx],stat,STANDARD_MU);
       }
    }
          
@@ -2130,7 +2137,7 @@ static void correlators_contractions(void)
             printf("\t\tXi_{1A}^{1,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeA[idx]), proplist.prop_type1[idx]);
 
          make_source(eta1,proplist.matrix_typeA[idx],tmp_spinor);
-         solve_dirac(proplist.prop_type1[idx],tmp_spinor,xi1[idx],stat);
+         solve_dirac(proplist.prop_type1[idx],tmp_spinor,xi1[idx],stat,REVERSE_MU);
          mulg5_dble(VOLUME,xi1[idx]);
       }
 
@@ -2141,7 +2148,7 @@ static void correlators_contractions(void)
             printf("\t\tZeta_1^{4,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type4[idx]);
 
          assign_sd2sd(VOLUME,eta1,tmp_spinor);
-         solve_dirac(proplist.prop_type4[idx],tmp_spinor,zeta1[idx],stat);
+         solve_dirac(proplist.prop_type4[idx],tmp_spinor,zeta1[idx],stat,STANDARD_MU);
       }
    
       /* ETA_2 noise vectors */
@@ -2158,7 +2165,7 @@ static void correlators_contractions(void)
                printf("\t\tXi_{3C}^{3,-} evaluation:\n\t\t\ttype=%s, prop=%i, status:\n",dirac_type_to_string(proplist.matrix_typeC[idx]),proplist.prop_type3[idx]);
 
             make_source(eta2,proplist.matrix_typeC[idx],tmp_spinor);
-            solve_dirac(proplist.prop_type3[idx],tmp_spinor,xi2[idx],stat);
+            solve_dirac(proplist.prop_type3[idx],tmp_spinor,xi2[idx],stat,REVERSE_MU);
             mulg5_dble(VOLUME,xi2[idx]);
          }
 
@@ -2169,7 +2176,7 @@ static void correlators_contractions(void)
                printf("\t\tZeta_2^{2,+} evaluation:\n\t\t\tprop=%i, status:\n",proplist.prop_type2[idx]);
 
             assign_sd2sd(VOLUME,eta2,tmp_spinor);
-            solve_dirac(proplist.prop_type2[idx],tmp_spinor,zeta2[idx],stat);
+            solve_dirac(proplist.prop_type2[idx],tmp_spinor,zeta2[idx],stat,STANDARD_MU);
          }
          
          if (my_rank==0)   printf("\tStohcastic vectors eta1 = %i\teta2 = %i\n",noise_idx1,noise_idx2);
