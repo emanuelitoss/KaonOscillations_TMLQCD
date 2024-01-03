@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
 home_dir = '/Users/emanuelerosi/thesis-MSc/kaons-oscillations/tm-mesons-obc/mesons-master/dat/'
-file_name = 'YMpureSU3-2pts.mesons.dat'
+file_name = 'dat32x16x16x16/YMpureSU3-2pts.mesons.dat'
 path_to_file = home_dir+file_name
 
 # this must be set by the user 
@@ -193,16 +193,19 @@ data_err=np.sqrt(data_err)
 
 printCyan('...plotting data...\n')
 
+colours_plots = ['indigo','darkgreen']
+
 # Real part of correlators
 real_plot=plt.figure(1,figsize=(13,5),dpi=300)
 plt.title(r'Correlators $C_{M\overline{M}}(x_4,y_4) = \frac{a^3}{N_{sp}}\sum_{\vec{x},\vec{y}} < M(x) \overline{M}(y) >$')
 plt.xlabel("Timeslice $y_4$")
 plt.ylabel("Real value of the correlators")
 plt.xlim(0,ntimes-1)
+plt.yscale('log')
 plt.grid(linewidth=0.1)
 for icorr in np.arange(0,ncorr,1):
     plt.errorbar(np.arange(0,ntimes,1),data[icorr,:,0],yerr=data_err[icorr,:,0],label='correlator #'+str(icorr),
-            marker='o', markersize=2.5, lw=0, elinewidth=0.5, capsize=5, markeredgewidth=0.5)
+            marker='o', markersize=2.5, lw=0, elinewidth=0.5, capsize=5, markeredgewidth=0.5,color=colours_plots[icorr])
 plt.legend(loc='upper right')
 
 # Immaginary part of correlators
@@ -214,7 +217,7 @@ plt.xlim(0,ntimes-1)
 plt.grid(linewidth=0.1)
 for icorr in np.arange(0,ncorr,1):
     plt.errorbar(np.arange(0,ntimes,1),data[icorr,:,1],yerr=data_err[icorr,:,1],label='correlator #'+str(icorr),
-            marker='o', markersize=2.5, lw=0, elinewidth=0.5, capsize=5, markeredgewidth=0.5)
+            marker='o', markersize=2.5, lw=0, elinewidth=0.5, capsize=5, markeredgewidth=0.5,color=colours_plots[icorr])
 plt.legend(loc='upper right')
 
 # Save plots in a single file
@@ -236,5 +239,5 @@ else:
     firstPage.text(0.1,0.2,text,transform=firstPage.transFigure,size=12,ha="left",fontstyle='normal')
     pp.savefig(firstPage, dpi=firstPage.dpi, transparent = True)
     plt.close()
-    
+
 pp.close()
