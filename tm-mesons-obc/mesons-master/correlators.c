@@ -1480,7 +1480,7 @@ static void random_source(spinor_dble *eta, int x0)   /*untouched*/
    }
 }
 
-static void solve_dirac(int prop, spinor_dble *eta, spinor_dble *psi, int *status, int reverse)  /* untouched */
+static void solve_dirac(int prop, spinor_dble *eta, spinor_dble *psi, int *status, int reverse)  /* modified */
 {
    solver_parms_t sp;
    sap_parms_t sap;

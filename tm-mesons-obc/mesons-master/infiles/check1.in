@@ -23,7 +23,7 @@ seed         36593
 [Measurements]            
 nprop        2                    # number of different quark lines
 ncorr        1                    # number of different correlators
-noise_type    Z2
+noise_type   Z2
 csw          1.4951               # coefficient of the Sheikholeslami-Wohlert term
 cF           1.0                  # coefficient of the Fermions Fermion O(a) boundary counterterm
 eoflg        0

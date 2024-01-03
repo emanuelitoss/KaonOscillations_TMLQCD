@@ -1733,20 +1733,18 @@ static void check_endflag(int *iend)
 
 int main(int argc,char *argv[])
 {
-   int nc,iend,status[4]; /* nc := number of configurations, or configuration index
-                           iend := end index?
-                           status _:= */
+   int nc,iend,status[4];
    int nws,nwsd,nwv,nwvd;
    double wt1,wt2,wtavg;
    dfl_parms_t dfl;
 
-   MPI_Init(&argc,&argv);  /* initialize an open-mpi */
+   MPI_Init(&argc,&argv);
    MPI_Comm_rank(MPI_COMM_WORLD,&my_rank);
    
-   read_infile(argc,argv); /* read input file <filename>.in */
-   alloc_data(); /* allocate memory for correlators */
-   check_files(); /* check old log and data files */
-   print_info();  /* print info in .log file */
+   read_infile(argc,argv);
+   alloc_data();
+   check_files();
+   print_info();
    dfl=dfl_parms();
 
    geometry();
@@ -1794,7 +1792,6 @@ int main(int argc,char *argv[])
             sprintf(cnfg_file,"# Gauge configurations are set tu null A_mu (or U_mu = 1)\n");
             alloc_ud_to_identity();
          }
-
          set_flags(UPDATED_UD);
       }
 
