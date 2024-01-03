@@ -295,36 +295,57 @@ for corr in np.arange(0,ncorr,1):
     plt.xlabel("Timeslice $y_4$")
     plt.ylabel("Real value of the correlator")
     plt.xlim(0,ntimes-1)
-    plt.grid()
+    plt.grid(linewidth=0.1)
     for idx_trnsfrm in [1,2]:
         if(idx_trnsfrm==1):
             for i in np.arange(0,ntimes,1):
                 tmp[i]=data_std[corr][i][0]
-            plt.plot(tmp,str(idx_trnsfrm),label='Original data',alpha=1,lw=0.75)
+            plt.plot(tmp,'+',markersize=8,label='Original data',alpha=1,lw=0,color='crimson')
         elif(idx_trnsfrm==2):
             for i in np.arange(0,ntimes,1):
                 tmp[i]=data_gau[corr][i][0]
-            plt.plot(tmp,str(idx_trnsfrm),label='Transformed data',alpha=1,lw=0.75)
+            plt.plot(tmp,'x',markersize=8,label='Transformed data',alpha=1,lw=0,color='steelblue')
     plt.legend(loc='upper right')
     pp.savefig(real_plot, dpi=real_plot.dpi, transparent = True)
     plt.close() 
 
+    # Real part of correlators
+    real_plot=plt.figure(1,figsize=(13,5),dpi=300)
+    plt.title(r'Real part of correlator #{}'.format(corr))
+    plt.xlabel("Timeslice $y_4$")
+    plt.ylabel("Real value of the correlator")
+    plt.xlim(0,ntimes-1)
+    plt.ylim(-5e-20,5e-20)
+    plt.grid(linewidth=0.1)
+    for idx_trnsfrm in [1,2]:
+        if(idx_trnsfrm==1):
+            for i in np.arange(0,ntimes,1):
+                tmp[i]=data_std[corr][i][0]
+            plt.plot(tmp,'+',markersize=8,label='Original data',alpha=1,lw=0,color='crimson')
+        elif(idx_trnsfrm==2):
+            for i in np.arange(0,ntimes,1):
+                tmp[i]=data_gau[corr][i][0]
+            plt.plot(tmp,'x',markersize=8,label='Transformed data',alpha=1,lw=0,color='steelblue')
+    plt.legend(loc='upper right')
+    pp.savefig(real_plot, dpi=real_plot.dpi, transparent = True)
+    plt.close() 
+    
     # Real part of correlators
     immaginary_plot=plt.figure(1,figsize=(13,5),dpi=300)
     plt.title(r'Immaginary part of correlator #{}'.format(corr))
     plt.xlabel("Timeslice $y_4$")
     plt.ylabel("Immaginary value of the correlator")
     plt.xlim(0,ntimes-1)
-    plt.grid()
+    plt.grid(linewidth=0.1)
     for idx_trnsfrm in [1,2]:
         if(idx_trnsfrm==1):
             for i in np.arange(0,ntimes,1):
                 tmp[i]=data_std[corr][i][1]
-            plt.plot(tmp,str(idx_trnsfrm),label='Original data',alpha=1,lw=0.75)
+            plt.plot(tmp,'+',markersize=8,label='Original data',alpha=1,lw=0,color='crimson')
         elif(idx_trnsfrm==2):
             for i in np.arange(0,ntimes,1):
                 tmp[i]=data_gau[corr][i][1]
-            plt.plot(tmp,str(idx_trnsfrm),label='Transformed data',alpha=1,lw=0.75)
+            plt.plot(tmp,'x',markersize=8,label='Transformed data',alpha=1,lw=0,color='steelblue')
     plt.legend(loc='upper right')
     pp.savefig(immaginary_plot, dpi=immaginary_plot.dpi, transparent = True)
     plt.close()
