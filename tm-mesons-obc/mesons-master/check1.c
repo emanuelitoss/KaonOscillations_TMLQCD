@@ -2008,10 +2008,10 @@ static void correlators_contractions(void)
    eta2=wsd[1];
    tmp_spinor=wsd[2];
    tmp_spinor2=wsd[3];
-   xi1=malloc(proplist.len_1A*sizeof(spinor_dble*));
-   xi2=malloc(proplist.len_3C*sizeof(spinor_dble*));
-   zeta1=malloc(proplist.len4*sizeof(spinor_dble*));
-   zeta2=malloc(proplist.len2*sizeof(spinor_dble*));
+   xi1=malloc(proplist.len_1A*sizeof(spinor_dble*)*nnoise);
+   xi2=malloc(proplist.len_3C*sizeof(spinor_dble*)*nnoise);
+   zeta1=malloc(proplist.len4*sizeof(spinor_dble*)*nnoise);
+   zeta2=malloc(proplist.len2*sizeof(spinor_dble*)*nnoise);
    error((xi1==NULL)||(xi2==NULL)||(zeta1==NULL)||(zeta2==NULL),1,"correlators [check1.c]","Out of memory");
 
    for(l=0;l<nnoise*proplist.len_1A;l++)
