@@ -5,10 +5,10 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
 home_dir = '/Users/emanuelerosi/thesis-MSc/kaons-oscillations/tm-mesons-obc/mesons-master/dat/'
-file_name = 'YMpureSU3-3pts.correlators.dat'
+file_name = 'pytest.correlators.dat'
 path_to_file = home_dir+file_name
 
-# this must be set by the user 
+# this must be set by the user
 N1=8
 N2=8
 N3=8
@@ -185,92 +185,145 @@ printCyan('Data loaded.\n')
 
 # create an ordered data structure
 data=np.array([[[0]*2]*ntimes]*ncorr,dtype=np.float128)
+data_err=np.array([[[0]*2]*ntimes]*ncorr,dtype=np.float128)
+data_tmp=np.array([[[[0]*2]*ntimes]*ncorr]*len(cnfgs_nums),dtype=np.float128)
+twos=np.array([[[[2]*2]*ntimes]*ncorr]*len(cnfgs_nums),dtype=np.float128)
 
 printCyan('...reordering data...\n')
 
 for int_tmp,nc in enumerate(cnfgs_nums):
-    offset_idx=0 
+    offset_idx=0
     for corr in np.arange(0,ncorr,1):
         if(isreal[corr]==True):
             for time in np.arange(0,ntimes,1):
                 for i1 in np.arange(0,nnoise,1):
                     for i2 in np.arange(0,nnoise,1):
                         idx=offset_idx + i2 + i1*nnoise + time*nnoise*nnoise
-                        data[corr][time][0] += raw_data[int_tmp][idx]    # only real part
-                data[corr][time][0] = data[corr][time][0]/(volume3D*nnoise*nnoise)
+                        data_tmp[int_tmp][corr][time][0] += raw_data[int_tmp][idx]    # only real part
+                data_tmp[int_tmp][corr][time][0] = data_tmp[int_tmp][corr][time][0]/(volume3D*nnoise*nnoise)
+
         else:
             for time in np.arange(0,ntimes,1):
                 for i1 in np.arange(0,nnoise,1):
                     for i2 in np.arange(0,nnoise,1):
                         idx=offset_idx + 2*(i2 + i1*nnoise + time*nnoise*nnoise)
-                        data[corr][time][0] += raw_data[int_tmp][idx]    # real part
-                        data[corr][time][1] += raw_data[int_tmp][idx+1]  # immaginary part
-                data[corr][time][0] = data[corr][time][0]/(volume3D*nnoise*nnoise)
-                data[corr][time][1] = data[corr][time][1]/(volume3D*nnoise*nnoise)
+                        data_tmp[int_tmp][corr][time][0] += raw_data[int_tmp][idx]    # real part
+                        data_tmp[int_tmp][corr][time][1] += raw_data[int_tmp][idx+1]  # immaginary part
+                data_tmp[int_tmp][corr][time][0]/=(volume3D*nnoise*nnoise)
+                data_tmp[int_tmp][corr][time][1]/=(volume3D*nnoise*nnoise)
         offset_idx+=nnoise*nnoise*ntimes*(2-isreal[corr])
-                
-########################## CORRELATORS PLOT ##########################             
 
-printCyan('...plotting data...\n')
+
+np.sum(data_tmp/len(cnfgs_nums),axis=0,dtype=np.float128,out=data)          # mean <x>
+
+data_tmp_err=np.power(data_tmp,twos)
+np.sum(data_tmp_err/len(cnfgs_nums),axis=0,dtype=np.float128,out=data_err)  # mean <x^2>
+data_err=data_err-(data*data)   # variance <x^2> - <x>^2
+
+########################## CORRELATORS CALCULATION ##########################
 
 # The first correlator is Psi1, the second Psi2.
 # Then I create [VV+AA] and [VV-AA]
 # ... and so on ...
-correlators = [-2*(data[0]+data[1]),-2*(data[0]-data[1]),2*(data[2]-data[3]),2*(data[2]+data[3]),2*data[4]]
-tmp = np.array([0]*ntimes,dtype=np.float128)
-plot_names = [r'$O_{VV+AA}$',r'$O_{VV-AA}$',r'$O_{SS-PP}$',r'$O_{SS+PP}$',r'$O_{TT}$']
+correlators = np.array([2*(data[0]+data[1]),2*(data[0]-data[1]),-2*(data[2]-data[3]),-2*(data[2]+data[3]),-2*data[4]],dtype=np.float128)
+correlators_stdDevs=np.array([4*(data_err[0]+data_err[1]),4*(data_err[0]+data_err[1]),4*(data_err[2]+data_err[3]),
+                     4*(data_err[2]+data_err[3]),4*data_err[4]],dtype=np.float128)
+correlators_stdDevs=np.sqrt(correlators_stdDevs)
 
+########################## CORRELATORS PLOT ##########################   
+
+plot_names = [r'$O_{VV+AA}$',r'$O_{VV-AA}$',r'$O_{SS-PP}$',r'$O_{SS+PP}$',r'$O_{TT}$']
+colours_plt=['firebrick','navy','forestgreen','orange','mediumpurple']
+ecolours_plt=['darkred','midnightblue','darkgreen','darkorange','slateblue']
+
+printCyan('...plotting data...\n')
 pp = PdfPages("plots/pureYM-3pts.pdf")
         
-# Real part of correlators
+# REAL PLOT 1
 real_plot=plt.figure(1,figsize=(13,5),dpi=300)
 plt.title(r'Correlators: $\mathbb{Re}\left\{C_{i[+]}(x_4,y_4,z_4)\right\}$')
 plt.xlabel("Timeslice $y_4$")
 plt.ylabel("Real value of the correlator")
 plt.xlim(0,ntimes-1)
-plt.grid()
+plt.ylim(-6e-14,6e-14)
+plt.grid(linewidth=0.1)
 for idx,corr in enumerate(correlators):
-    for i,val in enumerate(corr):
-        tmp[i]=-val[1]  # there is an 'i' in front of the correlator definition!
-    if(idx<2):
-        plt.plot(tmp,str(idx+1),label=plot_names[idx],alpha=1,lw=0.75)
-    else:
-        plt.plot(tmp,'*',label=plot_names[idx],alpha=1,lw=0.75)
+    plt.errorbar(np.arange(0,ntimes,1),correlators[idx,:,0],yerr=correlators_stdDevs[idx,:,0],label=plot_names[idx],
+            marker='o', markersize=2.5, color=colours_plt[idx], ecolor=ecolours_plt[idx],
+            lw=0, elinewidth=0.5, capsize=5, markeredgewidth=0.5)
 plt.legend(loc='upper right')
 pp.savefig(real_plot, dpi=real_plot.dpi, transparent = True)
 plt.close()
 
-# Immaginary part of correlators
-immaginary_plot=plt.figure(2,figsize=(13,5),dpi=300)
+# REAL PLOT 2
+real_plot=plt.figure(2,figsize=(13,5),dpi=300)
+plt.title(r'Correlators: $\mathbb{Re}\left\{C_{i[+]}(x_4,y_4,z_4)\right\}$')
+plt.xlabel("Timeslice $y_4$")
+plt.ylabel("Real value of the correlator")
+plt.xlim(0,ntimes-1)
+plt.ylim(-1e-15,1e-15)
+plt.grid(linewidth=0.1)
+for idx,corr in enumerate(correlators):
+    plt.errorbar(np.arange(0,ntimes,1),correlators[idx,:,0],yerr=correlators_stdDevs[idx,:,0],label=plot_names[idx],
+            marker='o', markersize=2.5, color=colours_plt[idx], ecolor=ecolours_plt[idx],
+            lw=0, elinewidth=0.5, capsize=5, markeredgewidth=0.5)
+plt.legend(loc='upper right')
+pp.savefig(real_plot, dpi=real_plot.dpi, transparent = True)
+plt.close()
+
+# IMG PLOT 1
+immaginary_plot=plt.figure(3,figsize=(13,5),dpi=300)
 plt.title(r'Correlators: $\mathbb{Im}\left\{C_{i[+]}(x_4,y_4,z_4)\right\}$')
 plt.xlabel("Timeslice $y_4$")
 plt.ylabel("Immaginary value of the correlator")
 plt.xlim(0,ntimes-1)
-plt.grid()
+plt.grid(linewidth=0.1)
 for idx,corr in enumerate(correlators):
-    for i,val in enumerate(corr):
-        tmp[i]=val[0]   # there is an 'i' in front of the correlator definition!
-    if(idx<2):
-        plt.plot(tmp,str(idx+1),label=plot_names[idx],alpha=1,lw=0.75)
-    else:
-        plt.plot(tmp,'*',label=plot_names[idx],alpha=1,lw=0.75)
-plt.legend(loc='upper right')    
+    plt.errorbar(np.arange(0,ntimes,1),correlators[idx,:,1],yerr=correlators_stdDevs[idx,:,1],label=plot_names[idx],
+            marker='o', markersize=2.5, color=colours_plt[idx], ecolor=ecolours_plt[idx],
+            lw=0, elinewidth=0.5, capsize=5, markeredgewidth=0.5)
+    plt.legend(loc='upper right')
 pp.savefig(immaginary_plot, dpi=immaginary_plot.dpi, transparent = True)
 plt.close()
 
-if ncorr==1:
-    firstPage = plt.figure(1,figsize=(13,5),dpi=300)
-    firstPage.clf()
-    text = 'GENERAL SETTINGS:\n'+r'$N_{config}$ = '+str(len(cnfgs_nums))+'\n'+r'$N_{corr}$ = '+str(ncorr)+'\n'+'$N_{noise}$ = '+str(nnoise)+'\n$N_T$ = '+str(ntimes)+'\nSource timeslice: $x_0$ = '+str(x0)+'\n'+'\nSource timeslice: $z_0$ = '+str(z0)+'\n'+'\n\nCORRELATOR:\nHopping parameters: '+str(tmp_string)+'\n'+r'Twisted masses $\mu_s$ : '+str(mus[0])+'\n'+r'$\Gamma_A$: '+dirac_to_str(typeA_x[0])+'\n'+r'$\Gamma_C$: '+dirac_to_str(typeC_z[0])+'\n'+r'Operator $\Psi_i: $'+operator_to_str(operator_type[0])+' \nIsreal: '+str(bool(isreal[0]))+'\n'
-    firstPage.text(0.1,0.2,text,transform=firstPage.transFigure,size=12,ha="left",fontstyle='normal')
-    pp.savefig(firstPage, dpi=firstPage.dpi, transparent = True)
-    plt.close()
-else:
-    firstPage = plt.figure(1,figsize=(13,5),dpi=300)
-    firstPage.clf()
-    text = 'GENERAL SETTINGS:\n'+r'$N_{config}$ = '+str(len(cnfgs_nums))+'\n'+r'$N_{corr}$ = '+str(ncorr)+'\n'+'$N_{noise}$ = '+str(nnoise)+'\n$N_T$ = '+str(ntimes)+'\nSource timeslice: $x_0$ = '+str(x0)+'\n'
-    firstPage.text(0.1,0.2,text,transform=firstPage.transFigure,size=12,ha="left",fontstyle='normal')
-    pp.savefig(firstPage, dpi=firstPage.dpi, transparent = True)
-    plt.close()
+# IMG PLOT 2
+immaginary_plot=plt.figure(4,figsize=(13,5),dpi=300)
+plt.title(r'Correlators: $\mathbb{Im}\left\{C_{i[+]}(x_4,y_4,z_4)\right\}$')
+plt.xlabel("Timeslice $y_4$")
+plt.ylabel("Immaginary value of the correlator")
+plt.xlim(0,ntimes-1)
+plt.ylim(-5e-16,5e-16)
+plt.grid(linewidth=0.1)
+for idx,corr in enumerate(correlators):
+    plt.errorbar(np.arange(0,ntimes,1),correlators[idx,:,1],yerr=correlators_stdDevs[idx,:,1],label=plot_names[idx],
+            marker='o', markersize=2.5, color=colours_plt[idx], ecolor=ecolours_plt[idx],
+            lw=0, elinewidth=0.5, capsize=5, markeredgewidth=0.5)
+plt.legend(loc='upper right')
+pp.savefig(immaginary_plot, dpi=immaginary_plot.dpi, transparent = True)
+plt.close()
+
+# IMG PLOT 3
+immaginary_plot=plt.figure(5,figsize=(13,5),dpi=300)
+plt.title(r'Correlators: $\mathbb{Im}\left\{C_{i[+]}(x_4,y_4,z_4)\right\}$')
+plt.xlabel("Timeslice $y_4$")
+plt.ylabel("Immaginary value of the correlator")
+plt.xlim(0,ntimes-1)
+plt.ylim(-1e-17,1e-17)
+plt.grid(linewidth=0.1)
+for idx,corr in enumerate(correlators):
+    plt.errorbar(np.arange(0,ntimes,1),correlators[idx,:,1],yerr=correlators_stdDevs[idx,:,1],label=plot_names[idx],
+            marker='o', markersize=2.5, color=colours_plt[idx], ecolor=ecolours_plt[idx],
+            lw=0, elinewidth=0.5, capsize=5, markeredgewidth=0.5)
+plt.legend(loc='upper right')
+pp.savefig(immaginary_plot, dpi=immaginary_plot.dpi, transparent = True)
+plt.close()
+
+# Other infos
+firstPage = plt.figure(6,figsize=(13,5),dpi=300)
+firstPage.clf()
+text = 'GENERAL SETTINGS:\n'+r'$N_{config}$ = '+str(len(cnfgs_nums))+'\n'+r'$N_{corr}$ = '+str(ncorr)+'\n'+'$N_{noise}$ = '+str(nnoise)+'\n$N_T$ = '+str(ntimes)+'\nSource timeslice: $x_0$ = '+str(x0)+'\n'+'\nSource timeslice: $z_0$ = '+str(z0)+'\n'
+firstPage.text(0.1,0.2,text,transform=firstPage.transFigure,size=12,ha="left",fontstyle='normal')
+pp.savefig(firstPage, dpi=firstPage.dpi, transparent = True)
+plt.close()
 
 pp.close()

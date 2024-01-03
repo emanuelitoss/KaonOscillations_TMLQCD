@@ -154,31 +154,41 @@ printCyan('Data loaded.\n')
 ########################## DATA REORDERING ##########################
 
 # create an ordered data structure
-data = np.array([[[0]*ntimes]*ncorr]*2,dtype=np.float64)
+data=np.array([[[0]*2]*ntimes]*ncorr,dtype=np.float128)
+data_err=np.array([[[0]*2]*ntimes]*ncorr,dtype=np.float128)
+data_tmp=np.array([[[[0]*2]*ntimes]*ncorr]*len(cnfgs_nums),dtype=np.float128)
+twos=np.array([[[[2]*2]*ntimes]*ncorr]*len(cnfgs_nums),dtype=np.float128)
 
 printCyan('...reordering data...\n')
 
 for int_tmp,nc in enumerate(cnfgs_nums):
     offset_idx=0
-    for icorr in np.arange(0,ncorr,1):
-        if(isreal[icorr]==True):
+    for corr in np.arange(0,ncorr,1):
+        if(isreal[corr]==True):
             for time in np.arange(0,ntimes,1):
-                for inoise in np.arange(0,nnoise,1):
-                    idx=offset_idx+inoise+nnoise*time
-                    data[0][icorr][time] += raw_data[int_tmp][idx]   # only real part
+                for i1 in np.arange(0,nnoise,1):
+                    idx=offset_idx + i1 + time*nnoise
+                    data_tmp[int_tmp][corr][time][0] += raw_data[int_tmp][idx]    # only real part
+                data_tmp[int_tmp][corr][time][0] = data_tmp[int_tmp][corr][time][0]/(volume3D*nnoise)
+
         else:
             for time in np.arange(0,ntimes,1):
-                for inoise in np.arange(0,nnoise,1):
-                    idx=offset_idx+2*(inoise+nnoise*time)
-                    data[0][icorr][time] += raw_data[int_tmp][idx]   # real part
-                    data[1][icorr][time] += raw_data[int_tmp][idx+1] # immaginary part
-        offset_idx+=nnoise*ntimes*(2-isreal[icorr])
+                for i1 in np.arange(0,nnoise,1):
+                    idx=offset_idx + 2*(i1 + time*nnoise)
+                    data_tmp[int_tmp][corr][time][0] += raw_data[int_tmp][idx]    # real part
+                    data_tmp[int_tmp][corr][time][1] += raw_data[int_tmp][idx+1]  # immaginary part
+                data_tmp[int_tmp][corr][time][0]/=(volume3D*nnoise)
+                data_tmp[int_tmp][corr][time][1]/=(volume3D*nnoise)
+        offset_idx+=nnoise*ntimes*(2-isreal[corr])
 
-# divide by the norm - simulation doesn't do it
-# volume average + noise average + path integral average
-for idx,value in enumerate(data):
-    data[idx]=value/(volume3D*nnoise*len(cnfgs_nums))
-    
+
+np.sum(data_tmp/len(cnfgs_nums),axis=0,dtype=np.float128,out=data)          # mean <x>
+
+data_tmp_err=np.power(data_tmp,twos)
+np.sum(data_tmp_err/len(cnfgs_nums),axis=0,dtype=np.float128,out=data_err)  # mean <x^2>
+data_err=data_err-(data*data)   # variance <x^2> - <x>^2
+data_err=np.sqrt(data_err)
+
 ########################## CORRELATORS PLOT ##########################             
 
 printCyan('...plotting data...\n')
@@ -189,9 +199,10 @@ plt.title(r'Correlators $C_{M\overline{M}}(x_4,y_4) = \frac{a^3}{N_{sp}}\sum_{\v
 plt.xlabel("Timeslice $y_4$")
 plt.ylabel("Real value of the correlators")
 plt.xlim(0,ntimes-1)
-plt.grid()
+plt.grid(linewidth=0.1)
 for icorr in np.arange(0,ncorr,1):
-    plt.plot(data[0][icorr],str(icorr+1),label='correlator #'+str(icorr),alpha=1,lw=0.75)
+    plt.errorbar(np.arange(0,ntimes,1),data[icorr,:,0],yerr=data_err[icorr,:,0],label='correlator #'+str(icorr),
+            marker='o', markersize=2.5, lw=0, elinewidth=0.5, capsize=5, markeredgewidth=0.5)
 plt.legend(loc='upper right')
 
 # Immaginary part of correlators
@@ -200,9 +211,10 @@ plt.title(r'Correlators $C_{M\overline{M}}(x_4,y_4) = \frac{a^3}{N_{sp}}\sum_{\v
 plt.xlabel("Timeslice $y_4$")
 plt.ylabel("Immaginary value of the correlators")
 plt.xlim(0,ntimes-1)
-plt.grid()
+plt.grid(linewidth=0.1)
 for icorr in np.arange(0,ncorr,1):
-    plt.plot(data[1][icorr],str(icorr+1),label='correlator #'+str(icorr),alpha=1,lw=0.75)
+    plt.errorbar(np.arange(0,ntimes,1),data[icorr,:,1],yerr=data_err[icorr,:,1],label='correlator #'+str(icorr),
+            marker='o', markersize=2.5, lw=0, elinewidth=0.5, capsize=5, markeredgewidth=0.5)
 plt.legend(loc='upper right')
 
 # Save plots in a single file
