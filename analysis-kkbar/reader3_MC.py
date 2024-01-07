@@ -4,8 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-home_dir = '/Users/emanuelerosi/thesis-MSc/kaons-oscillations/tm-mesons-obc/mesons-master/dat/'
-file_name = 'pytest.correlators.dat'
+home_dir = '/Users/emanuelerosi/thesis-MSc/kaons-oscillations/tm-mesons-obc/mesons-master/dat/tests/'
+file_name = 'pureYM-ptlike1.correlators.dat'
 path_to_file = home_dir+file_name
 
 # this must be set by the user
@@ -237,7 +237,7 @@ colours_plt=['firebrick','navy','forestgreen','orange','mediumpurple']
 ecolours_plt=['darkred','midnightblue','darkgreen','darkorange','slateblue']
 
 printCyan('...plotting data...\n')
-pp = PdfPages("plots/pureYM-3pts.pdf")
+pp = PdfPages("plots/plaqAct-3pts.pdf")
         
 # REAL PLOT 1
 real_plot=plt.figure(1,figsize=(13,5),dpi=300)
@@ -245,7 +245,6 @@ plt.title(r'Correlators: $\mathbb{Re}\left\{C_{i[+]}(x_4,y_4,z_4)\right\}$')
 plt.xlabel("Timeslice $y_4$")
 plt.ylabel("Real value of the correlator")
 plt.xlim(0,ntimes-1)
-plt.ylim(-6e-14,6e-14)
 plt.grid(linewidth=0.1)
 for idx,corr in enumerate(correlators):
     plt.errorbar(np.arange(0,ntimes,1),correlators[idx,:,0],yerr=correlators_stdDevs[idx,:,0],label=plot_names[idx],
@@ -277,38 +276,6 @@ plt.title(r'Correlators: $\mathbb{Im}\left\{C_{i[+]}(x_4,y_4,z_4)\right\}$')
 plt.xlabel("Timeslice $y_4$")
 plt.ylabel("Immaginary value of the correlator")
 plt.xlim(0,ntimes-1)
-plt.grid(linewidth=0.1)
-for idx,corr in enumerate(correlators):
-    plt.errorbar(np.arange(0,ntimes,1),correlators[idx,:,1],yerr=correlators_stdDevs[idx,:,1],label=plot_names[idx],
-            marker='o', markersize=2.5, color=colours_plt[idx], ecolor=ecolours_plt[idx],
-            lw=0, elinewidth=0.5, capsize=5, markeredgewidth=0.5)
-    plt.legend(loc='upper right')
-pp.savefig(immaginary_plot, dpi=immaginary_plot.dpi, transparent = True)
-plt.close()
-
-# IMG PLOT 2
-immaginary_plot=plt.figure(4,figsize=(13,5),dpi=300)
-plt.title(r'Correlators: $\mathbb{Im}\left\{C_{i[+]}(x_4,y_4,z_4)\right\}$')
-plt.xlabel("Timeslice $y_4$")
-plt.ylabel("Immaginary value of the correlator")
-plt.xlim(0,ntimes-1)
-plt.ylim(-5e-16,5e-16)
-plt.grid(linewidth=0.1)
-for idx,corr in enumerate(correlators):
-    plt.errorbar(np.arange(0,ntimes,1),correlators[idx,:,1],yerr=correlators_stdDevs[idx,:,1],label=plot_names[idx],
-            marker='o', markersize=2.5, color=colours_plt[idx], ecolor=ecolours_plt[idx],
-            lw=0, elinewidth=0.5, capsize=5, markeredgewidth=0.5)
-plt.legend(loc='upper right')
-pp.savefig(immaginary_plot, dpi=immaginary_plot.dpi, transparent = True)
-plt.close()
-
-# IMG PLOT 3
-immaginary_plot=plt.figure(5,figsize=(13,5),dpi=300)
-plt.title(r'Correlators: $\mathbb{Im}\left\{C_{i[+]}(x_4,y_4,z_4)\right\}$')
-plt.xlabel("Timeslice $y_4$")
-plt.ylabel("Immaginary value of the correlator")
-plt.xlim(0,ntimes-1)
-plt.ylim(-1e-17,1e-17)
 plt.grid(linewidth=0.1)
 for idx,corr in enumerate(correlators):
     plt.errorbar(np.arange(0,ntimes,1),correlators[idx,:,1],yerr=correlators_stdDevs[idx,:,1],label=plot_names[idx],
