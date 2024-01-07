@@ -26,8 +26,8 @@ lambda       0.19
 nstep        16   
 
 [MD trajectories]
-nth          20                   # Number of thermalization trajectories
-ntr          160                 # Total number of trajectories
+nth          20                    # Number of thermalization trajectories
+ntr          160                   # Total number of trajectories
 dtr_log      4                     # Separation of log entries
 dtr_ms       4                     # Separation of measurements
 dtr_cnfg     20                    # Separation of configuration saves

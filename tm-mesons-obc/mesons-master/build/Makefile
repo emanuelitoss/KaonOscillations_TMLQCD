@@ -16,34 +16,25 @@
 all: rmxeq mkdep mkxeq
 .PHONY: all
 
+############################ COMPILATION ############################
+
 # specific open-mpi path (Emanuele Rosi)
 MPI_HOME=/usr/local/Cellar/open-mpi/4.1.3
-# GCC=/usr/bin/gcc
 
-# main programs and modules to be compiled
+# Emanuele Rosi's MacBook Pro: no SSE and/or AVX acceleration (assembly code)
+CFLAGS = -std=c89 -pedantic -fstrict-aliasing -Wall -Wno-long-long -Wstrict-prototypes -Werror -O -mno-avx -DCGNE_DBG -DFGCR_DBG -DMSCG_DBG -DDFL_MODES_DBG -DMDINT_DBG -DRWRAT_DBG
+# removed: -FGCR4VD_DBG, -Dx64
 
-
-
-
-# scheduling and optimization options
-
-# the previous CFLAGS options were:
+# the CFLAGS options were:
 # CFLAGS = -std=c89 -pedantic -fstrict-aliasing -Wall -Wno-long-long -Wstrict-prototypes -Werror -O -mno-avx -Dx64 -DPM -DCGNE_DBG -DFGCR_DBG -FGCR4VD_DBG -DMSCG_DBG -DDFL_MODES_DBG -DMDINT_DBG -DRWRAT_DBG
 
-# Emanuele Rosi's MacBook Pro >> no SSE and/or AVX acceleration (assembly code)
-CFLAGS = -std=c89 -pedantic -fstrict-aliasing -Wall -Wno-long-long -Wstrict-prototypes -Werror -O -mno-avx -DCGNE_DBG -DFGCR_DBG -DMSCG_DBG -DDFL_MODES_DBG -DMDINT_DBG -DRWRAT_DBG
-# ultimamente ho tolto questo debugger -FGCR4VD_DBG
-
-# -Dx64
 # debugging flags (add to CFLAGS if needed)
-
 # -DCGNE_DBG -DFGCR_DBG -FGCR4VD_DBG -DMSCG_DBG
 # -DDFL_MODES_DBG -DMDINT_DBG -DRWRAT_DBG
 
+############################ FILES ###########################
 
-
-
-MAIN = tm_mesons correlators pointlike3pts check1 #check2 check3 check4 #sflds_tests
+MAIN = tm_mesons correlators pointlike3pts # check1 check2 check3 check4 #sflds_tests
 
 ARCHIVE = archive sarchive
 
@@ -51,14 +42,9 @@ BLOCK = block blk_grid map_u2blk map_sw2blk map_s2blk
 
 GAUGE = gauge_transforms
 
-# ER: from the other folder
-
 DFL = dfl_geometry dfl_subspace ltl_gcr dfl_sap_gcr dfl_modes
-# ER: from the other folder
-# DFL = dfl_geometry dfl_subspace ltl_gcr dfl_projectors dfl_sap_gcr \
-      dfl_modes
 
-DIRAC = Dw_dble Dw Dw_bnd # Dw_xsf_dble Dw_xsf
+DIRAC = Dw_dble Dw Dw_bnd
 
 FLAGS = flags action_parms dfl_parms force_parms hmc_parms lat_parms \
         mdint_parms rat_parms rw_parms sap_parms sf_parms solver_parms
@@ -94,7 +80,7 @@ TCHARGE = ftcom ftensor tcharge ym_action
 
 UFLDS = plaq_sum uflds udcom bstap
 
-UPDATE = chrono mdsteps counters mdint hmc rwtm rwtmeo rwrat #rwtm_xsf rwtmeo_xsf
+UPDATE = chrono mdsteps counters mdint hmc rwtm rwtmeo rwrat
 
 UTILS = endian mutils utils wspace utils_mutils
 
@@ -103,7 +89,6 @@ VFLDS = vflds vinit vcom vdcom
 WFLOW = wflow
 
 
-# Aggiungere $(CFCTS)
 MODULES = $(ARCHIVE) $(BLOCK) $(DFL) $(DIRAC) $(FLAGS) $(FORCES) $(GAUGE) \
           $(LATTICE) $(LINALG) $(LINSOLV) $(LITTLE) $(MDFLDS) $(OPERATORS) $(RANDOM) \
           $(RATFCTS) $(SAP) $(SFLDS) $(SU3FCTS) $(SW_TERM) $(TCHARGE) \

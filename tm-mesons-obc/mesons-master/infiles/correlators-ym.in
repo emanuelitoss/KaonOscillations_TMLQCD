@@ -2,51 +2,49 @@
 
 [Run name]
 name         YMpureSU3-sample
-output       YMpureSU3-3pts-pointlike1 # optional
+output       pureYM-ptlike1
 
-
-[Directories]                       # as in openQCD            
-log_dir      ../dat/dat32x16x16x16
-dat_dir      ../dat/dat32x16x16x16
+[Directories]      
+log_dir      ../dat/tests
+dat_dir      ../dat/tests
 loc_dir      ../cnfg/cnfg32x16x16x16
 cnfg_dir     ../cnfg/cnfg32x16x16x16
 
-[Configurations]                    # as in openQCD ms1.
-                                    # (last-first)%step must be == 0 and step >= 1
+[Configurations]
 first        1
-last         4
-step         1
+last         51
+step         10
 
-[Random number generator]           # as in openQCD
+[Random number generator]
 level        0      
 seed         73099  
 
 [Measurements]
-nprop        3                      # number of different quark lines
-ncorr        5                      # number of different correlators
-nnoise       30                     # number of noise vectors
-noise_type   GAUSS                  # noise type: U1 or Z2 or GAUSS
-csw          1.4951                 # coefficient of the Sheikholeslami-Wohlert term
-cF           1.0                    # coefficient of the fermion O(a) boundary counterterm
-eoflg        0                      # if = 1, twisted mass is not used.
-x0           30                     # end timeslice
-z0           1                      # source timeslice
+nprop        3
+ncorr        5
+nnoise       30
+noise_type   GAUSS
+csw          1.4951
+cF           1.0
+eoflg        0
+x0           14
+z0           1
 
 ################################### For every quark line a Propagator 
 
 [Propagator 0]                      # quark 'down prime' : mu = -mu_d
-mus          0.0                    # twisted mass
-kappa        0.13300                # hopping parameter
+mus          0.0028856112           # twisted mass
+kappa        0.14545                # hopping parameter
 isp          0                      
 
 [Propagator 1]                      # quark 'strange' and 'strange prime' : mu = +mu_s
-mus          0.0
-kappa        0.13300
+mus          0.0138962291
+kappa        0.14545
 isp          0
 
 [Propagator 2]                      # quark 'down' : mu = +mu_d
-mus          0.0
-kappa        0.13300
+mus          -0.0028856112
+kappa        0.14545
 isp          0
 
 ################################## For every correlator a Correlator

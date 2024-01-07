@@ -6,7 +6,7 @@ output       check3      # optional
 [Directories]                     # as in openQCD            
 log_dir      ../log
 dat_dir      ../dat
-loc_dir      ../loc
+loc_dir      ../dat
 cnfg_dir     ../cnfg
 
 [Configurations]                  # as in openQCD ms1
