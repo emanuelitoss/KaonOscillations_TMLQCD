@@ -18,7 +18,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-home_dir = '/Users/emanuelerosi/thesis-MSc/kaons-oscillations/tm-mesons-obc/mesons-master/dat/'
+home_dir = '/Users/emanuelerosi/thesis-MSc/kaons-oscillations/tm-mesons-obc/mesons-master/dat/tests/'
 file_name = 'check2.correlators.dat'
 path_to_file = home_dir+file_name
 
@@ -267,48 +267,37 @@ error_check((counter_good_re+counter_bad_re)!=ncorr*ntimes or (counter_good_im+c
 # Example of some correlators
 
 tmp = np.array([0]*ntimes,dtype=np.float128)
-pp = PdfPages("plots/check2.pdf")
+tmp_gau = np.array([0]*ntimes,dtype=np.float128)
+pp = PdfPages("plots/check2-100.pdf")
 
 for corr in np.arange(0,ncorr,1):         
     # Real part of correlators
     real_plot=plt.figure(1,figsize=(13,5),dpi=300)
-    plt.title(r'Real part of correlator #{}'.format(corr))
     plt.xlabel("Timeslice $y_4$")
     plt.ylabel("Real value of the correlator")
     plt.xlim(0,ntimes-1)
+    plt.ylim(-1e-17,1e-17)
     plt.grid()
     for idx_trnsfrm in [1,2]:
         if(idx_trnsfrm==1):
             for i in np.arange(0,ntimes,1):
                 tmp[i]=data_std[corr][i][0]
-            plt.plot(tmp,str(idx_trnsfrm),label='Original data',alpha=1,lw=0.75)
+            plt.plot(tmp,'+',markersize=8,label='Original data',alpha=1,lw=0.75,color='crimson')
         elif(idx_trnsfrm==2):
             for i in np.arange(0,ntimes,1):
-                tmp[i]=data_gau[corr][i][0]
-            plt.plot(tmp,str(idx_trnsfrm),label='Transformed data',alpha=1,lw=0.75)
+                tmp_gau[i]=data_gau[corr][i][0]
+            plt.plot(tmp_gau,'x',markersize=7,label='Transformed data',alpha=1,lw=0.75,color='steelblue')
     plt.legend(loc='upper right')
     pp.savefig(real_plot, dpi=real_plot.dpi, transparent = True)
-    plt.close() 
-
-    # Immaginary part of correlators
-    immaginary_plot=plt.figure(1,figsize=(13,5),dpi=300)
-    plt.title(r'Immaginary part of correlator #{}'.format(corr))
-    plt.xlabel("Timeslice $y_4$")
-    plt.ylabel("Immaginary value of the correlator")
-    plt.xlim(0,ntimes-1)
-    plt.grid()
-    for idx_trnsfrm in [1,2]:
-        if(idx_trnsfrm==1):
-            for i in np.arange(0,ntimes,1):
-                tmp[i]=data_std[corr][i][1]
-            plt.plot(tmp,str(idx_trnsfrm),label='Original data',alpha=1,lw=0.75)
-        elif(idx_trnsfrm==2):
-            for i in np.arange(0,ntimes,1):
-                tmp[i]=data_gau[corr][i][1]
-            plt.plot(tmp,str(idx_trnsfrm),label='Transformed data',alpha=1,lw=0.75)
-    plt.legend(loc='upper right')
-    pp.savefig(immaginary_plot, dpi=immaginary_plot.dpi, transparent = True)
     plt.close()
+
+tmp=np.delete(tmp,0)
+tmp=np.delete(tmp,-1)
+tmp_gau=np.delete(tmp_gau,0)
+tmp_gau=np.delete(tmp_gau,-1)
+errorino = np.mean(np.abs(tmp_gau-tmp)/np.abs(tmp_gau+tmp))
+printCyan('Relative error:\t')
+print('\t',errorino)
 
 # info print
 firstPage = plt.figure(1,figsize=(13,5),dpi=300)

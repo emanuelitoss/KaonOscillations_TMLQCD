@@ -4,15 +4,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-home_dir = '/Users/emanuelerosi/thesis-MSc/kaons-oscillations/tm-mesons-obc/mesons-master/dat/tests/'
-file_name = 'pureYM-ptlike1.correlators.dat'
+#home_dir = '/Users/emanuelerosi/thesis-MSc/kaons-oscillations/tm-mesons-obc/mesons-master/dat/tests/'
+home_dir = '/Users/emanuelerosi/Desktop/data/'
+file_name = 'plaq-PCAC1.correlators.dat'
 path_to_file = home_dir+file_name
 
 # this must be set by the user
-N1=8
-N2=8
-N3=8
+N1=16
+N2=16
+N3=16
 volume3D=N1*N2*N3   # number of lattice points for each timeslice
+
+Lambda=[[1,0,0,0,0],[0,0,0,1,0],[0,0,0,-0.5,+0.5],[0,0,1,0,0],[0,-0.5,0,0,0]]
+lambdad=np.array(Lambda,dtype=np.float128)
 
 ######################## FUNCTIONS, TOOLS ########################
 
@@ -260,7 +264,7 @@ plt.title(r'Correlators: $\mathbb{Re}\left\{C_{i[+]}(x_4,y_4,z_4)\right\}$')
 plt.xlabel("Timeslice $y_4$")
 plt.ylabel("Real value of the correlator")
 plt.xlim(0,ntimes-1)
-plt.ylim(-1e-15,1e-15)
+plt.ylim(-2e-10,2e-10)
 plt.grid(linewidth=0.1)
 for idx,corr in enumerate(correlators):
     plt.errorbar(np.arange(0,ntimes,1),correlators[idx,:,0],yerr=correlators_stdDevs[idx,:,0],label=plot_names[idx],
@@ -276,6 +280,7 @@ plt.title(r'Correlators: $\mathbb{Im}\left\{C_{i[+]}(x_4,y_4,z_4)\right\}$')
 plt.xlabel("Timeslice $y_4$")
 plt.ylabel("Immaginary value of the correlator")
 plt.xlim(0,ntimes-1)
+plt.ylim(-1e-10,1e-10)
 plt.grid(linewidth=0.1)
 for idx,corr in enumerate(correlators):
     plt.errorbar(np.arange(0,ntimes,1),correlators[idx,:,1],yerr=correlators_stdDevs[idx,:,1],label=plot_names[idx],
@@ -284,6 +289,38 @@ for idx,corr in enumerate(correlators):
 plt.legend(loc='upper right')
 pp.savefig(immaginary_plot, dpi=immaginary_plot.dpi, transparent = True)
 plt.close()
+
+########################## RATIOS ##########################
+plot_names_ratios = [r'$R_2$',r'$R_3$',r'$R_4$',r'$R_5$']
+
+correlators=np.delete(correlators,0,1)
+correlators=np.delete(correlators,-1,1)
+correlators_stdDevs=np.delete(correlators_stdDevs,0,1)
+correlators_stdDevs=np.delete(correlators_stdDevs,-1,1)
+
+ratios=np.array([correlators[3]/correlators[0],0.5*(correlators[4]-correlators[3])/correlators[0],correlators[2]/correlators[0],-0.5*correlators[1]/correlators[0]],dtype=np.float128)
+ratios_stdDevs=np.array([ratios[0]*np.sqrt(np.power(correlators_stdDevs[3]/correlators[3],2)+np.power(correlators_stdDevs[0]/correlators[0],2)),
+                         ratios[1]*np.sqrt(np.power(correlators_stdDevs[3]/(correlators[4]-correlators[3]),2)+np.power(correlators_stdDevs[4]/(correlators[4]-correlators[3]),2)+np.power(correlators_stdDevs[0]/correlators[0],2)),
+                         ratios[2]*np.sqrt(np.power(correlators_stdDevs[2]/correlators[2],2)+np.power(correlators_stdDevs[0]/correlators[0],2)),
+                         ratios[3]*np.sqrt(np.power(correlators_stdDevs[1]/correlators[1],2)+np.power(correlators_stdDevs[0]/correlators[0],2))],dtype=np.float128)
+
+# REAL RATIOS
+real_plot=plt.figure(5,figsize=(13,5),dpi=300)
+plt.title(r'Ratios: $\mathbb{Re}\left\{\Theta_{i[+]}(x_4,y_4,z_4)/\Theta_{1[+]}(x_4,y_4,z_4)\right\}$')
+plt.xlabel("Timeslice $y_4$")
+plt.ylabel(r"Real values $R_i$")
+plt.xlim(0,ntimes-1)
+plt.ylim(-30,30)
+plt.grid(linewidth=0.1)
+for idx,corr in enumerate(ratios):
+    plt.errorbar(np.arange(1,ntimes-1,1),ratios[idx,:,0],yerr=ratios_stdDevs[idx,:,0],label=plot_names_ratios[idx],
+            marker='o', markersize=2.5, color=colours_plt[idx], ecolor=ecolours_plt[idx],
+            lw=0, elinewidth=0.5, capsize=5, markeredgewidth=0.5)
+plt.legend(loc='upper right')
+pp.savefig(real_plot, dpi=real_plot.dpi, transparent = True)
+plt.close()
+
+########################## INFOS ##########################
 
 # Other infos
 firstPage = plt.figure(6,figsize=(13,5),dpi=300)
