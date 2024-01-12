@@ -1,19 +1,16 @@
 [Run name]
-name         2pts
-output       2pts-test            # optional
-
+name         
+output       2pts-plaq1           # optional
 
 [Directories]                     # as in openQCD            
-log_dir      ../dat/tests
-dat_dir      ../dat/tests
+log_dir      ../dat/plaq-32x16x16x16
+dat_dir      ../dat/plaq-32x16x16x16
 loc_dir      ../loc
-cnfg_dir     ../cnfg
+cnfg_dir     ../cnfg/ym1-plaq
 
-[Configurations]                  # as in openQCD ms1
-                                  # in this case only configurations 1,3,5,7,9 would be processed
-                                  # (last-first)%step must be == 0 and step >= 1
+[Configurations]
 first        1 
-last         5
+last         200
 step         1
 
 [Random number generator]         # as in openQCD
@@ -21,9 +18,9 @@ level        0
 seed         45785  
 
 [Measurements]
-nprop        2                    # number of different quark lines
+nprop        3                    # number of different quark lines
 ncorr        2                    # number of different correlators
-nnoise       10                   # number of noise vectors
+nnoise       30                   # number of noise vectors
 noise_type   Z2                   # noise type: U1 or Z2 or GAUSS
 csw          1.4951               # coefficient of the Sheikholeslami-Wohlert term
 cF           1.0                  # coefficient of the Fermions Fermion O(a) boundary counterterm
@@ -32,24 +29,29 @@ eoflg        0
 ################################### For every quark line a Propagator 
                                   # section, nprop in total
 [Propagator 0]
-mus          0.0150
-kappa        0.14545
+mus          0.0038
+kappa        0.135217
 isp          0
 
 [Propagator 1]
-mus          -0.0150
-kappa        0.14545
+mus          -0.0038
+kappa        0.135217
+isp          0
+
+[Propagator 2]
+mus          0.1512
+kappa        0.135217
 isp          0
 
 ################################## For every correlator a Correlator
                                  # section, ncorr in total
-[Correlator 0]
-iprop        0 0                 # quark lines
-type         G5 G5               # Dirac structures src snk
+[Correlator 0]                   # S_{12}
+iprop        0 2                 # quark lines
+type         1 1                 # Dirac structures src snk
 x0           1                   # source time slice
 
-[Correlator 1]
-iprop        1 1                 # quark lines
+[Correlator 1]                   # P_{34}
+iprop        1 2                 # quark lines
 type         G5 G5               # Dirac structures src snk
 x0           1                   # source time slice
 
@@ -61,7 +63,7 @@ solver       DFL_SAP_GCR
 nkv          8
 isolv        1
 nmr          4
-ncy          5
+ncy          10
 nmx          128
 res          1.0e-12
 
@@ -82,8 +84,8 @@ bs           4 4 4 4    # bs : block-size 
 Ns           20
 
 [Deflation subspace generation]
-kappa        0.12
-mu           0.01
+kappa        0.131
+mu           0.01512
 ninv         10
 nmr          4
 ncy          4
