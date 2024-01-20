@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
 home_dir = '/Users/emanuelerosi/thesis-MSc/kaons-oscillations/tm-mesons-obc/mesons-master/dat/'
-file_name = 'check1.correlators.dat'
+file_name = 'tests/check1dan-rndm.correlators.dat'
 path_to_file = home_dir+file_name
 
 # this must be set by the user 
@@ -205,7 +205,7 @@ error_check(data_count!=len(raw_data),'len(data)!=expected lenght')
 data_std=np.array([[[0]*2]*ntimes]*ncorr,dtype=np.float128)
 data_gau=np.array([[[0]*2]*ntimes]*ncorr,dtype=np.float128)
 offset_idx=0
-    
+
 # standard data
 for corr in np.arange(0,ncorr,1):
     if(isreal[corr]==True):
@@ -214,7 +214,7 @@ for corr in np.arange(0,ncorr,1):
                 for i2 in np.arange(0,nnoise,1):
                     idx=offset_idx + i2 + i1*nnoise + time*nnoise*nnoise
                     data_std[corr][time][0] += raw_data[idx]    # only real part
-            data_std[corr][time][0] /= volume3D
+            data_std[corr][time][0] /= (0.5*volume3D)
 
     else:
         for time in np.arange(0,ntimes,1):
@@ -223,8 +223,8 @@ for corr in np.arange(0,ncorr,1):
                     idx=offset_idx + 2*(i2 + i1*nnoise + time*nnoise*nnoise)
                     data_std[corr][time][0] += raw_data[idx]    # real part
                     data_std[corr][time][1] += raw_data[idx+1]  # immaginary part
-            data_std[corr][time][0] /= volume3D
-            data_std[corr][time][1] /= volume3D
+            data_std[corr][time][0] /= (0.5*volume3D)
+            data_std[corr][time][1] /= (0.5*volume3D)
     offset_idx+=nnoise*nnoise*ntimes*(2-isreal[corr])
     
 # gauge transformed data
@@ -235,7 +235,7 @@ for corr in np.arange(0,ncorr,1):
                 for i2 in np.arange(0,nnoise,1):
                     idx=offset_idx + i2 + i1*nnoise + time*nnoise*nnoise
                     data_gau[corr][time][0] += raw_data[idx]    # only real part
-            data_gau[corr][time][0] /= volume3D
+            data_gau[corr][time][0] /= (0.5*volume3D)
     else:
         for time in np.arange(0,ntimes,1):
             for i1 in np.arange(0,nnoise,1):
@@ -243,8 +243,8 @@ for corr in np.arange(0,ncorr,1):
                     idx=offset_idx + 2*(i2 + i1*nnoise + time*nnoise*nnoise)
                     data_gau[corr][time][0] += raw_data[idx]    # real part
                     data_gau[corr][time][1] += raw_data[idx+1]  # immaginary part
-            data_gau[corr][time][0] /= volume3D
-            data_gau[corr][time][1] /= volume3D
+            data_gau[corr][time][0] /= (0.5*volume3D)
+            data_gau[corr][time][1] /= (0.5*volume3D)
     offset_idx+=nnoise*nnoise*ntimes*(2-isreal[corr])   
     
 ############################## CHECK ##############################
@@ -253,6 +253,8 @@ counter_good_re=0
 counter_bad_re=0
 counter_good_im=0
 counter_bad_im=0
+
+estimator=0
 
 for corr in np.arange(0,ncorr,1):
     for time in np.arange(0,ntimes,1):
@@ -266,6 +268,11 @@ for corr in np.arange(0,ncorr,1):
             counter_bad_im+=1
         else:
             counter_good_im+=1
+        
+        if(time!=0 and time!=(ntimes-1)):
+            estimator+=(abs(data_std[corr][time][0]-data_gau[corr][time][0])/data_std[corr][time][0])
+            print(abs(data_std[corr][time][0]-data_gau[corr][time][0])/data_std[corr][time][0])
+estimator/=(ncorr*(ntimes-2))
             
 printCyan('\nCheck ---> completed')
 print('\tEpsilon = ',EPSILON)
@@ -279,11 +286,14 @@ print('\t\tNumber of negatively checked values = ',counter_bad_im)
 error_check((counter_good_re+counter_bad_re)!=ncorr*ntimes or (counter_good_im+counter_bad_im)!=ncorr*ntimes,
             'Incorret data check. Rewrite the code.')
 
+stringhetta = '\nEstimator: '+str(estimator)
+printCyan(stringhetta)
+
 ############################## CORRELATOR PLOT ##############################            
 # Example of some correlators
 
 tmp = np.array([0]*ntimes,dtype=np.float128)
-pp = PdfPages("plots/check1.pdf")
+pp = PdfPages("plots/check1-dan16-rndm.pdf")
 
 for corr in np.arange(0,ncorr,1):
     #for i1 in np.arange(0,nnoise,1):
@@ -304,7 +314,7 @@ for corr in np.arange(0,ncorr,1):
         elif(idx_trnsfrm==2):
             for i in np.arange(0,ntimes,1):
                 tmp[i]=data_gau[corr][i][0]
-            plt.plot(tmp,'x',markersize=8,label='Transformed data',alpha=1,lw=0,color='steelblue')
+            plt.plot(tmp,'x',markersize=6,label='Transformed data',alpha=1,lw=0,color='steelblue')
     plt.legend(loc='upper right')
     pp.savefig(real_plot, dpi=real_plot.dpi, transparent = True)
     plt.close() 
@@ -315,7 +325,7 @@ for corr in np.arange(0,ncorr,1):
     plt.xlabel("Timeslice $y_4$")
     plt.ylabel("Real value of the correlator")
     plt.xlim(0,ntimes-1)
-    plt.ylim(-5e-20,5e-20)
+    plt.ylim(-1e-11,1e-11)
     plt.grid(linewidth=0.1)
     for idx_trnsfrm in [1,2]:
         if(idx_trnsfrm==1):
@@ -325,12 +335,12 @@ for corr in np.arange(0,ncorr,1):
         elif(idx_trnsfrm==2):
             for i in np.arange(0,ntimes,1):
                 tmp[i]=data_gau[corr][i][0]
-            plt.plot(tmp,'x',markersize=8,label='Transformed data',alpha=1,lw=0,color='steelblue')
+            plt.plot(tmp,'x',markersize=6,label='Transformed data',alpha=1,lw=0,color='steelblue')
     plt.legend(loc='upper right')
     pp.savefig(real_plot, dpi=real_plot.dpi, transparent = True)
     plt.close() 
     
-    # Real part of correlators
+    # Immaginary part of correlators
     immaginary_plot=plt.figure(1,figsize=(13,5),dpi=300)
     plt.title(r'Immaginary part of correlator #{}'.format(corr))
     plt.xlabel("Timeslice $y_4$")
@@ -345,7 +355,7 @@ for corr in np.arange(0,ncorr,1):
         elif(idx_trnsfrm==2):
             for i in np.arange(0,ntimes,1):
                 tmp[i]=data_gau[corr][i][1]
-            plt.plot(tmp,'x',markersize=8,label='Transformed data',alpha=1,lw=0,color='steelblue')
+            plt.plot(tmp,'x',markersize=6,label='Transformed data',alpha=1,lw=0,color='steelblue')
     plt.legend(loc='upper right')
     pp.savefig(immaginary_plot, dpi=immaginary_plot.dpi, transparent = True)
     plt.close()
